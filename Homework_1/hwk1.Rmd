@@ -16,14 +16,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 $~$
 
-### Overview
+### **Overview**
 We will explore, analyze and model a data set containing approximately 2200 records. Each record represents a professional baseball team from the years 1871 to 2006 inclusive. Each record has the performance of the team for the given year, with all of the statistics adjusted to match the performance of a 162 game season.
 
 Our objective is to build a multiple linear regression model on the training data to predict the number of wins for the team. We are only using the variables given to us (or variables that we derive from the variables provided). Below is a short description of the variables of interest in the data set:
 
+![](/Users/letiix3/Desktop/Data_621/Homework_1/Images/homework1_table.png)
+
 ```{r}
 # load libraries
 library(tidyverse)
+library(psych)
 library(ggplot2)
 ```
 
@@ -40,10 +43,10 @@ train <- read_csv('https://raw.githubusercontent.com/letisalba/Data_621/master/H
 $~$
 
 
-### Data Exploration
+### **Data Exploration**
 
 ```{r}
-print(train)
+glimpse(train)
 ```
 
 
@@ -51,25 +54,31 @@ print(train)
 summary(train)
 ```
 
-$~$
 
-
-### Data Preparation
-
-
-$~$
-
-
-### Model Building
+```{r}
+describe(train)
+```
 
 
 $~$
 
 
-### Model Selection
+### **Data Preparation**
 
 
 $~$
 
 
-### References
+### **Model Building**
+
+
+$~$
+
+
+### **Model Selection**
+
+
+$~$
+
+
+### **References**
