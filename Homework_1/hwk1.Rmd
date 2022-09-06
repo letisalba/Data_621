@@ -23,11 +23,14 @@ Our objective is to build a multiple linear regression model on the training dat
 
 ```{r}
 # load libraries
+library(tidyverse)
+library(ggplot2)
 ```
 
 
 ```{r}
-
+test <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv')
+train <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv')
 ```
 
 
@@ -37,6 +40,9 @@ $~$
 
 ### Data Exploration
 
+```{r}
+print(train)
+```
 
 $~$
 
