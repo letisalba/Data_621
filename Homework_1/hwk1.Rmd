@@ -29,8 +29,10 @@ library(ggplot2)
 
 
 ```{r}
-test <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv')
-train <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv')
+# loading datasets
+test <- read_csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv')
+
+train <- read_csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv')
 ```
 
 
@@ -42,6 +44,11 @@ $~$
 
 ```{r}
 print(train)
+```
+
+
+```{r}
+summary(train)
 ```
 
 $~$
