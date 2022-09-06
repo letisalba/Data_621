@@ -1,0 +1,62 @@
+---
+title: 'Data 621 Homework #1'
+author: "Group 2: Leticia Salazar"
+date: "2022-09-06"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+$~$
+
+### Overview
+We will explore, analyze and model a data set containing approximately 2200 records. Each record represents a professional baseball team from the years 1871 to 2006 inclusive. Each record has the performance of the team for the given year, with all of the statistics adjusted to match the performance of a 162 game season.
+
+Our objective is to build a multiple linear regression model on the training data to predict the number of wins for the team. We are only using the variables given to us (or variables that we derive from the variables provided). Below is a short description of the variables of interest in the data set:
+
+```{r}
+# load libraries
+```
+
+
+```{r}
+
+```
+
+
+
+$~$
+
+
+### Data Exploration
+
+
+$~$
+
+
+### Data Preparation
+
+
+$~$
+
+
+### Model Building
+
+
+$~$
+
+
+### Model Selection
+
+
+$~$
+
+
+### References
