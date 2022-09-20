@@ -57,17 +57,9 @@ $~$
 glimpse(train)
 ```
 
-```{r}
-glimpse(test)
-```
-
 
 ```{r}
 summary(train)
-```
-
-```{r}
-summary(test)
 ```
 
 
@@ -76,77 +68,13 @@ describe(train)
 ```
 
 
-```{r}
-describe(test)
-```
-
 
 ```{r}
 # looking for missing values
 colSums(is.na(train))
 ```
 
-```{r}
-colSums(is.na(test))
-```
 
-
-```{r}
-# variable distributions
-train %>%
-  gather(variable, value, TARGET_WINS:TEAM_FIELDING_DP) %>%
-  ggplot(., aes(value)) + 
-  geom_density(fill = "#1824c7", color ="#1824c7") + 
-  facet_wrap(~variable, scales = "free", ncol = 4) +
-  labs(x = element_blank(), y = element_blank())
-```
-
-
-```{r}
-train %>%
-  gather(variable, value, -TARGET_WINS) %>%
-  ggplot(., aes(value, TARGET_WINS)) + 
-  geom_point(fill = "#12a15a", color ="#12a15a") + 
-  geom_smooth(method = "lm", se = FALSE, color = "black") + 
-  facet_wrap(~variable, scales ="free", ncol = 4) +
-  labs(x = element_blank(), y = "Wins")
-```
-
-```{r}
-train %>% 
-  gather(variable, value, TARGET_WINS:TEAM_FIELDING_DP) %>%
-  ggplot(., aes(x= variable, y=value)) + 
-  geom_boxplot() +
-  facet_wrap(~variable, scales ="free", ncol = 4) +
-  labs(x = element_blank(), y = element_blank())
-```
-
-```{r}
-chart.Correlation(train, histogram = TRUE, method = "pearson")
-```
-
-```{r}
-corPlot(train, cex = 1.2)
-```
-
-
-```{r}
-corrplot(cor(train),        # Correlation matrix
-         method = "shade", # Correlation plot method
-         type = "full",    # Correlation plot style (also "upper" and "lower")
-         diag = TRUE,      # If TRUE (default), adds the diagonal
-         tl.col = "black", # Labels color
-         bg = "white",     # Background color
-         title = "",       # Main title
-         col = NULL)       # Color palette
-```
-
-
-```{r}
-train %>%
-  cor(., use = "complete.obs") %>%
-  corrplot(method = "color", type = "lower", tl.col = "black", diag = FALSE)
-```
 
 
 $~$
@@ -154,12 +82,6 @@ $~$
 
 ### **Data Preparation**
 
-```{r}
-# missing values to 0
-train[is.na(train)] <- 0
-
-# show how many missing values now
-colSums(is.na(train))
 ```
 
 $~$
