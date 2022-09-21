@@ -39,6 +39,7 @@ library(ggcorrplot)
 library(statsr)
 library(corrplot)
 library(PerformanceAnalytics)
+library(skimr)
 ```
 
 
@@ -52,6 +53,14 @@ head(train, n = 4)
 
 $~$
 
+```{r}
+skim(train)
+```
+
+
+$~$
+
+#### Let's take a look at the data  (train and test) using the glimpse, summary and describe functions ...
 
 ```{r}
 glimpse(train)
@@ -90,6 +99,22 @@ colSums(is.na(train))
 colSums(is.na(test))
 ```
 
+#### Some plots ...
+
+
+```{r}
+train %>% 
+  ggplot(aes(TARGET_WINS)) + 
+  geom_histogram(bins = 40, fill = 'yellow', color = "black",) +
+  geom_vline(aes(xintercept = mean(TARGET_WINS, na.rm = T)), col = "red", lty = 1) +
+  geom_vline(aes(xintercept = median(TARGET_WINS, na.rm = T)), col = "blue", lty = 1) +
+  labs(x = element_blank(),
+       y = "Count",
+       title = "Distribution of Wins",
+       caption = "Red line is the mean value and blue is the median") + 
+  theme_classic()
+```
+
 
 ```{r}
 # variable distributions
@@ -125,10 +150,14 @@ train %>%
 chart.Correlation(train, histogram = TRUE, method = "pearson")
 ```
 
+#### Don't like this one
+
 ```{r}
 corPlot(train, cex = 1.2)
 ```
 
+
+#### ???
 
 ```{r}
 corrplot(cor(train),        # Correlation matrix
@@ -149,6 +178,14 @@ train %>%
 ```
 
 
+```{r}
+ggcorrplot(cor(train), type = "upper", outline.color = "white",
+           ggtheme = theme_classic,
+           colors = c("#6D9EC1", "white", "#E46726"),
+           lab = TRUE, show.legend = FALSE, tl.cex = 6, lab_size = 2) 
+```
+
+
 $~$
 
 
@@ -166,6 +203,46 @@ $~$
 
 
 ### **Model Building**
+
+```{r}
+m1 <- lm(TARGET_WINS ~., data = train, na.action = na.omit)
+summary(m1)
+```
+
+```{r}
+plot(m1)
+```
+
+
+
+```{r}
+m2 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_HR +TEAM_BATTING_3B +TEAM_BASERUN_CS + TEAM_FIELDING_E+ TEAM_FIELDING_DP, data = train)
+summary(m2)
+```
+
+
+```{r}
+plot(m2)
+```
+
+
+```{r}
+m3 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_PITCHING_H, data = train)
+summary(m3)
+```
+
+```{r}
+plot(m3)
+```
+
+
+```{r}
+m4 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_PITCHING_H + TEAM_FIELDING_E + TEAM_PITCHING_BB, data = train)
+summary(m4)
+```
+```{r}
+plot(m4)
+```
 
 
 $~$
