@@ -1,0 +1,207 @@
+---
+title: 'Data 621 Homework #1'
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar and Santiago Torres"
+date: "09-25-2022"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(DataExplorer)
+library(ggplot2)
+library(tidyr)
+library(corrplot)
+library(mice)
+```
+
+
+
+## Data Overview
+The data set contains approximately 2276 records. Each record represents a professional baseball team from the years 1871 to 2006 inclusive. 
+Each record has the performance of the team for the given year, with all of the statistics adjusted to match the performance of a 162 game season.
+Below is a short description of the variables
+
+* INDEX 				- Identification Variable
+* TARGET_WINS           - Number of wins
+* TEAM_BATTING_H		- Base Hits by batters (1B,2B,3B,HR)
+* TEAM_BATTING_2B		- Doubles by batters (2B)
+* TEAM_BATTING_3B		- Triples by batters (3B)
+* TEAM_BATTING_HR		- Homeruns by batters (4B)
+* TEAM_BATTING_BB		- Walks by batters 
+* TEAM_BATTING_HBP	    - Batters hit by pitch (get a free base) 
+* TEAM_BATTING_SO		- Strikeouts by batters 
+* TEAM_BASERUN_SB		- Stolen bases 
+* TEAM_BASERUN_CS		- Caught stealing 
+* TEAM_FIELDING_E		- Errors 
+* TEAM_FIELDING_DP	    - Double Plays 
+* TEAM_PITCHING_BB	    - Walks allowed 
+* TEAM_PITCHING_H		- Hits allowed 
+* TEAM_PITCHING_HR	    - Homeruns allowed 
+* TEAM_PITCHING_SO	    - Strikeouts by pitchers 
+
+## Objective
+To build a multiple linear regression model on the training data to predict *TARGET_WINS*, which is the number of wins for the team.
+
+
+## Data Exploration
+
+```{r read-csv}
+# read data
+baseball_df <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv')
+baseball_eval <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv')
+
+head(baseball_df)
+dim(baseball_df)
+```
+
+
+
+
+```{r, baseball-summary}
+summary(baseball_df)
+print('Number of observations:') 
+nrow(baseball_df)
+print('Observations per year, 1871 - 2006:') 
+round(nrow(baseball_df)/(2006-1871),2)
+```
+
+Some columns have maximum values that are clearly outliers, like TEAM_PITCHING_H AND TEAM_PITCHING_HR. The assignment mentions
+that some of the season records were adjusted to match the performance during a 162-game season. 
+There are 2276 seasons in the training set. Observations span 128 years, with an average of 17 teams playing per year. 
+
+```{r}
+# distribution
+plot_histogram(baseball_df)
+```
+
+```{r}
+# against the response variable
+plot_scatterplot(baseball_df, by = "TARGET_WINS")
+```
+
+
+```{r}
+# boxplot for train dataset
+plot_boxplot(baseball_df, by="TARGET_WINS")
+```
+
+
+```{r, corrplot}
+
+corrplot(cor(baseball_df[,2:17], use = 'complete.obs'))
+
+
+```
+
+Looking at the correlation plot, there appear to be several strong correlations between explanatory variables and the target.  
+  
+From an initial inspection, it appears the team should focus on getting players on base through hits or walks.  
+Teams can still win if the pitchers allow homeruns, hits and walks to the other team.
+*Variables with Highest Positive Correlation with TARGET_WINS:*  
+  * TEAM_BATTING_H = 0.47
+  * TEAM_BATTING_HR = 0.42
+  * TEAM_BATTING_BB = 0.47
+  * TEAM_PITCHING_H = 0.47 
+  * TEAM_PITCHING_HR = 0.42
+  * TEAM_PITCHING_BB = 0.47
+
+To win more games it makes sense the team will need to make fewer errors.  
+*Variables with Strongly Negative Correlation with TARGET_WINS:*  
+  
+There were several batting variables which were related.  
+*Positive Correlations between variables*:     
+  * TEAM_PITCHING_H and TEAM_BATTING_H = 0.99  
+  * TEAM_PITCHING_HR and TEAM_BATTING_HR = 0.99  
+  * TEAM_PITCHING_BB and TEAM_BATTING_BB = 0.99    
+  * TEAM_PITCHING_SO and TEAM_BATTING_SO = 0.99   
+  
+
+
+## Missing values
+
+```{r, missing-values}
+
+
+round(100*colSums(is.na(baseball_df))/nrow(baseball_df),2)
+
+
+```
+
+In terms of missing values, there are two variables missing many obserations. TEAM_BATTING_HBP is missing over 90% of its values,
+while TEAM_BASERUN_CS is missing just around 30%. 
+
+```{r, missing-values}
+
+#New DF with Missings Removed
+baseball_df_mv <- baseball_df[, !names(baseball_df) %in% c('TEAM_BATTING_HBP','TEAM_BASERUN_CS','TEAM_FIELDING_DP')]
+summary(baseball_df_mv)
+
+#Impute NAs with Median
+baseball_df_imputed <- mice(baseball_df_mv, m=5, maxit = 5, method = 'pmm')
+baseball_df_final <- complete(baseball_df_imputed)
+summary(baseball_df_final)
+
+ggplot(melt(baseball_df_final), aes(x=value)) + geom_histogram() + facet_wrap(~variable, scale='free') + labs(x='', y='Frequency')
+
+#Replace Error Maxs
+baseball_df_final$TEAM_PITCHING_H[baseball_df_final$TEAM_PITCHING_H > 3*sd(baseball_df_final$TEAM_PITCHING_H)] <- median(baseball_df_final$TEAM_PITCHING_H)
+baseball_df_final$TEAM_PITCHING_BB[baseball_df_final$TEAM_PITCHING_BB > 3*sd(baseball_df_final$TEAM_PITCHING_BB)] <- median(baseball_df_final$TEAM_PITCHING_BB)
+baseball_df_final$TEAM_PITCHING_SO[baseball_df_final$TEAM_PITCHING_SO > 3*sd(baseball_df_final$TEAM_PITCHING_SO)] <- median(baseball_df_final$TEAM_PITCHING_SO)
+baseball_df_final$TEAM_FIELDING_E[baseball_df_final$TEAM_FIELDING_E > 3*sd(baseball_df_final$TEAM_FIELDING_E)] <- median(baseball_df_final$TEAM_FIELDING_E)
+
+summary(baseball_df_final)
+
+```
+
+
+
+## Michael Ippolito's code on residuals. Feel free to keep it remvove it as per the next steps
+
+Define function to look at residuals.
+
+```{r}
+ResidualAnalysis <- function(lmod) {
+  # Plot residuals
+  plot(lmod)
+  
+  # Shapiro test
+  #   The null hypothesis is that the residuals are normal.
+  #   If the p-value is small, reject the null (i.e., the residuals are not normal).
+  st <- shapiro.test(lmod$residuals)
+  if (st$p.value <= 0.05) {
+    print(paste0("The p-value of ", st$p.value, " is <= 0.05, so reject the null; i.e., the residuals are NOT normal."))
+  } else {
+    print(paste0("The p-value of ", st$p.value, " is > 0.05, so do not reject the null; i.e., the residuals are normal."))
+  }
+}
+```
+
+## Residual Analysis
+
+Look at residuals.
+
+```{r}
+# Residual analysis
+ResidualAnalysis(lm1)
+```
+
+### **Model Building**
+
+### **Model Selection**
+
+### **References**
+* https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+* https://r-coder.com/correlation-plot-r/
+
+
+
