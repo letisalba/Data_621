@@ -66,7 +66,7 @@ To build a multiple linear regression model on the training data to predict *TAR
 
 $~$
 
-### **Data Exploration**
+### **Data Exploration and Preparation**
 
 ```{r read-csv}
 # read data
@@ -187,20 +187,20 @@ $~$
 Define function to look at residuals.
 
 ```{r}
-# ResidualAnalysis <- function(lmod) {
-#   # Plot residuals
-#   plot(lmod)
-#   
-#   # Shapiro test
-#   #   The null hypothesis is that the residuals are normal.
-#   #   If the p-value is small, reject the null (i.e., the residuals are not normal).
-#   st <- shapiro.test(lmod$residuals)
-#   if (st$p.value <= 0.05) {
-#     print(paste0("The p-value of ", st$p.value, " is <= 0.05, so reject the null; i.e., the residuals are NOT normal."))
-#   } else {
-#     print(paste0("The p-value of ", st$p.value, " is > 0.05, so do not reject the null; i.e., the residuals are normal."))
-#   }
-# }
+ResidualAnalysis <- function(lmod) {
+  # Plot residuals
+  plot(lmod)
+
+  # Shapiro test
+  #   The null hypothesis is that the residuals are normal.
+  #   If the p-value is small, reject the null (i.e., the residuals are not normal).
+  st <- shapiro.test(lmod$residuals)
+  if (st$p.value <= 0.05) {
+    print(paste0("The p-value of ", st$p.value, " is <= 0.05, so reject the null; i.e., the residuals are NOT normal."))
+  } else {
+    print(paste0("The p-value of ", st$p.value, " is > 0.05, so do not reject the null; i.e., the residuals are normal."))
+  }
+}
 ```
 
 #### Residual Analysis
@@ -209,7 +209,7 @@ Look at residuals.
 
 ```{r}
 # Residual analysis
-# ResidualAnalysis(lm)
+ResidualAnalysis(lm)
 ```
 
 $~$
