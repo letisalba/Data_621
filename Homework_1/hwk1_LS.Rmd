@@ -21,7 +21,9 @@ We will explore, analyze and model a data set containing approximately 2200 reco
 
 Our objective is to build a multiple linear regression model on the training data to predict the number of wins for the team. We are only using the variables given to us (or variables that we derive from the variables provided). Below is a short description of the variables of interest in the data set:
 
-![](/Users/letiix3/Desktop/Data_621/Homework_1/Images/homework1_table.png)
+```{r table, out.width = "80%", fig.align = "center", warning=FALSE, message=FALSE}
+knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_1/Images/homework1_table.png")
+```
 
 $~$
 
