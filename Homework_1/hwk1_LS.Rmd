@@ -139,6 +139,7 @@ train %>%
   labs(x = element_blank(), y = "Wins")
 ```
 
+
 ```{r}
 train %>% 
   gather(variable, value, TARGET_WINS:TEAM_FIELDING_DP) %>%
@@ -218,7 +219,7 @@ plot(m1)
 
 
 ```{r}
-m2 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_HR +TEAM_BATTING_3B +TEAM_BASERUN_CS + TEAM_FIELDING_E+ TEAM_FIELDING_DP, data = train)
+m2 <- lm(TARGET_WINS ~ log1p(TEAM_BATTING_H) + TEAM_BATTING_HR +TEAM_BATTING_3B +TEAM_BASERUN_CS + TEAM_FIELDING_E+ TEAM_FIELDING_DP, data = train)
 summary(m2)
 ```
 
