@@ -1,0 +1,463 @@
+---
+title: 'Data 621 Homework #1'
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar and Santiago Torres"
+date: "09-25-2022"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+$~$
+
+##### **Load Libraries** 
+```{r include=TRUE, message=FALSE, warning=FALSE}
+# loading libraries
+library(dplyr)
+library(DataExplorer)
+library(ggplot2)
+library(tidyr)
+library(corrplot)
+library(mice)
+library(reshape)
+library(jtools) # use of summ()
+library(e1071) # check skewness
+library(gtsummary)
+```
+
+$~$
+
+------------
+
+
+### **Data Overview**
+The data set contains approximately 2276 records. Each record represents a professional baseball team from the years 1871 to 2006 inclusive. Each record has the performance of the team for the given year, with all of the statistics adjusted to match the performance of a 162 game season.
+
+Below is a short description of the variables:
+
+```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
+knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_1/Images/homework1_table.png")
+```
+
+
+$~$
+
+#### **Objective**
+To build a multiple linear regression model on the training data to predict *TARGET_WINS*, which is the number of wins for the team.
+
+$~$
+
+------------
+
+### **Data Exploration**
+
+Due to the number of fields in this data, I broke the dataset into intuitive sections and explored each section individually.
+
+```{r}
+# read csv files
+eval_df <- read.csv("https://raw.githubusercontent.com/catfoodlover/DATA621/main/HW1/moneyball-evaluation-data.csv")
+train_df <- read.csv("https://raw.githubusercontent.com/catfoodlover/DATA621/main/HW1/moneyball-training-data.csv")
+```
+
+$~$
+
+```{r, summary}
+summary(train_df)
+print(paste0('Number of observations: ', nrow(train_df))) 
+print(paste0('Observations per year, 1871 - 2006: ',round(nrow(train_df)/(2006-1871),2))) 
+```
+
+Some columns have maximum values that are clearly outliers, like TEAM_PITCHING_H AND TEAM_PITCHING_HR. The assignment mentions that some of the season records were adjusted to match the performance during a 162-game season. There are 2276 seasons in the training set. Observations span 128 years, with an average of 17 teams playing per year. 
+
+$~$
+
+```{r}
+# distribution
+plot_histogram(train_df)
+```
+
+
+```{r}
+# against the response variable
+plot_scatterplot(train_df, by = "TARGET_WINS")
+```
+
+
+```{r}
+# boxplot for train dataset
+plot_boxplot(train_df, by = "TARGET_WINS")
+```
+
+
+```{r, corrplot}
+corrplot(cor(train_df[,2:17], use = 'complete.obs'), tl.cex = 0.5)
+```
+
+Looking at the correlation plot, there appear to be several strong correlations between explanatory variables and the target. From an initial inspection, it appears the team should focus on getting players on base through hits or walks. Teams can still win if the pitchers allow homeruns, hits and walks to the other team.
+
+$~$
+
+*Variables with Highest Positive Correlation with TARGET_WINS:* 
+
+  * TEAM_BATTING_H = 0.47
+  
+  * TEAM_BATTING_HR = 0.42
+  
+  * TEAM_BATTING_BB = 0.47
+  
+  * TEAM_PITCHING_H = 0.47 
+  
+  * TEAM_PITCHING_HR = 0.42
+  
+  * TEAM_PITCHING_BB = 0.47
+
+To win more games it makes sense the team will need to make fewer errors. 
+
+$~$
+
+*Variables with Strongly Negative Correlation with TARGET_WINS:*  
+  
+  * There were several batting variables which were related. 
+
+$~$
+
+*Positive Correlations between variables*:  
+
+  * TEAM_PITCHING_H and TEAM_BATTING_H = 0.99  
+  
+  * TEAM_PITCHING_HR and TEAM_BATTING_HR = 0.99  
+  
+  * TEAM_PITCHING_BB and TEAM_BATTING_BB = 0.99 
+  
+  * TEAM_PITCHING_SO and TEAM_BATTING_SO = 0.99   
+  
+
+$~$
+
+---
+
+$~$
+
+#### Base Hits by Batter
+
+*  TARGET_WINS          - Number of wins
+*  TEAM_BATTING_H		    - Base Hits by batters (1B,2B,3B,HR)
+*  TEAM_BATTING_2B	    - Doubles by batters (2B)
+*  TEAM_BATTING_3B	    - Triples by batters (3B)
+*  TEAM_BATTING_HR	    - Homeruns by batters (4B)
+
+
+The means and medians are very similar for the base hits variables implying little skew to the distributions.
+
+```{r, warning=FALSE}
+train_df %>% 
+  select(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR")) %>% 
+  gtsummary::tbl_summary(statistic = list(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR") ~ "{mean} {median} {sd}"))
+```
+
+$~$
+
+We see tight distributions except for all base hits by batters (TEAM_BATTING_H).
+
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% 
+  select(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR"))
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Base Hit Variables")
+```
+
+$~$
+
+Unsurprisingly, all possible base hits (TEAM_BATTING_H) is correlated with winning.  As you increase the number of bases achieved by an at bat, the correlation decreases.
+
+Interestingly, doubles and triples are correlated with base hits while home runs are not.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR")) %>% GGally::ggpairs()
+```
+
+$~$
+
+#### Batting
+
+
+*  TARGET_WINS          - Number of wins
+*  TEAM_BATTING_BB		  - Walks by batters 
+*  TEAM_BATTING_HBP	    - Batters hit by pitch (get a free base) 
+*  TEAM_BATTING_SO		  - Strikeouts by batters 
+*  TEAM_BASERUN_SB		  - Stolen bases 
+*  TEAM_BASERUN_CS		  - Caught stealing
+
+
+The measures of central tendency show us that most of these variable have slight skew to their distributions. Stolen bases has a large right skew to its distribution.
+
+
+We are missing values for strikeouts, stolen bases and caught stealing.
+
+
+```{r}
+train_df %>% select(c("TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS")) %>% gtsummary::tbl_summary(statistic =list(c("TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS") ~ "{mean} {median} {sd}"
+))
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS"))
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Batting Variables")
+```
+
+$~$
+
+Of all the batting variables, only walks by batter has a correlation to wins.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS")) %>% GGally::ggpairs()
+```
+
+$~$
+
+#### Fielding
+
+*  TARGET_WINS       - Number of wins
+*  TEAM_FIELDING_E		- Errors 
+*  TEAM_FIELDING_DP	- Double Plays
+
+
+The Errors variable(TEAM_FIELDING_E) has an incredibly right skewed distribution. We are missing some Double Plays values.
+
+
+```{r}
+train_df %>% select(c("TEAM_FIELDING_E", "TEAM_FIELDING_DP")) %>% gtsummary::tbl_summary(statistic =list(c("TEAM_FIELDING_E", "TEAM_FIELDING_DP") ~ "{mean} {median} {sd}"
+))
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TEAM_FIELDING_E", "TEAM_FIELDING_DP"))
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Fielding Variables")
+```
+
+
+Both the Fielding variables are negatively correlated with Wins.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_FIELDING_E", "TEAM_FIELDING_DP"))%>% GGally::ggpairs()
+```
+
+$~$
+
+#### Pitching
+
+*  TARGET_WINS       - Number of wins
+*  TEAM_PITCHING_BB	- Walks allowed 
+*  TEAM_PITCHING_H		- Hits allowed 
+*  TEAM_PITCHING_HR	- Homeruns allowed 
+*  TEAM_PITCHING_SO	- Strikeouts by pitchers
+
+
+Hits allowed (TEAM_PITCHING_H) has a right skew and we are missing some Strikeouts by pitcher (TEAM_PITCHING_SO) values.
+
+Note: There is something off with the pitching stats; there is no way a team allowed 30k hits in a 162 game season or had 20k strikeouts.
+
+
+```{r}
+train_df %>% select(c("TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO")) %>% gtsummary::tbl_summary(statistic =list(c("TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO") ~ "{mean} {median} {sd}"
+))
+```
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO"))
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Pitching Variables")
+```
+
+Hits allowed is negatively correlated with Winning.
+
+Interestingly, Home runs allowed is positively correlated with Winning.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS","TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO"))%>% GGally::ggpairs()
+```
+
+$~$
+
+------------
+
+### **Data Preparation**
+
+
+##### **Missing values**
+
+```{r, missing-values}
+round(100*colSums(is.na(train_df))/nrow(train_df),2)
+```
+
+In terms of missing values, there are two variables missing many observations. TEAM_BATTING_HBP is missing over 90% of its values,
+while TEAM_BASERUN_CS is missing just around 30%. 
+
+```{r, missing-values2}
+#New DF with Missing Removed
+train_df_mv <- train_df[, !names(train_df) %in% c('TEAM_BATTING_HBP','TEAM_BASERUN_CS','TEAM_FIELDING_DP')]
+summary(train_df_mv)
+
+#Impute NAs with Median
+train_df_imputed <- mice(train_df_mv, m=5, maxit = 5, method = 'pmm')
+train_df_final <- complete(train_df_imputed)
+summary(train_df_final)
+
+ggplot(melt(train_df_final), aes(x=value)) + geom_histogram() + facet_wrap(~variable, scale='free') + labs(x='', y='Frequency')
+
+#Replace Error Maxs
+train_df_final$TEAM_PITCHING_H[train_df_final$TEAM_PITCHING_H > 3*sd(train_df_final$TEAM_PITCHING_H)] <- median(train_df_final$TEAM_PITCHING_H)
+train_df_final$TEAM_PITCHING_BB[train_df_final$TEAM_PITCHING_BB > 3*sd(train_df_final$TEAM_PITCHING_BB)] <- median(train_df_final$TEAM_PITCHING_BB)
+train_df_final$TEAM_PITCHING_SO[train_df_final$TEAM_PITCHING_SO > 3*sd(train_df_final$TEAM_PITCHING_SO)] <- median(train_df_final$TEAM_PITCHING_SO)
+train_df_final$TEAM_FIELDING_E[train_df_final$TEAM_FIELDING_E > 3*sd(train_df_final$TEAM_FIELDING_E)] <- median(train_df_final$TEAM_FIELDING_E)
+
+summary(train_df_final)
+```
+
+$~$
+
+------------
+
+### **Model Building**
+
+$~$
+
+##### **Model 1 - Full Model**
+
+By testing all variables in this first model we are able to see how significant are the variables in our dataset. We will then be able to use this model to base our other models.
+
+
+```{r}
+# model 1
+m1 <- lm(TARGET_WINS ~., data = train_df_final, na.action = na.omit)
+
+# we can use one summary function not both
+#summary(m1)
+summ(m1)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(m1)
+```
+
+##### **Model 2: Log transformation**
+
+Use of log transformation method which distributes skewness into a more "normally" distributed shape. I applied log transformation for highly skewed variables (less than -1 or greater than 1).
+
+
+Note: Model 2 was not a successful model compared to model 1. There weren't any significant changes between the two models therefore discarding this model.
+
+
+```{r}
+# Checking skewness of dataset
+sapply(train_df_final, function(x) skewness(x))
+```
+
+
+```{r}
+# Doing log transformations from model 1
+train_df_final_log <- train_df_final
+
+# Applying log transformation for highly skewed variables
+train_df_final_log$TEAM_BATTING_H <- log10(train_df_final_log$TEAM_BATTING_H + 1)
+train_df_final_log$TEAM_BATTING_2B <- log10(train_df_final_log$TEAM_BATTING_2B + 1)
+train_df_final_log$TEAM_PITCHING_H <- log10(train_df_final_log$TEAM_PITCHING_H + 1)
+train_df_final_log$TEAM_PITCHING_BB <- log10(train_df_final_log$TEAM_PITCHING_BB + 1)
+train_df_final_log$TEAM_FIELDING_E <- log10(train_df_final_log$TEAM_FIELDING_E + 1)
+train_df_final_log$TEAM_BASERUN_SB <- log10(train_df_final_log$TEAM_BASERUN_SB + 1)
+
+# Checking skewness
+sapply(train_df_final_log, function(x) skewness(x))
+```
+
+
+```{r}
+# model 2 log
+m2 <- lm(TARGET_WINS ~., data = train_df_final_log, na.action = na.omit)
+
+# we can use one or the other not both
+#summary(m2)
+summ(m2)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(m2)
+```
+
+
+$~$
+
+##### **Model 3: Statistically significant**
+
+Focusing on statistically significant values chosen primarily from their R output.
+
+```{r}
+# model 3
+m3 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_3B + TEAM_BATTING_HR + TEAM_BATTING_BB + TEAM_BASERUN_SB + TEAM_FIELDING_E, data = train_df_final)
+
+#summary(m3)
+summ(m3)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(m3)
+```
+
+
+$~$
+
+##### **Model 4: Backwards Elimination**
+
+Variables that are not statistically significant are removed to determine a best fit model.
+
+```{r}
+# model 4
+m4 <- lm(TARGET_WINS ~ TEAM_BATTING_2B + TEAM_PITCHING_H +  TEAM_PITCHING_HR +  TEAM_PITCHING_BB + TEAM_PITCHING_SO, data = train_df_final)
+
+#summary(m4)
+summ(m4)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(m4)
+```
+
+$~$
+
+------------
+
+### **Model Selection**
+
+
+
+
+$~$
+
+------------
+
+### **References**
+* https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+* https://r-coder.com/correlation-plot-r/
+
+
+
