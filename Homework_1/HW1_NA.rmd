@@ -1,0 +1,160 @@
+---
+title: "DATA621_HW1"
+author: "William Aiken"
+date: "9/20/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+```
+
+## 1. DATA EXPLORATION
+
+Due to the number of fields in this data, I broke the dataset into intuitive sections and explored each section individually.
+
+```{r}
+eval_df <- read.csv("https://raw.githubusercontent.com/catfoodlover/DATA621/main/HW1/moneyball-evaluation-data.csv")
+train_df <- read.csv("https://raw.githubusercontent.com/catfoodlover/DATA621/main/HW1/moneyball-training-data.csv")
+```
+
+
+### Base Hits by Batter
+
+*  TARGET_WINS       - Number of wins
+*  TEAM_BATTING_H		- Base Hits by batters (1B,2B,3B,HR)
+*  TEAM_BATTING_2B		- Doubles by batters (2B)
+*  TEAM_BATTING_3B		- Triples by batters (3B)
+*  TEAM_BATTING_HR		- Homeruns by batters (4B)
+
+The means and medians are very similar for the base hits variables implying little skew to the distributions.
+
+```{r, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR")) %>% gtsummary::tbl_summary(statistic =list(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR") ~ "{mean} {median} {sd}"
+))
+```
+
+
+We see tight distributions except for all base hits by batters (TEAM_BATTING_H).
+
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR"))
+
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Base Hit Variables")
+```
+
+Unsurprisingly, all possible base hits (TEAM_BATTING_H) is correlated with winning.  As you increase the number of bases achieved by an at bat, the correlation decreases.
+
+Interestingly, doubles and triples are correlated with base hits while home runs are not.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_BATTING_H","TEAM_BATTING_2B","TEAM_BATTING_3B","TEAM_BATTING_HR")) %>% GGally::ggpairs()
+```
+
+### Batting
+
+
+*  TARGET_WINS       - Number of wins
+*  TEAM_BATTING_BB		- Walks by batters 
+*  TEAM_BATTING_HBP	- Batters hit by pitch (get a free base) 
+*  TEAM_BATTING_SO		- Strikeouts by batters 
+*  TEAM_BASERUN_SB		- Stolen bases 
+*  TEAM_BASERUN_CS		- Caught stealing
+
+
+The measures of central tendency show us that most of these variable have slight skew to their distributions. Stolen bases has a large right skew to its distribution.
+
+
+We are missing values for stikeouts, stolen bases and caught stealing.
+
+
+```{r}
+train_df %>% select(c("TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS")) %>% gtsummary::tbl_summary(statistic =list(c("TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS") ~ "{mean} {median} {sd}"
+))
+```
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS"))
+
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Batting Variables")
+```
+
+
+Of all the batting variables, only walks by batter has a correlation to wins.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_BATTING_BB", "TEAM_BATTING_SO", "TEAM_BASERUN_SB", "TEAM_BASERUN_CS")) %>% GGally::ggpairs()
+```
+
+### Fielding
+
+*  TARGET_WINS       - Number of wins
+*  TEAM_FIELDING_E		- Errors 
+*  TEAM_FIELDING_DP	- Double Plays
+
+
+The Errors variable(TEAM_FIELDING_E) has an incredibly right skewed distribution. We are missing some Double Plays values.
+
+
+```{r}
+train_df %>% select(c("TEAM_FIELDING_E", "TEAM_FIELDING_DP")) %>% gtsummary::tbl_summary(statistic =list(c("TEAM_FIELDING_E", "TEAM_FIELDING_DP") ~ "{mean} {median} {sd}"
+))
+```
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TEAM_FIELDING_E", "TEAM_FIELDING_DP"))
+
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Fielding Variables")
+```
+
+
+Both the Fielding variables are negatively correlated with Wins.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS", "TEAM_FIELDING_E", "TEAM_FIELDING_DP"))%>% GGally::ggpairs()
+```
+
+### Pitching
+
+*  TARGET_WINS       - Number of wins
+*  TEAM_PITCHING_BB	- Walks allowed 
+*  TEAM_PITCHING_H		- Hits allowed 
+*  TEAM_PITCHING_HR	- Homeruns allowed 
+*  TEAM_PITCHING_SO	- Strikeouts by pitchers
+
+
+Hits allowed (TEAM_PITCHING_H) has a right skew and we are missing some Strikeouts by pitcher (TEAM_PITCHING_SO) values.
+
+
+```{r}
+train_df %>% select(c("TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO")) %>% gtsummary::tbl_summary(statistic =list(c("TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO") ~ "{mean} {median} {sd}"
+))
+```
+
+```{r, message=FALSE, warning=FALSE}
+temp <- train_df %>% select(c("TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO"))
+
+ggplot2::ggplot(stack(temp), aes(x = ind, y = values)) +
+  geom_boxplot() + labs(title = "Pitching Variables")
+```
+
+Hits allowed is negatively correlated with Winning.
+
+Interestingly, Home runs allowed is positively correlated with Winning.
+
+
+```{r, message=FALSE, warning=FALSE}
+train_df %>% select(c("TARGET_WINS","TEAM_PITCHING_H", "TEAM_PITCHING_HR", "TEAM_PITCHING_BB", "TEAM_PITCHING_SO"))%>% GGally::ggpairs()
+```
