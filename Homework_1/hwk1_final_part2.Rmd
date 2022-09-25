@@ -42,7 +42,7 @@ The data set contains approximately 2276 records. Each record represents a profe
 Below is a short description of the variables:
 
 ```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_1/Images/homework1_table.png")
+knitr::include_graphics("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/Images/homework1_table.png")
 ```
 
 
@@ -61,8 +61,8 @@ Due to the number of fields in this data, I broke the dataset into intuitive sec
 
 ```{r}
 # read csv files
-eval_df <- read.csv("https://raw.githubusercontent.com/catfoodlover/DATA621/main/HW1/moneyball-evaluation-data.csv")
-train_df <- read.csv("https://raw.githubusercontent.com/catfoodlover/DATA621/main/HW1/moneyball-training-data.csv")
+eval_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv")
+train_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv")
 ```
 
 $~$
