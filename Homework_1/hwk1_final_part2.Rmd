@@ -29,7 +29,9 @@ library(reshape)
 library(jtools) # use of summ()
 library(e1071) # check skewness
 library(gtsummary)
+library(caret) #data splitting
 ```
+
 
 $~$
 
@@ -68,12 +70,11 @@ train_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/maste
 $~$
 
 ```{r, summary}
-summary(train_df)
 print(paste0('Number of observations: ', nrow(train_df))) 
 print(paste0('Observations per year, 1871 - 2006: ',round(nrow(train_df)/(2006-1871),2))) 
 ```
 
-Some columns have maximum values that are clearly outliers, like TEAM_PITCHING_H AND TEAM_PITCHING_HR. The assignment mentions that some of the season records were adjusted to match the performance during a 162-game season. There are 2276 seasons in the training set. Observations span 128 years, with an average of 17 teams playing per year. 
+The assignment mentions that some of the season records were adjusted to match the performance during a 162-game season. There are 2276 seasons in the training set. Observations span 128 years, with an average of 17 teams playing per year. 
 
 $~$
 
@@ -86,12 +87,6 @@ plot_histogram(train_df)
 ```{r}
 # against the response variable
 plot_scatterplot(train_df, by = "TARGET_WINS")
-```
-
-
-```{r}
-# boxplot for train dataset
-plot_boxplot(train_df, by = "TARGET_WINS")
 ```
 
 
@@ -301,22 +296,27 @@ $~$
 
 ##### **Missing values**
 
-```{r, missing-values}
+```{r, missing-values-train}
+# training dataset
 round(100*colSums(is.na(train_df))/nrow(train_df),2)
+```
+
+```{r, missing-values-eval}
+# training dataset
+round(100*colSums(is.na(eval_df))/nrow(eval_df),2)
 ```
 
 In terms of missing values, there are two variables missing many observations. TEAM_BATTING_HBP is missing over 90% of its values,
 while TEAM_BASERUN_CS is missing just around 30%. 
 
-```{r, missing-values2}
+```{r, missing-values-train2}
 #New DF with Missing Removed
 train_df_mv <- train_df[, !names(train_df) %in% c('TEAM_BATTING_HBP','TEAM_BASERUN_CS','TEAM_FIELDING_DP')]
-summary(train_df_mv)
 
 #Impute NAs with Median
 train_df_imputed <- mice(train_df_mv, m=5, maxit = 5, method = 'pmm')
 train_df_final <- complete(train_df_imputed)
-summary(train_df_final)
+
 
 ggplot(melt(train_df_final), aes(x=value)) + geom_histogram() + facet_wrap(~variable, scale='free') + labs(x='', y='Frequency')
 
@@ -327,6 +327,26 @@ train_df_final$TEAM_PITCHING_SO[train_df_final$TEAM_PITCHING_SO > 3*sd(train_df_
 train_df_final$TEAM_FIELDING_E[train_df_final$TEAM_FIELDING_E > 3*sd(train_df_final$TEAM_FIELDING_E)] <- median(train_df_final$TEAM_FIELDING_E)
 
 summary(train_df_final)
+```
+
+```{r, missing-values-eval2}
+# New DF with Missing Removed for eval data
+eval_df_mv <- eval_df[, !names(eval_df) %in% c('TEAM_BATTING_HBP','TEAM_BASERUN_CS','TEAM_FIELDING_DP')]
+
+#Impute NAs with Median
+eval_df_imputed <- mice(eval_df_mv, m=5, maxit = 5, method = 'pmm')
+eval_df_final <- complete(eval_df_imputed)
+
+
+ggplot(melt(eval_df_final), aes(x=value)) + geom_histogram() + facet_wrap(~variable, scale='free') + labs(x='', y='Frequency')
+
+#Replace Error Maxs
+eval_df_final$TEAM_PITCHING_H[eval_df_final$TEAM_PITCHING_H > 3*sd(eval_df_final$TEAM_PITCHING_H)] <- median(eval_df_final$TEAM_PITCHING_H)
+eval_df_final$TEAM_PITCHING_BB[eval_df_final$TEAM_PITCHING_BB > 3*sd(eval_df_final$TEAM_PITCHING_BB)] <- median(eval_df_final$TEAM_PITCHING_BB)
+eval_df_final$TEAM_PITCHING_SO[eval_df_final$TEAM_PITCHING_SO > 3*sd(eval_df_final$TEAM_PITCHING_SO)] <- median(eval_df_final$TEAM_PITCHING_SO)
+eval_df_final$TEAM_FIELDING_E[eval_df_final$TEAM_FIELDING_E > 3*sd(eval_df_final$TEAM_FIELDING_E)] <- median(eval_df_final$TEAM_FIELDING_E)
+
+summary(eval_df_final)
 ```
 
 $~$
@@ -345,9 +365,6 @@ By testing all variables in this first model we are able to see how significant 
 ```{r}
 # model 1
 m1 <- lm(TARGET_WINS ~., data = train_df_final, na.action = na.omit)
-
-# we can use one summary function not both
-#summary(m1)
 summ(m1)
 ```
 
@@ -391,9 +408,6 @@ sapply(train_df_final_log, function(x) skewness(x))
 ```{r}
 # model 2 log
 m2 <- lm(TARGET_WINS ~., data = train_df_final_log, na.action = na.omit)
-
-# we can use one or the other not both
-#summary(m2)
 summ(m2)
 ```
 
@@ -412,10 +426,9 @@ Focusing on statistically significant values chosen primarily from their R outpu
 ```{r}
 # model 3
 m3 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_BATTING_3B + TEAM_BATTING_HR + TEAM_BATTING_BB + TEAM_BASERUN_SB + TEAM_FIELDING_E, data = train_df_final)
-
-#summary(m3)
 summ(m3)
 ```
+
 
 ```{r}
 par(mfrow=c(2,2))
@@ -432,8 +445,6 @@ Variables that are not statistically significant are removed to determine a best
 ```{r}
 # model 4
 m4 <- lm(TARGET_WINS ~ TEAM_BATTING_2B + TEAM_PITCHING_H +  TEAM_PITCHING_HR +  TEAM_PITCHING_BB + TEAM_PITCHING_SO, data = train_df_final)
-
-#summary(m4)
 summ(m4)
 ```
 
@@ -444,11 +455,108 @@ plot(m4)
 
 $~$
 
+##### **Model 5: Power**
+
+Using a power model may be more effective considering each independent variable doesn't appear to have a truly linear relationship with wins. Here we create a model using a cubit for each independent variable.
+
+```{r}
+# model 5
+m5 <- lm(TARGET_WINS ~ TEAM_BATTING_H + I(TEAM_BATTING_H^2) + I(TEAM_BATTING_H^3) + 
+           TEAM_BATTING_2B + I(TEAM_BATTING_2B^2) + I(TEAM_BATTING_2B^3) + 
+           TEAM_BATTING_3B + I(TEAM_BATTING_3B^2) + I(TEAM_BATTING_3B^3) + 
+           TEAM_BATTING_HR + I(TEAM_BATTING_HR^2) + I(TEAM_BATTING_HR^3) + 
+           TEAM_BATTING_BB + I(TEAM_BATTING_BB^2) + I(TEAM_BATTING_BB^3) + 
+           TEAM_BATTING_SO + I(TEAM_BATTING_SO^2) + I(TEAM_BATTING_SO^3) + 
+           TEAM_BASERUN_SB + I(TEAM_BASERUN_SB^2) + I(TEAM_BASERUN_SB^3) + 
+           TEAM_PITCHING_H + I(TEAM_PITCHING_H^2) + I(TEAM_PITCHING_H^3) + 
+           TEAM_PITCHING_HR + I(TEAM_PITCHING_HR^2) + I(TEAM_PITCHING_HR^3) + 
+           TEAM_PITCHING_BB + I(TEAM_PITCHING_BB^2) + I(TEAM_PITCHING_BB^3) + 
+           TEAM_PITCHING_SO + I(TEAM_PITCHING_SO^2) + I(TEAM_PITCHING_SO^3) + 
+           TEAM_FIELDING_E + I(TEAM_FIELDING_E^2) + I(TEAM_FIELDING_E^3), data = train_df_final)
+summ(m5)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(m5)
+```
+
+$~$
+
+##### **Model 6: Power with Reverse Elimination**
+
+Used reverse elimination on model 5 to remove variables with p-values higher than .05.
+
+```{r}
+# model 6
+m6 <- lm(TARGET_WINS ~ TEAM_BATTING_H + 
+           TEAM_BATTING_2B + I(TEAM_BATTING_2B^2) + I(TEAM_BATTING_2B^3) + 
+           I(TEAM_BATTING_3B^2) + I(TEAM_BATTING_3B^3) + 
+           
+           TEAM_BATTING_BB + I(TEAM_BATTING_BB^2) + I(TEAM_BATTING_BB^3) + 
+           TEAM_BATTING_SO + I(TEAM_BATTING_SO^2) + 
+           TEAM_BASERUN_SB + I(TEAM_BASERUN_SB^2) + 
+           TEAM_PITCHING_H + I(TEAM_PITCHING_H^2) + I(TEAM_PITCHING_H^3) + 
+           TEAM_PITCHING_HR + I(TEAM_PITCHING_HR^2) + I(TEAM_PITCHING_HR^3) + 
+           I(TEAM_PITCHING_BB^2) + I(TEAM_PITCHING_BB^3) + 
+           TEAM_PITCHING_SO + I(TEAM_PITCHING_SO^2) + I(TEAM_PITCHING_SO^3) + 
+           TEAM_FIELDING_E + I(TEAM_FIELDING_E^2), data = train_df_final)
+summ(m6)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(m6)
+```
+
 ------------
 
 ### **Model Selection**
 
+We are choosing model 6 after evaluating all the models in the section Model Building. The adjusted $R^2$ is better than the other models.
 
+```{r}
+# model 6 eval
+eval_m6 <- lm(INDEX ~ TEAM_BATTING_H + 
+           TEAM_BATTING_2B + I(TEAM_BATTING_2B^2) + I(TEAM_BATTING_2B^3) + 
+           I(TEAM_BATTING_3B^2) + I(TEAM_BATTING_3B^3) + 
+           
+           TEAM_BATTING_BB + I(TEAM_BATTING_BB^2) + I(TEAM_BATTING_BB^3) + 
+           TEAM_BATTING_SO + I(TEAM_BATTING_SO^2) + 
+           TEAM_BASERUN_SB + I(TEAM_BASERUN_SB^2) + 
+           TEAM_PITCHING_H + I(TEAM_PITCHING_H^2) + I(TEAM_PITCHING_H^3) + 
+           TEAM_PITCHING_HR + I(TEAM_PITCHING_HR^2) + I(TEAM_PITCHING_HR^3) + 
+           I(TEAM_PITCHING_BB^2) + I(TEAM_PITCHING_BB^3) + 
+           TEAM_PITCHING_SO + I(TEAM_PITCHING_SO^2) + I(TEAM_PITCHING_SO^3) + 
+           TEAM_FIELDING_E + I(TEAM_FIELDING_E^2), data = eval_df_final)
+summ(eval_m6)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(eval_m6)
+```
+
+
+```{r}
+eval_df_final$TARGET_WINS <- round(predict(m6, eval_df_final), 0)
+```
+
+
+```{r}
+# predictions are as follows
+eval_pred <- 
+  eval_df_final %>% select(TARGET_WINS, everything())
+head(eval_pred)
+```
+
+
+```{r}
+#write.csv(eval_df_final, "predictions.csv", row.names = F)
+```
 
 
 $~$
