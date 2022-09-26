@@ -515,7 +515,7 @@ plot(m6)
 
 ### **Model Selection**
 
-We are choosing model 6 after evaluating all the models in the section Model Building. The adjusted $R^2$ is better than the other models.
+We are choosing model 6 after evaluating all the models from the section Model Building. The adjusted $R^2$ is better than the other models.
 
 ```{r}
 # model 6 eval
@@ -551,11 +551,6 @@ eval_df_final$TARGET_WINS <- round(predict(m6, eval_df_final), 0)
 eval_pred <- 
   eval_df_final %>% select(TARGET_WINS, everything())
 head(eval_pred)
-```
-
-
-```{r}
-#write.csv(eval_df_final, "predictions.csv", row.names = F)
 ```
 
 
