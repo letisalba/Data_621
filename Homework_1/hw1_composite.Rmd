@@ -25,6 +25,7 @@ library(jtools) # use of summ()
 library(e1071) # check skewness
 library(kableExtra)
 library(lmtest)
+library(pROC)
 
 ```
 
@@ -714,9 +715,40 @@ summary(m6)
 
 #### Predictions on evaluation data
 
+First, impute missing values.
+
+```{r, missing-values-eval2}
+
+# New DF with Missing Removed for eval data
+eval_df_mv <- eval_df[, !names(eval_df) %in% c('TEAM_BATTING_HBP','TEAM_BASERUN_CS','TEAM_FIELDING_DP')]
+
+# Impute NAs with Median
+eval_df_imputed <- mice(eval_df_mv, m=5, maxit = 5, method = 'pmm')
+eval_df_final <- complete(eval_df_imputed)
+
+# Plot
+ggplot(melt(eval_df_final), aes(x=value)) + geom_histogram() + facet_wrap(~variable, scale='free') + labs(x='', y='Frequency')
+
+# Replace Error Maxs
+eval_df_final$TEAM_PITCHING_H[eval_df_final$TEAM_PITCHING_H > 3*sd(eval_df_final$TEAM_PITCHING_H)] <- median(eval_df_final$TEAM_PITCHING_H)
+eval_df_final$TEAM_PITCHING_BB[eval_df_final$TEAM_PITCHING_BB > 3*sd(eval_df_final$TEAM_PITCHING_BB)] <- median(eval_df_final$TEAM_PITCHING_BB)
+eval_df_final$TEAM_PITCHING_SO[eval_df_final$TEAM_PITCHING_SO > 3*sd(eval_df_final$TEAM_PITCHING_SO)] <- median(eval_df_final$TEAM_PITCHING_SO)
+eval_df_final$TEAM_FIELDING_E[eval_df_final$TEAM_FIELDING_E > 3*sd(eval_df_final$TEAM_FIELDING_E)] <- median(eval_df_final$TEAM_FIELDING_E)
+
+# Summary
+summary(eval_df_final)
+
+```
+
+
 ```{r}
 
-
+# Predict wins
+eval_df_final$TARGET_WINS <- round(predict(m6, eval_df_final), 0)
+eval_pred <-
+  eval_df_final %>% select(TARGET_WINS, everything()) %>%
+  arrange(INDEX)
+eval_pred
 
 ```
 
