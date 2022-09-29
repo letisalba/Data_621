@@ -14,6 +14,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
+```{r, warning=FALSE, message=FALSE}
+library(pROC)
+library(caret)
+library(tidyverse)
+```
 
 $~$
 
