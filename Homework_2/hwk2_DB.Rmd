@@ -1,5 +1,5 @@
 ---
-title: "Data 621 Homework 1"
+title: "Data 621 Homework 2"
 author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar and Santiago Torres"
 date: "10-11-2022"
 output:
@@ -64,22 +64,36 @@ Use the `table()` function to get the raw confusion matrix for this scored data 
 
 $~$
 
-### **Part 3:**
+### **Part 3: Accuracy Function**
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
 
 
-```{r}
+```{r func-accuracy, echo=TRUE}
+func.accuracy <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  FN = sum(df$FN)
+  
+  return((TP+TN)/(TP+FP+TN+FN))
+}
 
+func.accuracy(class_df)
 ```
 
 -------
 
 $~$
 
-### **Part 4:**
+### **Part 4: Classification Error Rate Function**
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the classification error rate of the predictions. Verify that you get an accuracy and an error rate that sums to one.
 
@@ -88,22 +102,47 @@ $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 Verify that you get an accuracy and an error rate that sums to one.
 
 
-```{r}
+```{r func-error_rate, echo=TRUE}
+func.error_rate <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  FN = sum(df$FN)
+  
+  return((FP+FN)/(TP+FP+TN+FN))
+}
 
+func.error_rate(class_df)
 ```
 
 -------
 
 $~$
 
-### **Part 5:**
+### **Part 5: Precision Function**
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the precision of the predictions.
 
 $$Precision = \frac{TP}{TP + FP}$$
 
 
-```{r}
+```{r func-precision, echo=TRUE}
+func.precision <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0))
+  TP = sum(df$TP)
+  FP = sum(df$FP)
+
+  return(TP/(TP+FP))
+}
+
+func.precision(class_df)
 
 ```
 
@@ -111,44 +150,73 @@ $$Precision = \frac{TP}{TP + FP}$$
 
 $~$
 
-### **Part 6:**
+### **Part 6: Sensitivity Function**
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the sensitivity of the predictions. Sensitivity is also known as recall.
 
 $$Sensitivity = \frac{TP}{TP + FN}$$
 
+True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
 
-```{r}
+```{r func-sensitivity, echo=TRUE}
+func.sensitivity <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  FN = sum(df$FN)
+  
+  return(TP/(TP+FN))
+}
 
+func.sensitivity(class_df)
 ```
 
 -------
 
 $~$
 
-### **Part 7:**
+### **Part 7: Specificity Function**
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the specificity of the predictions.
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
+True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
 
-```{r}
+```{r func-specificity, echo=TRUE}
+func.specificity <- function(data) {
+  df <- data %>%
+    mutate(TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0))
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  
+  return(TN/(TN+FP))
+}
 
+func.specificity(class_df)
 ```
 
 -------
 
 $~$
 
-### **Part 8:**
+### **Part 8: F1 Score**
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the F1 score of the predictions.
 
 $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
 
-```{r}
+```{r func-f1Score, echo=TRUE}
+func.f1score <- function(data) {
+  precision = func.precision(data)
+  sensitivity = func.sensitivity(data)
+  return(2 * precision * sensitivity/(precision + sensitivity))
+}
+
+func.f1score(class_df)
 
 ```
 
@@ -197,13 +265,26 @@ Use your **created R functions** and the provided classification output data set
 
 $~$
 
-### **Part 12:**
+### **Part 12: caret package**
 
 Investigate the **caret** package. In particular, consider the functions confusionMatrix, sensitivity, and specificity. Apply the functions to the data set. How do the results compare with your own functions?
 
+#### **Part 12a: confusionMatrix**
 
-```{r}
+```{r caret-confusionMatrix, echo=TRUE}
+caret::confusionMatrix(as.factor(class_df$scored.class),as.factor(class_df$class))
+```
 
+#### **Part 12b: sensitivity**
+
+```{r caret-sensitivity, echo=TRUE}
+caret::sensitivity(as.factor(class_df$scored.class),as.factor(class_df$class),1)
+```
+
+#### **Part 12c: specificity**
+
+```{r caret-specificity, echo=TRUE}
+caret::specificity(as.factor(class_df$scored.class),as.factor(class_df$class),0)
 ```
 
 -------
