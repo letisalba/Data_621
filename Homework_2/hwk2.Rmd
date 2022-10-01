@@ -14,6 +14,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
+$~$
+
 ```{r, warning=FALSE, message=FALSE}
 library(pROC)
 library(caret)
@@ -47,6 +49,7 @@ class_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/maste
 head(class_df, n = 4)
 ```
 
+
 ```{r}
 glimpse(class_df)
 ```
@@ -61,8 +64,16 @@ Use the `table()` function to get the raw confusion matrix for this scored data 
 
 
 ```{r, confusion_matrix}
-confusionMatrix <- table("Actual" = class_df$class, "Predicted" = class_df$scored.class)
-confusionMatrix
+class_df %>% 
+  select(class, scored.class) %>%
+  # re-coding to label the 0's and 1's
+  mutate(class = recode(class,
+                        '0' = 'Actual Negative', 
+                        '1' = 'Actual Positive'),
+         scored.class = recode(scored.class,
+                               '0' = 'Predicted Negative', 
+                               '1' = 'Predicted Positive')) %>%
+  table()
 ```
 
 -------
@@ -76,8 +87,13 @@ Write a function that takes the data set as a dataframe, with actual and predict
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
 
 
-```{r}
+```{r, accuracy_func}
+accurary_func <- function (class_df, actual, predic) {
+  accurary <- sum(class_df[actual] == class_df[predic]) / nrow(class_df)
+  return (accurary)
+}
 
+paste0('The accuracy of the predictions is ', round(accurary_func(class_df,"class","scored.class"),4))
 ```
 
 
@@ -230,8 +246,8 @@ $~$
 Investigate the **caret** package. In particular, consider the functions confusionMatrix, sensitivity, and specificity. Apply the functions to the data set. How do the results compare with your own functions?
 
 
-```{r}
-
+```{r, caret}
+confusionMatrix(as.factor(class_df$scored.class), as.factor(class_df$class), positive = "1")
 ```
 
 -------
@@ -243,8 +259,8 @@ $~$
 Investigate the **pROC** package. Use it to generate an ROC curve for the data set. How do the results compare with your own functions?
 
 
-```{r}
-
+```{r, pRoc}
+roc <- plot(roc(class_df$class, class_df$scored.probability), print.auc = TRUE, main = "ROC Curve from pROC Package")
 ```
 
 -------
