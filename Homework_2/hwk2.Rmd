@@ -44,7 +44,11 @@ Download the classification output data set.
 ```{r}
 # load data set
 class_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_2/csv/classification-output-data.csv")
-head(class_df)
+head(class_df, n = 4)
+```
+
+```{r}
+glimpse(class_df)
 ```
 
 -------
@@ -56,8 +60,9 @@ $~$
 Use the `table()` function to get the raw confusion matrix for this scored data set. Make sure you understand the output. In particular, do the rows represent the actual or predicted class? The columns?
 
 
-```{r}
-
+```{r, confusion_matrix}
+confusionMatrix <- table("Actual" = class_df$class, "Predicted" = class_df$scored.class)
+confusionMatrix
 ```
 
 -------
@@ -74,6 +79,7 @@ $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
 ```{r}
 
 ```
+
 
 -------
 
@@ -117,9 +123,20 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Sensitivity = \frac{TP}{TP + FN}$$
 
+True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
 
-```{r}
+```{r func-sensitivity, echo=TRUE}
+func.sensitivity <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  FN = sum(df$FN)
+  
+  return(TP/(TP+FN))
+}
 
+func.sensitivity(class_df)
 ```
 
 -------
@@ -132,9 +149,20 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
+True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
 
-```{r}
+```{r func-specificity, echo=TRUE}
+func.specificity <- function(data) {
+  df <- data %>%
+    mutate(TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0))
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  
+  return(TN/(TN+FP))
+}
 
+func.specificity(class_df)
 ```
 
 -------
