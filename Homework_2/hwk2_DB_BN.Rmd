@@ -150,7 +150,6 @@ func.precision <- function(data) {
 }
 
 func.precision(class_df)
-
 ```
 
 -------

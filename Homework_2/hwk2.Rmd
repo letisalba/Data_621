@@ -1,6 +1,6 @@
 ---
 title: "Data 621 Homework 1"
-author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar and Santiago Torres"
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar"
 date: "10-11-2022"
 output:
   html_document:
@@ -26,7 +26,7 @@ $~$
 
 ### **Overview:**
 
-In this homework assignment, you will work through various clasificiation metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
+In this homework assignment, you will work through various classificiation metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
 
 The data set has three key columns we will use:
 
@@ -87,13 +87,13 @@ Write a function that takes the data set as a dataframe, with actual and predict
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
 
 
-```{r, accuracy_func}
-accurary_func <- function (class_df, actual, predic) {
-  accurary <- sum(class_df[actual] == class_df[predic]) / nrow(class_df)
-  return (accurary)
+```{r func-accuracy, echo=TRUE}
+func.accuracy <- function (class_df, actual, predict) {
+  accuracy <- sum(class_df[actual] == class_df[predict]) / nrow(class_df)
+  return (accuracy)
 }
 
-paste0('The accuracy of the predictions is ', round(accurary_func(class_df,"class","scored.class"),4))
+paste0('The accuracy of the predictions is ', round(func.accuracy(class_df,"class","scored.class"),5))
 ```
 
 
@@ -110,8 +110,27 @@ $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 Verify that you get an accuracy and an error rate that sums to one.
 
 
-```{r}
+```{r func-error_rate, echo=TRUE}
+func.error_rate <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  FN = sum(df$FN)
+  
+  return((FP+FN)/(TP+FP+TN+FN))
+}
 
+error_rate <- func.error_rate(class_df)
+#accuracy <- func.accuracy(class_df)
+accuracy <- func.accuracy(class_df,"class","scored.class")
+
+# Verify that you get an accuracy and an error rate that sums to one.
+paste0('The accuracy and error rate sums to ', (accuracy + error_rate))
 ```
 
 -------
@@ -125,8 +144,18 @@ Write a function that takes the data set as a dataframe, with actual and predict
 $$Precision = \frac{TP}{TP + FP}$$
 
 
-```{r}
+```{r func-precision, echo=TRUE}
+func.precision <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0))
+  TP = sum(df$TP)
+  FP = sum(df$FP)
 
+  return(TP/(TP+FP))
+}
+
+paste0('The precision of the predictions is ',round(func.precision(class_df),5))
 ```
 
 -------
@@ -152,7 +181,7 @@ func.sensitivity <- function(data) {
   return(TP/(TP+FN))
 }
 
-func.sensitivity(class_df)
+paste0('The sensitivity of the predictions is ', round(func.sensitivity(class_df),5))
 ```
 
 -------
@@ -178,7 +207,7 @@ func.specificity <- function(data) {
   return(TN/(TN+FP))
 }
 
-func.specificity(class_df)
+paste0('The specificity of the predictions is ', round(func.specificity(class_df),5))
 ```
 
 -------
