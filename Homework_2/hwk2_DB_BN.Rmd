@@ -1,0 +1,317 @@
+---
+title: "Data 621 Homework 2"
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar"
+date: "10-11-2022"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(pROC)
+library(caret)
+library(tidyverse)
+```
+
+$~$
+
+### **Overview:**
+
+In this homework assignment, you will work through various clasificiation metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
+
+The data set has three key columns we will use:
+
+* **class** : the actual class for the observation
+* **scored.class** : the predicted class for the observation (based on a threshold of 0.5)
+* **scored.probability** : the predicted probability of success for the observation
+
+-------
+
+$~$
+
+### **Part 1:**
+
+Download the classification output data set.
+
+
+```{r}
+# load data set
+class_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_2/csv/classification-output-data.csv")
+head(class_df)
+```
+
+-------
+
+$~$
+
+### **Part 2:**
+
+Use the `table()` function to get the raw confusion matrix for this scored data set. Make sure you understand the output. In particular, do the rows represent the actual or predicted class? The columns?
+
+
+```{r}
+
+```
+
+-------
+
+$~$
+
+### **Part 3: Accuracy Function**
+
+Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
+
+$$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
+
+
+```{r func-accuracy, echo=TRUE}
+func.accuracy <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  FN = sum(df$FN)
+  
+  return((TP+TN)/(TP+FP+TN+FN))
+}
+
+func.accuracy(class_df)
+```
+
+-------
+
+$~$
+
+### **Part 4: Classification Error Rate Function**
+
+Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the classification error rate of the predictions. Verify that you get an accuracy and an error rate that sums to one.
+
+$$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
+
+Verify that you get an accuracy and an error rate that sums to one.
+
+
+```{r func-error_rate, echo=TRUE}
+func.error_rate <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  FN = sum(df$FN)
+  
+  return((FP+FN)/(TP+FP+TN+FN))
+}
+
+error_rate <- func.error_rate(class_df)
+accuracy <- func.accuracy(class_df)
+
+# Verify that you get an accuracy and an error rate that sums to one.
+
+(accuracy + error_rate)
+
+```
+
+
+
+-------
+
+$~$
+
+### **Part 5: Precision Function**
+
+Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the precision of the predictions.
+
+$$Precision = \frac{TP}{TP + FP}$$
+
+```{r func-precision, echo=TRUE}
+func.precision <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0))
+  TP = sum(df$TP)
+  FP = sum(df$FP)
+
+  return(TP/(TP+FP))
+}
+
+func.precision(class_df)
+
+```
+
+-------
+
+$~$
+
+### **Part 6: Sensitivity Function**
+
+Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the sensitivity of the predictions. Sensitivity is also known as recall.
+
+$$Sensitivity = \frac{TP}{TP + FN}$$
+
+True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
+
+```{r func-sensitivity, echo=TRUE}
+func.sensitivity <- function(data) {
+  df <- data %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0))
+  TP = sum(df$TP)
+  FN = sum(df$FN)
+  
+  return(TP/(TP+FN))
+}
+
+func.sensitivity(class_df)
+```
+
+-------
+
+$~$
+
+### **Part 7: Specificity Function**
+
+Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the specificity of the predictions.
+
+$$Specificity = \frac{TN}{TN + FP}$$
+
+True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
+
+```{r func-specificity, echo=TRUE}
+func.specificity <- function(data) {
+  df <- data %>%
+    mutate(TN = ifelse(class == 0 & scored.class == 0,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0))
+  TN = sum(df$TN)
+  FP = sum(df$FP)
+  
+  return(TN/(TN+FP))
+}
+
+func.specificity(class_df)
+```
+
+-------
+
+$~$
+
+### **Part 8: F1 Score**
+
+Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the F1 score of the predictions.
+
+$$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
+
+
+```{r func-f1Score, echo=TRUE}
+func.f1score <- function(data) {
+  precision = func.precision(data)
+  sensitivity = func.sensitivity(data)
+  return(2 * precision * sensitivity/(precision + sensitivity))
+}
+
+func.f1score(class_df)
+
+```
+
+-------
+
+$~$
+
+### **Part 9:**
+
+What are the bounds on the F1 score? Show that the F1 score will always be between 0 and 1. (Hint: if 0 < a < 1 and 0 < b < 1 then ab < a)
+
+The minimum f1 score is zero, and the maximum is one. There is only one case in which f1 is equal to 1, which is when sensitivity and precision are both equal to 1.  In this case, all true classes are detected. The f1 score is zero in cases when either precision or sensitivity are zero. A score of zero for either would indicate the classifier is missing all true classes, positive or negative. The f1 score is an average of precision and sensitivity, each having equal weights. 
+
+```{r}
+
+```
+
+-------
+
+$~$
+
+### **Part 10:**
+
+Write a function that generates an ROC curve from a data set with a true classification column (class in our example) and a probability column (scored.probability in our example). Your function should return a list that includes the plot of the ROC curve and a vector that contains the calculated area under the curve (AUC). 
+
+Note that I recommend using a sequence of thresholds ranging from 0 to 1 at 0.01 intervals.
+
+
+```{r}
+
+```
+
+-------
+
+$~$
+
+### **Part 11:**
+
+Use your **created R functions** and the provided classification output data set to produce all of the classification metrics discussed above.
+
+
+```{r}
+
+```
+
+-------
+
+$~$
+
+### **Part 12: caret package**
+
+Investigate the **caret** package. In particular, consider the functions confusionMatrix, sensitivity, and specificity. Apply the functions to the data set. How do the results compare with your own functions?
+
+#### **Part 12a: confusionMatrix**
+
+```{r caret-confusionMatrix, echo=TRUE}
+caret::confusionMatrix(as.factor(class_df$scored.class),as.factor(class_df$class))
+```
+
+#### **Part 12b: sensitivity**
+
+```{r caret-sensitivity, echo=TRUE}
+caret::sensitivity(as.factor(class_df$scored.class),as.factor(class_df$class),1)
+```
+
+#### **Part 12c: specificity**
+
+```{r caret-specificity, echo=TRUE}
+caret::specificity(as.factor(class_df$scored.class),as.factor(class_df$class),0)
+```
+
+-------
+
+$~$
+
+### **Part 13:**
+
+Investigate the **pROC** package. Use it to generate an ROC curve for the data set. How do the results compare with your own functions?
+
+
+```{r}
+
+```
+
+-------
+
+$~$
+
+### **References:**
+
+
