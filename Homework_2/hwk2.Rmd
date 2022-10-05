@@ -223,6 +223,30 @@ $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
 ```{r}
 
+# Calculate precision using dynamic column names
+calcPrecision <- function(df, actualCol, predictedCol) {
+  TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
+  FP <- nrow(df %>% filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
+  return(TP / (TP + FP))
+}
+calcPrecision(df, 'class', 'scored.class')
+
+# Calculate sensitivity using dynamic column names
+calcSensitivity <- function(df, actualCol, predictedCol) {
+  TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
+  FN <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
+  return(TP / (TP + FN))
+}
+calcSensitivity(df, 'class', 'scored.class')
+
+# Calculate F1 score
+calcF1 <- function(df, actualCol, predictedCol) {
+  tmp_precision <- calcPrecision(df, actualCol, predictedCol)
+  tmp_sensitivity <- calcSensitivity(df, actualCol, predictedCol)
+  return((2 * tmp_precision * tmp_sensitivity) / (tmp_precision + tmp_sensitivity))
+}
+calcF1(df, 'class', 'scored.class')
+
 ```
 
 -------
@@ -233,10 +257,78 @@ $~$
 
 What are the bounds on the F1 score? Show that the F1 score will always be between 0 and 1. (Hint: if 0 < a < 1 and 0 < b < 1 then ab < a)
 
+There are four cases to consider:
+
+1) Both precision and sensitivity approach unity.
+
+$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(1)}{(1 + 1)}$ = $\frac{2}{2}$ = 1
+
+2) Precision approaches zero; sensitivity approaches unity.
+
+$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1} = 0
+
+3) Precision approaches unity; sensitivity approaches zero.
+
+$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1} = 0
+
+4) Both precision and sensitivity approach zero.
+
+$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$
+
+Using the rule
+
+if 0 < p < 1 and 0 < s < 1, then ps < p
+
+ps < p
+
+and therefore
+
+2ps < 2p
+
+And using the rule
+
+if 0 < p < 1 and 0 < s < 1, then ps < 1 and ps < (p + s)
+
+then
+
+2ps < 2p and ps < p + s
+
+$\frac{2ps}{p + s}$ < $\frac{2p}{p + s}$ < $\frac{something < ps}{something > ps}$ < 1
 
 ```{r}
 
+# Showing this empirically
+
+# Create values of precision and sensitivity
+n <- 100
+prec <- c()
+sens <- c()
+for (i in seq(1, 1000)) {
+  TP <- sample(seq(0, 100), size=1)
+  FP <- sample(seq(0, n - TP), size=1)
+  FN <- sample(seq(0, n - TP - FP), size=1)
+  TN <- 100 - TP - FP - FN
+  tmp_prec = TP / (TP + FP)
+  tmp_sens = TP / (TP + FN)
+  if (TP + TN + FP + FN != 100 | (TP + FP == 0 & TP + FN == 0)) {
+    print(paste0('TP=', TP, ', TN=', TN, ', FP=', FP, ', FN=', FN, ', n=', TP + TN + FP + FN))
+  }
+  prec <- c(prec, tmp_prec)
+  sens <- c(sens, tmp_sens)
+}
+plot(prec, sens)
+f1 <- (2*prec*sens)/(prec + sens)
+boxplot(f1, main='F1 scores')
+plot(f1)
+
+# Show that as precision approaches 0 while sensitivity is close to zero, the f1 score approaches zero.
+p <- seq(0, 1, 0.0001)
+s <- rep(0.001, length(p))
+f1 <- (2 * p * s) / (p + s)
+plot(p, f1)
+
 ```
+
 
 -------
 
