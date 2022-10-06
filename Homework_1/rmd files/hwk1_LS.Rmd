@@ -1,0 +1,263 @@
+---
+title: 'Data 621 Homework #1'
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar and Santiago Torres"
+date: "09-25-2022"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+$~$
+
+### **Overview**
+We will explore, analyze and model a data set containing approximately 2200 records. Each record represents a professional baseball team from the years 1871 to 2006 inclusive. Each record has the performance of the team for the given year, with all of the statistics adjusted to match the performance of a 162 game season.
+
+Our objective is to build a multiple linear regression model on the training data to predict the number of wins for the team. We are only using the variables given to us (or variables that we derive from the variables provided). Below is a short description of the variables of interest in the data set:
+
+```{r table, out.width = "80%", fig.align = "center", warning=FALSE, message=FALSE}
+knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_1/Images/homework1_table.png")
+```
+
+$~$
+
+### **Data Exploration**
+
+$~$
+
+```{r, warning = FALSE, message = FALSE}
+# load libraries
+library(knitr)
+library(tidyverse)
+library(psych)
+library(ggplot2)
+library(ggcorrplot)
+library(statsr)
+library(corrplot)
+library(PerformanceAnalytics)
+library(skimr)
+```
+
+
+```{r}
+# loading datasets
+test <- read_csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv')
+
+train <- read_csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv')
+head(train, n = 4)
+```
+
+$~$
+
+```{r}
+skim(train)
+```
+
+
+$~$
+
+#### Let's take a look at the data  (train and test) using the glimpse, summary and describe functions ...
+
+```{r}
+glimpse(train)
+```
+
+```{r}
+glimpse(test)
+```
+
+
+```{r}
+summary(train)
+```
+
+```{r}
+summary(test)
+```
+
+
+```{r}
+describe(train)
+```
+
+
+```{r}
+describe(test)
+```
+
+
+```{r}
+# looking for missing values
+colSums(is.na(train))
+```
+
+```{r}
+colSums(is.na(test))
+```
+
+#### Some plots ...
+
+
+```{r}
+train %>% 
+  ggplot(aes(TARGET_WINS)) + 
+  geom_histogram(bins = 40, fill = 'yellow', color = "black",) +
+  geom_vline(aes(xintercept = mean(TARGET_WINS, na.rm = T)), col = "red", lty = 1) +
+  geom_vline(aes(xintercept = median(TARGET_WINS, na.rm = T)), col = "blue", lty = 1) +
+  labs(x = element_blank(),
+       y = "Count",
+       title = "Distribution of Wins",
+       caption = "Red line is the mean value and blue is the median") + 
+  theme_classic()
+```
+
+
+```{r}
+# variable distributions
+train %>%
+  gather(variable, value, TARGET_WINS:TEAM_FIELDING_DP) %>%
+  ggplot(., aes(value)) + 
+  geom_density(fill = "#1824c7", color ="#1824c7") + 
+  facet_wrap(~variable, scales = "free", ncol = 4) +
+  labs(x = element_blank(), y = element_blank())
+```
+
+
+```{r}
+train %>%
+  gather(variable, value, -TARGET_WINS) %>%
+  ggplot(., aes(value, TARGET_WINS)) + 
+  geom_point(fill = "#12a15a", color ="#12a15a") + 
+  geom_smooth(method = "lm", se = FALSE, color = "black") + 
+  facet_wrap(~variable, scales ="free", ncol = 4) +
+  labs(x = element_blank(), y = "Wins")
+```
+
+
+```{r}
+train %>% 
+  gather(variable, value, TARGET_WINS:TEAM_FIELDING_DP) %>%
+  ggplot(., aes(x= variable, y=value)) + 
+  geom_boxplot() +
+  facet_wrap(~variable, scales ="free", ncol = 4) +
+  labs(x = element_blank(), y = element_blank())
+```
+
+```{r}
+chart.Correlation(train, histogram = TRUE, method = "pearson")
+```
+
+#### Don't like this one
+
+```{r}
+corPlot(train, cex = 1.2)
+```
+
+
+#### ???
+
+```{r}
+corrplot(cor(train),        # Correlation matrix
+         method = "shade", # Correlation plot method
+         type = "full",    # Correlation plot style (also "upper" and "lower")
+         diag = TRUE,      # If TRUE (default), adds the diagonal
+         tl.col = "black", # Labels color
+         bg = "white",     # Background color
+         title = "",       # Main title
+         col = NULL)       # Color palette
+```
+
+
+```{r}
+train %>%
+  cor(., use = "complete.obs") %>%
+  corrplot(method = "color", type = "lower", tl.col = "black", diag = FALSE)
+```
+
+
+```{r}
+ggcorrplot(cor(train), type = "upper", outline.color = "white",
+           ggtheme = theme_classic,
+           colors = c("#6D9EC1", "white", "#E46726"),
+           lab = TRUE, show.legend = FALSE, tl.cex = 6, lab_size = 2) 
+```
+
+
+$~$
+
+
+### **Data Preparation**
+
+```{r}
+# missing values to 0
+train[is.na(train)] <- 0
+
+# show how many missing values now
+colSums(is.na(train))
+```
+
+$~$
+
+
+### **Model Building**
+
+```{r}
+m1 <- lm(TARGET_WINS ~., data = train, na.action = na.omit)
+summary(m1)
+```
+
+```{r}
+plot(m1)
+```
+
+
+
+```{r}
+m2 <- lm(TARGET_WINS ~ log1p(TEAM_BATTING_H) + TEAM_BATTING_HR +TEAM_BATTING_3B +TEAM_BASERUN_CS + TEAM_FIELDING_E+ TEAM_FIELDING_DP, data = train)
+summary(m2)
+```
+
+
+```{r}
+plot(m2)
+```
+
+
+```{r}
+m3 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_PITCHING_H, data = train)
+summary(m3)
+```
+
+```{r}
+plot(m3)
+```
+
+
+```{r}
+m4 <- lm(TARGET_WINS ~ TEAM_BATTING_H + TEAM_PITCHING_H + TEAM_FIELDING_E + TEAM_PITCHING_BB, data = train)
+summary(m4)
+```
+```{r}
+plot(m4)
+```
+
+
+$~$
+
+
+### **Model Selection**
+
+
+$~$
+
+
+### **References**
+
+* https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+* https://r-coder.com/correlation-plot-r/

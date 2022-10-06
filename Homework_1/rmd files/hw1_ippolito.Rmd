@@ -1,0 +1,110 @@
+---
+title: "Week3"
+author: "Michael Ippolito"
+date: '2022-09-11'
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(GGally)
+library(psych)
+library(car)
+
+```
+
+## Load data
+
+Load data and take a first look.
+
+```{r}
+
+# Load training data
+dftrain <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-training-data.csv')
+
+# Load evaluation data
+dfeval <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/csv/moneyball-evaluation-data.csv')
+
+```
+
+EDA
+
+```{r}
+
+# EDA
+head(dftrain)
+summary(dftrain)
+hist(dftrain$TARGET_WINS)
+plot(TARGET_WINS ~ ., dftrain)
+
+# Handle NAs - don't do this because it seriously screws up the model
+if (1 == 0) {
+  dftrain <- dftrain %>%
+    mutate(TEAM_BATTING_SO=replace_na(TEAM_BATTING_SO, 0)) %>%
+    mutate(TEAM_BASERUN_SB=replace_na(TEAM_BASERUN_SB, 0)) %>%
+    mutate(TEAM_BASERUN_CS=replace_na(TEAM_BASERUN_CS, 0)) %>%
+    mutate(TEAM_BATTING_HBP=replace_na(TEAM_BATTING_HBP, 0)) %>%
+    mutate(TEAM_PITCHING_SO=replace_na(TEAM_PITCHING_SO, 0)) %>%
+    mutate(TEAM_FIELDING_DP=replace_na(TEAM_FIELDING_DP, 0))
+}
+
+```
+
+```{r}
+
+model_params <- 'TARGET_WINS ~ . - INDEX'
+while (T) {
+  print('-----------------------------------------------------------')
+  lm1 <- lm(model_params, dftrain, na.action=na.exclude)
+  lm1sum <- summary(lm1)
+  print(lm1sum)
+  pvals <- sort(lm1sum$coefficients[,4], decreasing=T)
+  if (pvals[1] <= 0.05) {
+    break
+  } else {
+    remove_col <- names(pvals[1])
+    model_params <- paste0(model_params, ' - ', remove_col)
+    print(model_params)
+  }
+}
+
+```
+
+
+Define function to look at residuals.
+
+```{r}
+
+ResidualAnalysis <- function(lmod) {
+
+  # Plot residuals
+  plot(lmod)
+  
+  # Shapiro test
+  #   The null hypothesis is that the residuals are normal.
+  #   If the p-value is small, reject the null (i.e., the residuals are not normal).
+  st <- shapiro.test(lmod$residuals)
+  if (st$p.value <= 0.05) {
+    print(paste0("The p-value of ", st$p.value, " is <= 0.05, so reject the null; i.e., the residuals are NOT normal."))
+  } else {
+    print(paste0("The p-value of ", st$p.value, " is > 0.05, so do not reject the null; i.e., the residuals are normal."))
+  }
+
+}
+
+```
+
+## Residual Analysis
+
+Look at residuals.
+
+```{r}
+
+# Residual analysis
+ResidualAnalysis(lm1)
+
+```
