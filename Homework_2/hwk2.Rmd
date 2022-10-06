@@ -1,7 +1,7 @@
 ---
-title: "Data 621 Homework 1"
-author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, Leticia Salazar"
-date: "10-11-2022"
+title: "Data 621 Homework 2"
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar"
+date: "10-09-2022"
 output:
   html_document:
     theme: yeti
@@ -28,12 +28,6 @@ $~$
 
 In this homework assignment, you will work through various classificiation metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
 
-The data set has three key columns we will use:
-
-* **class** : the actual class for the observation
-* **scored.class** : the predicted class for the observation (based on a threshold of 0.5)
-* **scored.probability** : the predicted probability of success for the observation
-
 -------
 
 $~$
@@ -49,10 +43,17 @@ class_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/maste
 head(class_df, n = 4)
 ```
 
+Getting an overview of the data: 181 observations of  11 variables
 
-```{r}
-glimpse(class_df)
+```{r summary}
+summary(class_df)
 ```
+
+
+```{r structure}
+str(class_df)
+```
+
 
 -------
 
@@ -60,9 +61,17 @@ $~$
 
 ### **Part 2:**
 
+The data set has three key columns we will use:
+
+* **class** : the actual class for the observation
+* **scored.class** : the predicted class for the observation (based on a threshold of 0.5)
+* **scored.probability** : the predicted probability of success for the observation
+
+
 Use the `table()` function to get the raw confusion matrix for this scored data set. Make sure you understand the output. In particular, do the rows represent the actual or predicted class? The columns?
 
 
+The rows represent the actual class and columns represents the predicted class.
 ```{r, confusion_matrix}
 class_df %>% 
   select(class, scored.class) %>%
@@ -222,7 +231,6 @@ $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
 
 ```{r}
-
 # Calculate precision using dynamic column names
 calcPrecision <- function(df, actualCol, predictedCol) {
   TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
@@ -296,7 +304,6 @@ then
 $\frac{2ps}{p + s}$ < $\frac{2p}{p + s}$ < $\frac{something < ps}{something > ps}$ < 1
 
 ```{r}
-
 # Showing this empirically
 
 # Create values of precision and sensitivity
@@ -368,7 +375,23 @@ Investigate the **caret** package. In particular, consider the functions confusi
 
 
 ```{r, caret}
-confusionMatrix(as.factor(class_df$scored.class), as.factor(class_df$class), positive = "1")
+caret <- confusionMatrix(as.factor(class_df$scored.class), as.factor(class_df$class), positive = "1")
+caret
+```
+
+##### These will load once Part 11 is completed:
+```{r}
+Sensitivity == caret$byClass["Sensitivity"]
+```
+
+
+```{r}
+Specificity == caret$byClass["Specificity"]
+```
+
+
+```{r}
+Accuracy == caret$overall["Accuracy"]
 ```
 
 -------
@@ -381,7 +404,10 @@ Investigate the **pROC** package. Use it to generate an ROC curve for the data s
 
 
 ```{r, pRoc}
+par(mfrow = c(1,2))
+
 roc <- plot(roc(class_df$class, class_df$scored.probability), print.auc = TRUE, main = "ROC Curve from pROC Package")
+roc
 ```
 
 -------
