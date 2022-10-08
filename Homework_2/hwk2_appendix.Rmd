@@ -69,7 +69,7 @@ The data set has three key columns we will use:
 Use the `table()` function to get the raw confusion matrix for this scored data set. Make sure you understand the output. In particular, do the rows represent the actual or predicted class? The columns?
 
 
-The rows represent the actual class and columns represents the predicted class.
+* The rows represent the actual class and columns represents the predicted class.
 ```{r, confusion_matrix}
 class_df %>% 
   select(class, scored.class) %>%
@@ -176,7 +176,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Sensitivity = \frac{TP}{TP + FN}$$
 
-True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
+* True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
 
 ```{r func-sensitivity, echo=TRUE}
 func.sensitivity <- function(data) {
@@ -202,7 +202,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
-True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
+* True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
 
 ```{r func-specificity, echo=TRUE}
 func.specificity <- function(data) {

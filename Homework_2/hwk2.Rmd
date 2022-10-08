@@ -1,16 +1,13 @@
 ---
 title: "Data 621 Homework 2"
-author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
-  and Leticia Salazar'
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar"
 date: "10-09-2022"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     theme: yeti
     highlight: tango
-    toc: yes
-    toc_float: yes
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
@@ -76,8 +73,6 @@ Use the `table()` function to get the raw confusion matrix for this scored data 
 
 
 * The rows represent the actual class and columns represents the predicted class.
-
-*Explanation of step here ...*
 ```{r, confusion_matrix}
 class_df %>% 
   select(class, scored.class) %>%
@@ -100,7 +95,6 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
-*The R function below will take the data set into a dataframe and returned the accuracy of the predictions. As a result we obtained an accuracy of 80.66%.*
 
 ```{r func-accuracy, echo=TRUE}
 func.accuracy <- function (class_df, actual, predict) {
@@ -124,7 +118,7 @@ $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 
 Verify that you get an accuracy and an error rate that sums to one.
 
-*Explanation of step here ...*
+
 ```{r func-error_rate, echo=TRUE}
 func.error_rate <- function(data) {
   df <- data %>%
@@ -158,7 +152,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Precision = \frac{TP}{TP + FP}$$
 
-*Explanation of step here ...*
+
 ```{r func-precision, echo=TRUE}
 func.precision <- function(data) {
   df <- data %>%
@@ -183,9 +177,8 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Sensitivity = \frac{TP}{TP + FN}$$
 
-* True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
+True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
 
-*Explanation of step here ...*
 ```{r func-sensitivity, echo=TRUE}
 func.sensitivity <- function(data) {
   df <- data %>%
@@ -210,9 +203,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
-* True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
-
-*Explanation of step here ...*
+True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
 
 ```{r func-specificity, echo=TRUE}
 func.specificity <- function(data) {
@@ -238,7 +229,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
-*Explanation of step here ...*
+
 ```{r}
 # Calculate precision using dynamic column names
 calcPrecision <- function(df, actualCol, predictedCol) {
@@ -311,8 +302,6 @@ then
 
 $\frac{2ps}{p + s}$ < $\frac{2p}{p + s}$ < $\frac{something < ps}{something > ps}$ < 1
 
-
-*Explanation of step here ...*
 ```{r}
 # Showing this empirically
 
@@ -356,7 +345,7 @@ Write a function that generates an ROC curve from a data set with a true classif
 
 Note that I recommend using a sequence of thresholds ranging from 0 to 1 at 0.01 intervals.
 
-*Explanation of step here ...*
+
 ```{r}
 
 ```
@@ -369,7 +358,7 @@ $~$
 
 Use your **created R functions** and the provided classification output data set to produce all of the classification metrics discussed above.
 
-*Explanation of step here ...*
+
 ```{r}
 
 ```
@@ -382,7 +371,7 @@ $~$
 
 Investigate the **caret** package. In particular, consider the functions confusionMatrix, sensitivity, and specificity. Apply the functions to the data set. How do the results compare with your own functions?
 
-*Explanation of step here ...*
+
 ```{r, caret}
 caret <- confusionMatrix(as.factor(class_df$scored.class), as.factor(class_df$class), positive = "1")
 caret
@@ -411,7 +400,7 @@ $~$
 
 Investigate the **pROC** package. Use it to generate an ROC curve for the data set. How do the results compare with your own functions?
 
-*Explanation of step here ...*
+
 ```{r, pRoc}
 par(mfrow = c(1,2))
 
