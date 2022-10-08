@@ -333,11 +333,34 @@ Write a function that generates an ROC curve from a data set with a true classif
 
 Note that I recommend using a sequence of thresholds ranging from 0 to 1 at 0.01 intervals.
 
-*Explanation of step here ...*
+*To generate an ROC Curve we need to calculate the True Postive Rate and the False Postive rates across thersholds from 0 to 1.  The True Postive Rate on the Y axis and the False Postive Rate on the X axis for all the threshold values.  We add an abline that represents what the rate would look like if the values where chosen by chance alone.  If a point falls below theh abline it means that your classifer is performing poor than by chance alone.  The AUC is the Area Under the Curve which is metric of classifer performance overall.  A perfect classifer would have an area fo 1 meaning that it a 100% True Positive Rate and a 0% False Postive Rate.  We are using the trapizoid method to estimate the Area Under the Curve*
+
 ```{r}
+roc_func <- function(data){
+  temp_x <- rep(0, 101)
+  temp_y <- rep(0, 101)
+  temp_seq <- seq(from = 0, to = 1, by = 0.01)
+  for (i in 1:length(temp_seq)){
+   df <- data %>% mutate(scored.class = as.numeric(scored.probability > temp_seq[i])) %>%
+    mutate(TP = ifelse(class == 1 & scored.class == 1,1,0),
+           FP = ifelse(class == 0 & scored.class == 1,1,0),
+           FN = ifelse(class == 1 & scored.class == 0,1,0),
+           TN = ifelse(class == 0 & scored.class == 0,1,0))
+  TPR = sum(df$TP)/(sum(df$TP) + sum(df$FN))
+  FPR = sum(df$FP)/(sum(df$FP) + sum(df$TN))
+    temp_x[i] <- FPR
+    temp_y[i] <- TPR
+  }
+  temp_df <- bind_cols(temp_x, temp_y) %>% as.data.frame()
+  names(temp_df) <- c("FPR", "TPR")
+  plt <- ggplot2::ggplot(data = temp_df, aes(x = FPR, y = TPR)) + geom_point() + geom_abline()
+  AUC <- pracma::trapz(temp_x,temp_y)
+  output <- list(plt, AUC)
+  return(output)
+}
 
+roc_func(class_df)
 ```
-
 
 $~$
 
@@ -345,10 +368,48 @@ $~$
 
 Use your **created R functions** and the provided classification output data set to produce all of the classification metrics discussed above.
 
-*Explanation of step here ...*
-```{r}
+#### Accuracy
 
+```{r}
+round(func.accuracy(class_df,"class","scored.class"),5)
 ```
+
+#### Classification Error Rate
+
+```{r}
+error_rate <- func.error_rate(class_df)
+```
+
+#### Precision
+
+```{r}
+round(func.precision(class_df),5)
+```
+
+#### Sensitivity
+
+```{r}
+round(func.sensitivity(class_df),5)
+```
+
+#### Specificity
+
+```{r}
+round(func.specificity(class_df),5)
+```
+
+#### F1 Score
+
+```{r}
+calcF1(df, 'class', 'scored.class')
+```
+
+#### ROC and AUC
+
+```{r}
+roc_func(class_df)
+```
+--
 
 
 $~$
