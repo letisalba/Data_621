@@ -1,24 +1,17 @@
 ---
-title: "Data 621 Homework 2"
+title: 'Data 621 Homework 2: Write-Up'
 author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
   and Leticia Salazar'
 date: "10-09-2022"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     theme: yeti
     highlight: tango
-    toc: yes
-    toc_float: yes
+  pdf_document: default
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
-```
-
 $~$
 
+*These are the libraries used in this homework:*
 ```{r, warning=FALSE, message=FALSE}
 library(pROC)
 library(caret)
@@ -26,11 +19,14 @@ library(tidyverse)
 library(dplyr)
 ```
 
-$~$
-
 ### **Overview:**
 
 In this homework assignment, you will work through various classificiation metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
+
+
+### **Instructions:**
+
+Complete each of the following steps as instructed:
 
 -------
 
@@ -40,26 +36,23 @@ $~$
 
 Download the classification output data set.
 
-
+*We added the data provided on blackboard to GitHub and read the csv file into R.*
 ```{r}
 # load data set
 class_df <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_2/csv/classification-output-data.csv")
 head(class_df, n = 4)
 ```
 
-Getting an overview of the data: 181 observations of  11 variables
+Getting an overview of the data: We have 181 observations of  11 variables
 
 ```{r summary}
 summary(class_df)
 ```
 
-
 ```{r structure}
 str(class_df)
 ```
 
-
--------
 
 $~$
 
@@ -74,10 +67,10 @@ The data set has three key columns we will use:
 
 Use the `table()` function to get the raw confusion matrix for this scored data set. Make sure you understand the output. In particular, do the rows represent the actual or predicted class? The columns?
 
-
 * The rows represent the actual class and columns represents the predicted class.
 
-*Explanation of step here ...*
+*The `table()` in R can be used to quickly create frequency tables. Below ... *
+
 ```{r, confusion_matrix}
 class_df %>% 
   select(class, scored.class) %>%
@@ -91,7 +84,6 @@ class_df %>%
   table()
 ```
 
--------
 
 $~$
 
@@ -100,6 +92,8 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
+
+
 *The R function below will take the data set into a dataframe and returned the accuracy of the predictions. As a result we obtained an accuracy of 80.66%.*
 
 ```{r func-accuracy, echo=TRUE}
@@ -110,9 +104,6 @@ func.accuracy <- function (class_df, actual, predict) {
 
 paste0('The accuracy of the predictions is ', round(func.accuracy(class_df,"class","scored.class"),5))
 ```
-
-
--------
 
 $~$
 
@@ -148,8 +139,6 @@ accuracy <- func.accuracy(class_df,"class","scored.class")
 paste0('The accuracy and error rate sums to ', (accuracy + error_rate))
 ```
 
--------
-
 $~$
 
 ### **Part 5:**
@@ -172,8 +161,6 @@ func.precision <- function(data) {
 
 paste0('The precision of the predictions is ',round(func.precision(class_df),5))
 ```
-
--------
 
 $~$
 
@@ -200,8 +187,6 @@ func.sensitivity <- function(data) {
 paste0('The sensitivity of the predictions is ', round(func.sensitivity(class_df),5))
 ```
 
--------
-
 $~$
 
 ### **Part 7:**
@@ -213,7 +198,6 @@ $$Specificity = \frac{TN}{TN + FP}$$
 * True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
 
 *Explanation of step here ...*
-
 ```{r func-specificity, echo=TRUE}
 func.specificity <- function(data) {
   df <- data %>%
@@ -228,7 +212,6 @@ func.specificity <- function(data) {
 paste0('The specificity of the predictions is ', round(func.specificity(class_df),5))
 ```
 
--------
 
 $~$
 
@@ -265,9 +248,6 @@ calcF1 <- function(df, actualCol, predictedCol) {
 calcF1(df, 'class', 'scored.class')
 ```
 
--------
-
-$~$
 
 ### **Part 9:**
 
@@ -311,7 +291,6 @@ then
 
 $\frac{2ps}{p + s}$ < $\frac{2p}{p + s}$ < $\frac{something < ps}{something > ps}$ < 1
 
-
 *Explanation of step here ...*
 ```{r}
 # Showing this empirically
@@ -346,8 +325,6 @@ plot(p, f1)
 ```
 
 
--------
-
 $~$
 
 ### **Part 10:**
@@ -361,7 +338,6 @@ Note that I recommend using a sequence of thresholds ranging from 0 to 1 at 0.01
 
 ```
 
--------
 
 $~$
 
@@ -374,7 +350,6 @@ Use your **created R functions** and the provided classification output data set
 
 ```
 
--------
 
 $~$
 
@@ -390,20 +365,18 @@ caret
 
 ##### These will load once Part 11 is completed:
 ```{r}
-Sensitivity == caret$byClass["Sensitivity"]
+#Sensitivity == caret$byClass["Sensitivity"]
 ```
 
 
 ```{r}
-Specificity == caret$byClass["Specificity"]
+#Specificity == caret$byClass["Specificity"]
 ```
 
 
 ```{r}
-Accuracy == caret$overall["Accuracy"]
+#Accuracy == caret$overall["Accuracy"]
 ```
-
--------
 
 $~$
 
@@ -424,5 +397,49 @@ roc
 $~$
 
 ### **References:**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
