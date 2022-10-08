@@ -20,7 +20,6 @@ $~$
 library(pROC)
 library(caret)
 library(tidyverse)
-library(dplyr)
 ```
 
 $~$
@@ -72,7 +71,7 @@ The data set has three key columns we will use:
 Use the `table()` function to get the raw confusion matrix for this scored data set. Make sure you understand the output. In particular, do the rows represent the actual or predicted class? The columns?
 
 
-* The rows represent the actual class and columns represents the predicted class.
+The rows represent the actual class and columns represents the predicted class.
 ```{r, confusion_matrix}
 class_df %>% 
   select(class, scored.class) %>%
@@ -95,6 +94,7 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
+
 
 ```{r func-accuracy, echo=TRUE}
 func.accuracy <- function (class_df, actual, predict) {
@@ -254,6 +254,7 @@ calcF1 <- function(df, actualCol, predictedCol) {
   return((2 * tmp_precision * tmp_sensitivity) / (tmp_precision + tmp_sensitivity))
 }
 calcF1(df, 'class', 'scored.class')
+
 ```
 
 -------
@@ -332,6 +333,7 @@ p <- seq(0, 1, 0.0001)
 s <- rep(0.001, length(p))
 f1 <- (2 * p * s) / (p + s)
 plot(p, f1)
+
 ```
 
 
@@ -425,8 +427,6 @@ calcF1(df, 'class', 'scored.class')
 ```{r}
 roc_func(class_df)
 ```
--------
-
 -------
 
 $~$
