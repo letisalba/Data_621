@@ -1,13 +1,16 @@
 ---
 title: "Data 621 Homework 2"
-author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar"
+author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar'
 date: "10-09-2022"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     theme: yeti
     highlight: tango
-    toc: true
-    toc_float: true
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -275,11 +278,11 @@ $\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}
 
 2) Precision approaches zero; sensitivity approaches unity.
 
-$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1} = 0
+$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1}$ = 0
 
 3) Precision approaches unity; sensitivity approaches zero.
 
-$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1} = 0
+$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1}$ = 0
 
 4) Both precision and sensitivity approach zero.
 
