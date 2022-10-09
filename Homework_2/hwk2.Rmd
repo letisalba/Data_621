@@ -21,6 +21,7 @@ library(pROC)
 library(caret)
 library(tidyverse)
 library(dplyr)
+library(conflicted)
 ```
 
 $~$
@@ -75,7 +76,7 @@ Use the `table()` function to get the raw confusion matrix for this scored data 
 * The rows represent the actual class and columns represents the predicted class.
 ```{r, confusion_matrix}
 class_df %>% 
-  select(class, scored.class) %>%
+  dplyr::select(class, scored.class) %>%
   # re-coding to label the 0's and 1's
   mutate(class = recode(class,
                         '0' = 'Actual Negative', 
@@ -95,7 +96,7 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
-
+* The accuracy means how close the measurements are to the value. in this case the accuracy of the predictions is 80.66%
 ```{r func-accuracy, echo=TRUE}
 func.accuracy <- function (class_df, actual, predict) {
   accuracy <- sum(class_df[actual] == class_df[predict]) / nrow(class_df)
@@ -116,9 +117,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 
-Verify that you get an accuracy and an error rate that sums to one.
-
-
+* The classification error rate and accuracy do sum to 1.
 ```{r func-error_rate, echo=TRUE}
 func.error_rate <- function(data) {
   df <- data %>%
@@ -152,7 +151,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Precision = \frac{TP}{TP + FP}$$
 
-
+* The presision of the predictions is 84.37%.
 ```{r func-precision, echo=TRUE}
 func.precision <- function(data) {
   df <- data %>%
@@ -177,7 +176,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Sensitivity = \frac{TP}{TP + FN}$$
 
-True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
+*True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive. The sensitivity of the predictions is 47.36%.
 
 ```{r func-sensitivity, echo=TRUE}
 func.sensitivity <- function(data) {
@@ -203,7 +202,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
-True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
+*True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative. The specificity of the predictions is 95.97%.
 
 ```{r func-specificity, echo=TRUE}
 func.specificity <- function(data) {
@@ -229,20 +228,19 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
-
 ```{r}
 # Calculate precision using dynamic column names
 calcPrecision <- function(df, actualCol, predictedCol) {
-  TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
-  FP <- nrow(df %>% filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
+  TP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
+  FP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
   return(TP / (TP + FP))
 }
 calcPrecision(df, 'class', 'scored.class')
 
 # Calculate sensitivity using dynamic column names
 calcSensitivity <- function(df, actualCol, predictedCol) {
-  TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
-  FN <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
+  TP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
+  FN <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
   return(TP / (TP + FN))
 }
 calcSensitivity(df, 'class', 'scored.class')
@@ -345,9 +343,9 @@ Write a function that generates an ROC curve from a data set with a true classif
 
 Note that I recommend using a sequence of thresholds ranging from 0 to 1 at 0.01 intervals.
 
-To generate an ROC Curve we need to calculate the True Positive Rate and the False Positive rates across thresholds from 0 to 1.  The True Positive Rate on the Y axis and the False Positive Rate on the X axis for all the the threshold values.  We add an abline line that represents what the rate would look like if the values where chosen by chance.  If a point falls below the abline it means that your classifer is perform worst than chance alone.
+* To generate an ROC Curve we need to calculate the True Positive Rate and the False Positive rates across thresholds from 0 to 1.  The True Positive Rate on the Y axis and the False Positive Rate on the X axis for all the the threshold values.  We add an abline line that represents what the rate would look like if the values where chosen by chance.  If a point falls below the abline it means that your classifier is perform worst than chance alone.
 
-The AUC is the Area Under the Curve which is a metric of the classifer performance overall.  A perfect classifer would have a area of 1 meaning it had a 100% True Positive Rate and a 0% False Positive Rate.  We are using the trapizod method to estimate the Area Under the Curve
+* The AUC is the Area Under the Curve which is a metric of the classifier performance overall.  A perfect classifer would have a area of 1 meaning it had a 100% True Positive Rate and a 0% False Positive Rate.  We are using the trapezoid method to estimate the Area Under the Curve
 
 ```{r}
 roc_func <- function(data){
@@ -387,37 +385,43 @@ Use your **created R functions** and the provided classification output data set
 #### Accuracy
 
 ```{r}
-round(func.accuracy(class_df,"class","scored.class"),5)
+Accuracy <- round(func.accuracy(class_df,"class","scored.class"),5)
+Accuracy
 ```
 
 #### Classification Error Rate
 
 ```{r}
-error_rate <- func.error_rate(class_df)
+Class_Error_Rate <- round(func.error_rate(class_df),5)
+Class_Error_Rate
 ```
 
 #### Precision
 
 ```{r}
-round(func.precision(class_df),5)
+Precision <- round(func.precision(class_df),5)
+Precision
 ```
 
 #### Sensitivity
 
 ```{r}
-round(func.sensitivity(class_df),5)
+Sensitivity <- round(func.sensitivity(class_df),5)
+Sensitivity
 ```
 
 #### Specificity
 
 ```{r}
-round(func.specificity(class_df),5)
+Specificity <- round(func.specificity(class_df),5)
+Specificity
 ```
 
 #### F1 Score
 
 ```{r}
-calcF1(df, 'class', 'scored.class')
+F1_Score <- round(calcF1(df, 'class', 'scored.class'),5)
+F1_Score
 ```
 
 #### ROC and AUC
@@ -425,7 +429,7 @@ calcF1(df, 'class', 'scored.class')
 ```{r}
 roc_func(class_df)
 ```
--------
+
 
 -------
 
@@ -435,26 +439,26 @@ $~$
 
 Investigate the **caret** package. In particular, consider the functions confusionMatrix, sensitivity, and specificity. Apply the functions to the data set. How do the results compare with your own functions?
 
-
+* The results are identical from our own functions with Accuracy, Sensitivity and Specificity all being TRUE when compare to each other.
 ```{r, caret}
 caret <- confusionMatrix(as.factor(class_df$scored.class), as.factor(class_df$class), positive = "1")
 caret
 ```
 
-##### These will load once Part 11 is completed:
+
 ```{r}
-Sensitivity == caret$byClass["Sensitivity"]
+Accuracy == round(caret$overall["Accuracy"],5)
 ```
 
 
 ```{r}
-Specificity == caret$byClass["Specificity"]
+Sensitivity == round(caret$byClass["Sensitivity"],5)
 ```
-
 
 ```{r}
-Accuracy == caret$overall["Accuracy"]
+Specificity == round(caret$byClass["Specificity"],5)
 ```
+
 
 -------
 
@@ -464,10 +468,12 @@ $~$
 
 Investigate the **pROC** package. Use it to generate an ROC curve for the data set. How do the results compare with your own functions?
 
-
+* The ROC curve plot and the pROC plot are very similar with the one difference being the smoothness in the pROC curve where as in our generated ROC curve looks more like small plots creating the curve.
 ```{r, pRoc}
-par(mfrow = c(1,2))
+# plot parameters
+par(mfrow = c(1,1))
 
+# draw plot
 roc <- plot(roc(class_df$class, class_df$scored.probability), print.auc = TRUE, main = "ROC Curve from pROC Package")
 roc
 ```
