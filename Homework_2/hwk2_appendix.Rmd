@@ -1,13 +1,16 @@
 ---
 title: 'Data 621 Homework 2: Appendix A'
-author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar"
+author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar'
 date: "10-09-2022"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     theme: yeti
     highlight: tango
-    toc: true
-    toc_float: true
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -18,7 +21,7 @@ Below find the code used:
 
 $~$
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 library(pROC)
 library(caret)
 library(tidyverse)
@@ -232,16 +235,16 @@ $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 ```{r}
 # Calculate precision using dynamic column names
 calcPrecision <- function(df, actualCol, predictedCol) {
-  TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
-  FP <- nrow(df %>% filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
+  TP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
+  FP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
   return(TP / (TP + FP))
 }
 calcPrecision(df, 'class', 'scored.class')
 
 # Calculate sensitivity using dynamic column names
 calcSensitivity <- function(df, actualCol, predictedCol) {
-  TP <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
-  FN <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
+  TP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 1))
+  FN <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
   return(TP / (TP + FN))
 }
 calcSensitivity(df, 'class', 'scored.class')
@@ -471,9 +474,6 @@ roc
 
 -------
 
-$~$
-
-### **References:**
 
 
 

@@ -117,7 +117,7 @@ $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 
 * The classification error rate and accuracy do sum to 1.
 
-*Explanation of step here ...*
+*Below we have `func.error_rate` function that will take the data set with the actual and predicted classifications and return the classification error rate of the predictions. When we run the function we have a classification error rate of 19.34%. The sum of the accuracy and error rate results equals to 1.*
 
 ```{r func-error_rate, echo=TRUE}
 func.error_rate <- function(data) {
@@ -135,6 +135,7 @@ func.error_rate <- function(data) {
 }
 
 error_rate <- func.error_rate(class_df)
+paste0('The classification error rate is ', error_rate, '.')
 #accuracy <- func.accuracy(class_df)
 accuracy <- func.accuracy(class_df,"class","scored.class")
 
@@ -150,9 +151,9 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Precision = \frac{TP}{TP + FP}$$
 
-* The presision of the predictions is 84.37%.
+* The precision of the predictions is 84.37%.
 
-*Explanation of step here ...*
+*The following function `func.precision` will help return the precision of the predictions using the data set. When we run the function we obtain a result below: *
 
 ```{r func-precision, echo=TRUE}
 func.precision <- function(data) {
@@ -178,7 +179,7 @@ $$Sensitivity = \frac{TP}{TP + FN}$$
 
 * True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
 
-*Explanation of step here ...*
+*The following function `func.sensitivity` will help return the Sensitivity of the prediction using the data set. When we run the function we obtain a result below: *
 
 ```{r func-sensitivity, echo=TRUE}
 func.sensitivity <- function(data) {
@@ -204,7 +205,7 @@ $$Specificity = \frac{TN}{TN + FP}$$
 
 * True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
 
-*Explanation of step here ...*
+*The following function `func.specificity` will help return the Specificity of the prediction using the data set. When we run the function we obtain a result below: *
 
 ```{r func-specificity, echo=TRUE}
 func.specificity <- function(data) {
@@ -229,7 +230,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
-*Explanation of step here ...*
+*The following functions `calcPrecision` and `calcSensitivity` will help us then calculate the F1 Score using the `calcF1` function. When we run the function we obtain a result below: *
 
 ```{r}
 # Calculate precision using dynamic column names
@@ -262,7 +263,7 @@ calcF1(df, 'class', 'scored.class')
 
 What are the bounds on the F1 score? Show that the F1 score will always be between 0 and 1. (Hint: if 0 < a < 1 and 0 < b < 1 then ab < a)
 
-There are four cases to consider:
+*There are four cases to consider:*
 
 1) Both precision and sensitivity approach unity.
 
@@ -300,7 +301,6 @@ then
 
 $\frac{2ps}{p + s}$ < $\frac{2p}{p + s}$ < $\frac{something < ps}{something > ps}$ < 1
 
-*Explanation of step here ...*
 
 ```{r}
 # Showing this empirically
@@ -479,9 +479,6 @@ roc
 
 -------
 
-$~$
-
-### **References:**
 
 
 
