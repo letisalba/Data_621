@@ -91,8 +91,10 @@ $~$
 
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
+
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
 
+* The accuracy means how close the measurements are to the value. In this case the accuracy of the predictions is 80.66%
 
 *The R function `func.accuracy` below will take the data set into a data frame and returned the accuracy of the predictions.  We start by defining the function with the actual and predicted values and inputting the accuracy model given. As a result we obtained an accuracy of 80.66%.* 
 
@@ -113,7 +115,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 
-Verify that you get an accuracy and an error rate that sums to one.
+* The classification error rate and accuracy do sum to 1.
 
 *Explanation of step here ...*
 
@@ -147,6 +149,8 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the precision of the predictions.
 
 $$Precision = \frac{TP}{TP + FP}$$
+
+* The presision of the predictions is 84.37%.
 
 *Explanation of step here ...*
 

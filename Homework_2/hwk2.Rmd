@@ -74,6 +74,7 @@ Use the `table()` function to get the raw confusion matrix for this scored data 
 
 
 * The rows represent the actual class and columns represents the predicted class.
+
 ```{r, confusion_matrix}
 class_df %>% 
   dplyr::select(class, scored.class) %>%
@@ -96,7 +97,8 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
-* The accuracy means how close the measurements are to the value. in this case the accuracy of the predictions is 80.66%
+* The accuracy means how close the measurements are to the value. In this case the accuracy of the predictions is 80.66%
+
 ```{r func-accuracy, echo=TRUE}
 func.accuracy <- function (class_df, actual, predict) {
   accuracy <- sum(class_df[actual] == class_df[predict]) / nrow(class_df)
@@ -118,6 +120,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 $$Classification Error Rate = \frac{FP + FN}{TP + FP + TN + FN}$$
 
 * The classification error rate and accuracy do sum to 1.
+
 ```{r func-error_rate, echo=TRUE}
 func.error_rate <- function(data) {
   df <- data %>%
@@ -152,6 +155,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 $$Precision = \frac{TP}{TP + FP}$$
 
 * The presision of the predictions is 84.37%.
+
 ```{r func-precision, echo=TRUE}
 func.precision <- function(data) {
   df <- data %>%
@@ -382,6 +386,8 @@ $~$
 
 Use your **created R functions** and the provided classification output data set to produce all of the classification metrics discussed above.
 
+* Reiterating our functions from parts 2 - 10 below:
+
 #### Accuracy
 
 ```{r}
@@ -440,6 +446,7 @@ $~$
 Investigate the **caret** package. In particular, consider the functions confusionMatrix, sensitivity, and specificity. Apply the functions to the data set. How do the results compare with your own functions?
 
 * The results are identical from our own functions with Accuracy, Sensitivity and Specificity all being TRUE when compare to each other.
+
 ```{r, caret}
 caret <- confusionMatrix(as.factor(class_df$scored.class), as.factor(class_df$class), positive = "1")
 caret
@@ -469,6 +476,7 @@ $~$
 Investigate the **pROC** package. Use it to generate an ROC curve for the data set. How do the results compare with your own functions?
 
 * The ROC curve plot and the pROC plot are very similar with the one difference being the smoothness in the pROC curve where as in our generated ROC curve looks more like small plots creating the curve.
+
 ```{r, pRoc}
 # plot parameters
 par(mfrow = c(1,1))
