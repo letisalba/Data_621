@@ -272,11 +272,11 @@ $\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}
 
 2) Precision approaches zero; sensitivity approaches unity.
 
-$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1} = 0
+$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1}$ = 0
 
 3) Precision approaches unity; sensitivity approaches zero.
 
-$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1} = 0
+$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1}$ = 0
 
 4) Both precision and sensitivity approach zero.
 
@@ -386,37 +386,43 @@ Use your **created R functions** and the provided classification output data set
 #### Accuracy
 
 ```{r}
-round(func.accuracy(class_df,"class","scored.class"),5)
+Accuracy <- round(func.accuracy(class_df,"class","scored.class"),5)
+Accuracy
 ```
 
 #### Classification Error Rate
 
 ```{r}
-error_rate <- func.error_rate(class_df)
+Class_Error_Rate <- round(func.error_rate(class_df),5)
+Class_Error_Rate
 ```
 
 #### Precision
 
 ```{r}
-round(func.precision(class_df),5)
+Precision <- round(func.precision(class_df),5)
+Precision
 ```
 
 #### Sensitivity
 
 ```{r}
-round(func.sensitivity(class_df),5)
+Sensitivity <- round(func.sensitivity(class_df),5)
+Sensitivity
 ```
 
 #### Specificity
 
 ```{r}
-round(func.specificity(class_df),5)
+Specificity <- round(func.specificity(class_df),5)
+Specificity
 ```
 
 #### F1 Score
 
 ```{r}
-calcF1(class_df, 'class', 'scored.class')
+F1_Score <- round(calcF1(class_df, 'class', 'scored.class'),5)
+F1_Score
 ```
 
 #### ROC and AUC
