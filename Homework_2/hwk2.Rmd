@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
 
 $~$
 
+#### Load Libraries
 ```{r, warning=FALSE, message=FALSE}
 library(pROC)
 library(caret)
@@ -100,12 +101,10 @@ $~$
 Write a function that takes the data set as a dataframe, with actual and predicted classifications identified, and returns the accuracy of the predictions.
 
 $$Accuracy = \frac{TP + TN}{TP + FP + TN + FN}$$
-<<<<<<< HEAD
+
 
 * The accuracy means how close the measurements are to the value. In this case the accuracy of the predictions is 80.66%
-=======
-* The accuracy means how close the measurements are to the actual value. In this case the accuracy of the predictions is 80.66%
->>>>>>> 4dc3cf2f2defe5f0d5afa3093b5e71afe374bef7
+
 
 ```{r func-accuracy, echo=TRUE}
 func.accuracy <- function (class_df, actual, predict) {
@@ -214,7 +213,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
-*True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative. Specificity measures a model's ability to accurately predict true negatives; in this assignment, it references the model's ability predict values of class=0. The specificity of the predictions is 95.97%.
+* True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative. Specificity measures a model's ability to accurately predict true negatives; in this assignment, it references the model's ability predict values of class=0. The specificity of the predictions is 95.97%.
 
 ```{r func-specificity, echo=TRUE}
 func.specificity <- function(data) {
@@ -240,7 +239,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
-While precision evaluates the effect of false positives on a model and sensitivity evaluates the effect of false negatives, the F1 score strikes a balance between the two when it is desirable to minimize both false positives and false negatives. The F1 score is the harmonic mean of precision and sensitivity. The harmonic mean is used rather than the geometric or arithmetic mean because the harmonic mean penalizes large discrepancies between values more heavily. The following function calculates F1 score given arbitrary column names for class and scored class.
+* While precision evaluates the effect of false positives on a model and sensitivity evaluates the effect of false negatives, the F1 score strikes a balance between the two when it is desirable to minimize both false positives and false negatives. The F1 score is the harmonic mean of precision and sensitivity. The harmonic mean is used rather than the geometric or arithmetic mean because the harmonic mean penalizes large discrepancies between values more heavily. The following function calculates F1 score given arbitrary column names for class and scored class.
 
 
 ```{r}
@@ -275,7 +274,7 @@ $~$
 
 What are the bounds on the F1 score? Show that the F1 score will always be between 0 and 1. (Hint: if 0 < a < 1 and 0 < b < 1 then ab < a)
 
-The question is considered from two perspectives: mathematically and empirically. From a mathematics perspective, the extreme cases should be looked at. There are four cases to consider:
+* The question is considered from two perspectives: mathematically and empirically. From a mathematics perspective, the extreme cases should be looked at. There are four cases to consider:
 
 1) Both precision and sensitivity approach unity.
 
