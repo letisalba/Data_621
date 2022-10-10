@@ -239,7 +239,6 @@ calcPrecision <- function(df, actualCol, predictedCol) {
   FP <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
   return(TP / (TP + FP))
 }
-calcPrecision(df, 'class', 'scored.class')
 
 # Calculate sensitivity using dynamic column names
 calcSensitivity <- function(df, actualCol, predictedCol) {
@@ -247,7 +246,6 @@ calcSensitivity <- function(df, actualCol, predictedCol) {
   FN <- nrow(df %>% dplyr::filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
   return(TP / (TP + FN))
 }
-calcSensitivity(df, 'class', 'scored.class')
 
 # Calculate F1 score
 calcF1 <- function(df, actualCol, predictedCol) {
@@ -255,7 +253,7 @@ calcF1 <- function(df, actualCol, predictedCol) {
   tmp_sensitivity <- calcSensitivity(df, actualCol, predictedCol)
   return((2 * tmp_precision * tmp_sensitivity) / (tmp_precision + tmp_sensitivity))
 }
-calcF1(df, 'class', 'scored.class')
+print(paste0('The F1 score is ', round(calcF1(class_df, 'class', 'scored.class'), 3)))
 ```
 
 -------
@@ -418,7 +416,7 @@ round(func.specificity(class_df),5)
 #### F1 Score
 
 ```{r}
-calcF1(df, 'class', 'scored.class')
+calcF1(class_df, 'class', 'scored.class')
 ```
 
 #### ROC and AUC

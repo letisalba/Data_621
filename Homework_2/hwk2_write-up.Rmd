@@ -4,10 +4,10 @@ author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittal
   and Leticia Salazar'
 date: "10-09-2022"
 output:
+  pdf_document: default
   html_document:
     theme: yeti
     highlight: tango
-  pdf_document: default
 ---
 $~$
 
@@ -21,7 +21,7 @@ library(dplyr)
 
 ### **Overview:**
 
-In this homework assignment, you will work through various classificiation metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
+In this homework assignment, you will work through various classification metrics. You will be asked to create functions in R to carry out the various calculations. You will also investigate some functions in packages that will let you obtain the equivalent results. Finally, you will create graphical output that also can be used to evaluate the output of classification models, such as binary logistic regression.
 
 
 ### **Instructions:**
@@ -151,7 +151,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Precision = \frac{TP}{TP + FP}$$
 
-* The precision of the predictions is 84.37%.
+* True positives (TP) are the number of observations where the prediction and reference are both positive. False postives (FP) are the number of observations where the prediction is positive, but the reference is negative Precision is a measure of how well the model performs in terms of minimizing false positives. The precision of the predictions is 84.37%.
 
 *The following function `func.precision` will help return the precision of the predictions using the data set. When we run the function we obtain a result below: *
 
@@ -177,7 +177,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Sensitivity = \frac{TP}{TP + FN}$$
 
-* True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive.
+* True Positive (TP) is the number of observations where the prediction and reference are both positive. False Negative (FN) is the number of observations where the prediction is negative, but the reference is positive. Sensitivity measures the ability of a model to minimize false negatives. The sensitivity of the predictions is 47.36%.
 
 *The following function `func.sensitivity` will help return the Sensitivity of the prediction using the data set. When we run the function we obtain a result below: *
 
@@ -203,7 +203,7 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$Specificity = \frac{TN}{TN + FP}$$
 
-* True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative.
+*True Negative (TN) is the number of observations where the prediction and reference are both negative. False Positive (FP) is the number of observations where the prediction is positive, but the reference is negative. Specificity measures a model's ability to accurately predict true negatives; in this assignment, it references the model's ability predict values of class=0. The specificity of the predictions is 95.97%.
 
 *The following function `func.specificity` will help return the Specificity of the prediction using the data set. When we run the function we obtain a result below: *
 
@@ -230,6 +230,8 @@ Write a function that takes the data set as a dataframe, with actual and predict
 
 $$F1 Score =\frac{2 * Precision * Sensitivity}{Precision + Sensitivity}$$
 
+While precision evaluates the effect of false positives on a model and sensitivity evaluates the effect of false negatives, the F1 score strikes a balance between the two when it is desirable to minimize both false positives and false negatives. The F1 score is the harmonic mean of precision and sensitivity. The harmonic mean is used rather than the geometric or arithmetic mean because the harmonic mean penalizes large discrepancies between values more heavily. The following function calculates F1 score given arbitrary column names for class and scored class.
+
 *The following functions `calcPrecision` and `calcSensitivity` will help us then calculate the F1 Score using the `calcF1` function. When we run the function we obtain a result below: *
 
 ```{r}
@@ -239,7 +241,6 @@ calcPrecision <- function(df, actualCol, predictedCol) {
   FP <- nrow(df %>% filter((!!sym(actualCol)) == 0 & (!!sym(predictedCol)) == 1))
   return(TP / (TP + FP))
 }
-calcPrecision(df, 'class', 'scored.class')
 
 # Calculate sensitivity using dynamic column names
 calcSensitivity <- function(df, actualCol, predictedCol) {
@@ -247,7 +248,6 @@ calcSensitivity <- function(df, actualCol, predictedCol) {
   FN <- nrow(df %>% filter((!!sym(actualCol)) == 1 & (!!sym(predictedCol)) == 0))
   return(TP / (TP + FN))
 }
-calcSensitivity(df, 'class', 'scored.class')
 
 # Calculate F1 score
 calcF1 <- function(df, actualCol, predictedCol) {
@@ -255,7 +255,7 @@ calcF1 <- function(df, actualCol, predictedCol) {
   tmp_sensitivity <- calcSensitivity(df, actualCol, predictedCol)
   return((2 * tmp_precision * tmp_sensitivity) / (tmp_precision + tmp_sensitivity))
 }
-calcF1(df, 'class', 'scored.class')
+print(paste0('The F1 score is ', round(calcF1(class_df, 'class', 'scored.class'), 3)))
 ```
 
 
@@ -263,7 +263,7 @@ calcF1(df, 'class', 'scored.class')
 
 What are the bounds on the F1 score? Show that the F1 score will always be between 0 and 1. (Hint: if 0 < a < 1 and 0 < b < 1 then ab < a)
 
-*There are four cases to consider:*
+*The question is considered from two perspectives: mathematically and empirically. From a mathematics perspective, the extreme cases should be looked at. There are four cases to consider:*
 
 1) Both precision and sensitivity approach unity.
 
@@ -271,11 +271,11 @@ $\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}
 
 2) Precision approaches zero; sensitivity approaches unity.
 
-$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1} = 0
+$\displaystyle \lim_{p \to 0}$ $\displaystyle \lim_{s \to 1}$ $\frac{2ps}{p + s}$ = $\frac{(2)(0)(1)}{(0 + 1)}$ = $\frac{0}{1}$ = 0
 
 3) Precision approaches unity; sensitivity approaches zero.
 
-$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1} = 0
+$\displaystyle \lim_{p \to 1}$ $\displaystyle \lim_{s \to 0}$ $\frac{2ps}{p + s}$ = $\frac{(2)(1)(0)}{(1 + 0)}$ = $\frac{0}{1}$ = 0
 
 4) Both precision and sensitivity approach zero.
 
@@ -301,6 +301,7 @@ then
 
 $\frac{2ps}{p + s}$ < $\frac{2p}{p + s}$ < $\frac{something < ps}{something > ps}$ < 1
 
+We also looked at the question empirically by generating values and showing them graphically.
 
 ```{r}
 # Showing this empirically
@@ -418,7 +419,7 @@ Specificity
 #### F1 Score
 
 ```{r}
-F1_Score <- round(calcF1(df, 'class', 'scored.class'),5)
+F1_Score <- round(calcF1(class_df, 'class', 'scored.class'),5)
 F1_Score
 ```
 
