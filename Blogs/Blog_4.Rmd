@@ -1,0 +1,18 @@
+---
+title: "Data 621 - Blog 4"
+author: "Leticia Salazar"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: lumen
+    highlight: monochrome
+    toc: True
+    toc_float: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Title of Blog:
