@@ -20,6 +20,8 @@ library(gridExtra)
 ```
 
 
+### Exploratory data analysis
+
 ```{r fig.width=12, fig.height=12}
 
 # Load training data
@@ -80,8 +82,96 @@ Relationship of median crime rate to the following predictor variables:
 | medv | Median value of owner-occupied homes in $1000s | negative |
 
 
+### Explore colinearity of predictor variables
+
+```{r fig.width=12, fig.height=12}
+
+# Correlation matrix
+print('Correlation matrix (numerical variables):')
+round(cor(dftrain[, c(1,2,4:12)]), 2)
+
+
+par(mfrow=c(6, 3))
+
+plot(zn ~ dis, data=dftrain)
+abline(lm(zn ~ dis, data=dftrain), lt=2, col=2)
+
+plot(indus ~ nox, data=dftrain)
+abline(lm(indus ~ nox, dftrain), lt=2, col=2)
+
+plot(indus ~ age, data=dftrain)
+abline(lm(indus ~ age, dftrain), lt=2, col=2)
+
+plot(indus ~ dis, data=dftrain)
+abline(lm(indus ~ dis, dftrain), lt=2, col=2)
+
+plot(indus ~ rad, data=dftrain)
+abline(lm(indus ~ dis, dftrain), lt=2, col=2)
+
+plot(indus ~ tax, data=dftrain)
+abline(lm(indus ~ tax, dftrain), lt=2, col=2)
+
+plot(indus ~ lstat, data=dftrain)
+abline(lm(indus ~ lstat, dftrain), lt=2, col=2)
+
+plot(nox ~ age, data=dftrain)
+abline(lm(nox ~ age, dftrain), lt=2, col=2)
+
+plot(nox ~ dis, data=dftrain)
+abline(lm(nox ~ dis, dftrain), lt=2, col=2)
+
+plot(nox ~ rad, data=dftrain)
+abline(lm(nox ~ rad, dftrain), lt=2, col=2)
+
+plot(nox ~ tax, data=dftrain)
+abline(lm(nox ~ tax, dftrain), lt=2, col=2)
+
+plot(nox ~ lstat, data=dftrain)
+abline(lm(nox ~ lstat, dftrain), lt=2, col=2)
+
+plot(rm ~ lstat, data=dftrain)
+abline(lm(rm ~ lstat, dftrain), lt=2, col=2)
+
+plot(rm ~ medv, data=dftrain)
+abline(lm(rm ~ medv, dftrain), lt=2, col=2)
+
+plot(age ~ dis, data=dftrain)
+abline(lm(age ~ dis, dftrain), lt=2, col=2)
+
+plot(age ~ lstat, data=dftrain)
+abline(lm(age ~ lstat, dftrain), lt=2, col=2)
+
+plot(rad ~ tax, data=dftrain)
+abline(lm(rad ~ tax, dftrain), lt=2, col=2)
+
+plot(lstat ~ medv, data=dftrain)
+abline(lm(lstat ~ medv, dftrain), lt=2, col=2)
+
+```
+
+[describe colinear relationships here]
+
+
+### Logistic regression
+
+
 ```{r}
 
+# Maximal model for backward elimination
+lmod.max <- glm(target ~ ., family=binomial(), data=dftrain)
+summary(lmod.max)
 
+# Backward elimination
+lmod.back <- step(lmod.max, data=dftrain, direction='backward')
+summary(lmod.back)
+
+# Minimal model for forward elimination
+lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain)
+summary(lmod.min)
+lmod.max.form <- formula(lmod.max)
+
+# Forward elimination
+lmod.fwd <- step(lmod.min, data=dftrain, direction='forward', scope=lmod.max.form)
+summary(lmod.fwd)
 
 ```
