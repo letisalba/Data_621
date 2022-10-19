@@ -67,10 +67,10 @@ $~$
 ### Load Data set:
 
 ```{r, loading data}
-crime_train <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
-crime_train
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
+dftrain
   
-crime_eval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
 ```
 
 
@@ -81,12 +81,12 @@ $~$
 ## Data Exploration:
 
 ```{r}
-summary(crime_train)
+summary(dftrain)
 ```
 
 
 ```{r corrplot train}
-corrplot(cor(crime_train, use = 'complete.obs'), tl.cex = 0.5)
+corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
 ```
 
 -------------------------
@@ -95,12 +95,21 @@ $~$
 
 ## Data Preparation:
 
+
+```{r}
+
+```
+
+
 -------------------------
 
 $~$
 
 ## Model Building:
 
+```{r}
+
+```
 
 
 -------------------------
@@ -108,6 +117,14 @@ $~$
 $~$
 
 ## Select Models: 
+
+```{r}
+
+```
+
+
+
+
 
 -------------------------
 
