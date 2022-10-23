@@ -1,0 +1,242 @@
+---
+title: "Data 621 - Homework 3"
+author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar'
+date: "11-06-2022"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE, }
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+$~$
+
+## Overview: 
+In this homework assignment, you will explore, analyze and model a data set containing information on crime for various neighborhoods of a major city. Each record has a response variable indicating whether or not the crime rate is above the median crime rate (1) or not (0).
+
+$~$
+
+## Objective: 
+Build a binary logistic regression model on the training data set to predict whether the neighborhood will be at risk for high crime levels. You will provide classifications and probabilities for the evaluation data set using your binary logistic regression model. You can only use the variables given to you (or variables that you derive from the variables provided). 
+
+$~$
+
+## Description:
+
+Below is a short description of the variables of interest in the data set:
+
+* zn: proportion of residential land zoned for large lots (over 25000 square feet)(predictor variable)
+* indus: proportion of non-retail business acres per suburb (predictor variable) 
+* chas: a dummy var. for whether the suburb borders the Charles River (1) or not (0) (predictor variable)
+* nox: nitrogren oxides concentration (parts per 10 million) (predictor variable)
+* rm: average number of rooms per dwelling (predictor variable)
+* age: proportion of owner-occupied units built prior to 1940 (predictor variable)
+* dis: weighted mean of distances to five Boston employment centers (predictor variable)
+* rad: index of accessibility to radical highways (predictor variable)
+* tax: full-value property-tax rate per $10,000 (predictor variable)
+* ptratio: pupil-teacher ratio by town (predictor variable)
+* black: $1000(B_k - 0.63)^2$ where $B_k$ is the proportion of blacks by town (predictor variable)
+* lstat: lower status of the population (percent)(predictor variable)
+* medv: median value of owner-occupied homes in $1000s (predictor variable)
+* target: whether the crime rate is above the median crime rate (1) or not (0) (response variable)
+
+-------------------------
+
+$~$
+
+### Load Libraries:
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(caret)
+library(pROC)
+library(corrplot)
+```
+
+
+-------------------------
+
+$~$
+
+### Load Data set:
+
+```{r, loading data}
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
+dftrain
+  
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
+```
+
+
+-------------------------
+
+$~$
+
+## Data Exploration:
+
+```{r}
+dim(dftrain)
+```
+
+
+```{r}
+summary(dftrain)
+```
+
+
+```{r corrplot train}
+corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
+```
+
+-------------------------
+
+$~$
+
+## Data Preparation:
+
+The rad predictor is a categorical value and has some unknown meaning for values 1-8, 24. We need to introduce dummy variables rad1, rad2, etc to indicate if the neighborhood is in which category. We will exclude rad24 since we only need N-1 variables to represent each value.
+
+```{r}
+clean_df <- function(df) {
+  df$rad_1 <- ifelse(df$rad == 1, 1, 0)
+  df$rad_2 <- ifelse(df$rad == 2, 1, 0)
+  df$rad_3 <- ifelse(df$rad == 3, 1, 0)
+  df$rad_4 <- ifelse(df$rad == 4, 1, 0)
+  df$rad_5 <- ifelse(df$rad == 5, 1, 0)
+  df$rad_6 <- ifelse(df$rad == 6, 1, 0)
+  df$rad_7 <- ifelse(df$rad == 7, 1, 0)
+  df$rad_8 <- ifelse(df$rad == 8, 1, 0)
+  df$rad <- NULL
+  return(df)
+}
+
+dftrain_clean <- clean_df(dftrain)
+
+```
+
+
+-------------------------
+
+$~$
+
+## Model Building:
+
+### Linear Model
+
+```{r model-lm, warning=FALSE, error=FALSE}
+olsreg <- lm(data = dftrain_clean, formula = target ~ .)
+summary(olsreg)
+```
+
+#### Linear Model Accuracy
+
+```{r model_linear_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(olsreg)))
+```
+
+Accuracy: $\frac{210+225}{466}=93\%$
+Classification Error Rate: $\frac{12+19}{466}=7\%$
+Precision: $\frac{210}{210+12}=95\%$
+Sensitivity: $\frac{210}{210+19}=92\%$
+Specificity: $\frac{225}{225+12}=95\%$
+F1 Score: $\frac{2 * .95 * .92}{.95 + .92}=93\%$
+
+### Logit Model
+
+```{r model_logit, warning=FALSE, message=FALSE}
+logit <- glm(data = dftrain_clean, formula = target ~ ., family = binomial (link = "logit"))
+summary(logit)
+```
+
+#### Logit Model Prediction Accuracy
+
+Compare the models prediction with the actual value from the dataset.
+
+```{r model_logit_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(logit)))
+```
+
+Accuracy: $\frac{219+233}{466}=97\%$
+Classification Error Rate: $\frac{4+10}{466}=3\%$
+Precision: $\frac{219}{219+4}=98\%$
+Sensitivity: $\frac{219}{219+10}=96\%$
+Specificity: $\frac{233}{233+4}=98\%$
+F1 Score: $\frac{2 * .98 * .96}{.98 + .96}=97\%$
+
+### Logit Model with Backward Elimination
+
+```{r model_logit_back, warning=FALSE, message=FALSE}
+# Backward elimination
+lmod.back <- step(logit, data=dftrain_clean, direction='backward')
+summary(lmod.back)
+```
+
+#### Logit Model with Backward Elimination Prediction Accuracy
+
+```{r model_logit_back_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
+```
+
+Accuracy: $\frac{217+232}{466}=96\%$
+Classification Error Rate: $\frac{5+12}{466}=4\%$
+Precision: $\frac{217}{217+5}=98\%$
+Sensitivity: $\frac{217}{217+12}=95\%$
+Specificity: $\frac{232}{232+5}=98\%$
+F1 Score: $\frac{2 * .98 * .95}{.98 + .95}=96\%$
+
+###  Logit Minimal Model with forward elimination
+
+```{r model_minimal, warning=FALSE, message=FALSE}
+# Minimal model for forward elimination
+lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain_clean)
+summary(lmod.min)
+```
+
+```{r model_forward, warning=FALSE, message=FALSE}
+# Forward elimination
+lmod.fwd <- step(lmod.min, data=dftrain_clean, direction='forward', scope=formula(logit))
+summary(lmod.fwd)
+```
+
+#### Logit Model with Forward Elimination Prediction Accuracy
+
+```{r model_forward_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.fwd)))
+```
+
+Accuracy: $\frac{220+234}{466}=97\%$
+Classification Error Rate: $\frac{5+12}{466}=3\%$
+Precision: $\frac{220}{220+3}=99\%$
+Sensitivity: $\frac{220}{220+9}=96\%$
+Specificity: $\frac{234}{234+3}=98\%$
+F1 Score: $\frac{2 * .99 * .96}{.99 + .96}=97\%$
+
+
+-------------------------
+
+$~$
+
+## Select Models: 
+
+```{r}
+
+```
+
+
+
+
+
+-------------------------
+
+$~$
+
+## References:
+
