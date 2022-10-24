@@ -15,4 +15,141 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Title of Blog:
+$~$
+
+## Simple Linear Regression
+
+In simple linear regression, we look to find a relationship between two quantitative variables. We want to see how strong this relationship is and if the value of the dependent variable is at a certain value with the independent variable.
+
+Below I'll demonstrate how to create a simple linear regression model using a common package in R called `diamonds` from the library `ggplot2`
+
+$~$
+
+### Load Libraries
+
+Here we'll use `ggplot2` to be able to load the data set, but it is also a great visualization library. `Tidyverse` is also a great library for exploratory analysis of the data.
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+```
+
+-----------------
+
+$~$
+
+### Loading Data
+
+Using the function `head()` will display the first few rows, therefore we can see the data set without it loading fully.
+```{r, load data}
+head(diamonds)
+```
+
+-----------------
+
+### Data Exploration
+
+Once loaded we can explore the data by using the `summary()`. This will summarize the variables including the following information for the numeric variables:
+
+* minimum value
+* first quartile (25th percentile)
+* median value
+* mean value
+* third quartile (75th percentile)
+* maximum value
+
+For the rest of the variables we get the frequency count of the values.
+
+```{r}
+summary(diamonds)
+```
+
+$~$
+
+Another exploratory function is `glimpse()` which provides a rundown of the columns along with how many rows and columns the data set has.
+```{r}
+glimpse(diamonds)
+```
+
+-----------------
+
+### Data Preparation 
+In most data sets, you have to prepare the data before you can start plotting or in this case building models. Since our data set doesn't need any cleaning or transformations we can go straight to model building. I have provided some tips below on how you can start prepping your data.
+
+* Remove duplicate or irrelevant observations
+* Fix structural errors
+  * these include inconsistencies, typos, "n/a" and "not applicable" in a column, etc
+* Filter unwanted outliers
+  * careful, not all outliers are harmful when analyzing data
+* Handle missing data
+  * you can drop the observations with missing values but be mindful before removing it since you can lose information
+  * you can input missing values but this may cause to lose integrity of the data
+  * you can alter the data to use the null values effectively
+* Validate
+  * Ensure that the data makes sense in order to present accurate information 
+
+-----------------
+
+### Model Building
+
+To fit a linear model in R we use the `lm()` function. Some parameters to consider for the function are:
+
+`lm(fitting_formula, dataframe)`
+
+* fitting_formula : determines the formula for the linear model
+* dataframe: determines the name of the dataframe 
+
+Using the we get the statistical information on the selected model. It contains the following information: 
+
+* Residual Standard Error: 
+* Multiple R-Squared:
+* Adjusted R-Squared:
+* F-Statistic:
+
+```{r, first linear model}
+# model 1 will consist of looking at the data overall
+model <- lm(diamonds)
+summary(model)
+```
+
+$~$
+
+```{r second linear model}
+# two variables used are carat over price
+model_2 <- lm(carat ~ price, diamonds)
+summary(model_2)
+```
+
+-----------------
+
+### Plotting
+
+```{r}
+# define residuals
+res <- resid(model_2)
+
+# produce residual vs. fitted plot
+plot(fitted(model_2), res)
+
+# add a horizontal line at 0
+abline(0,0, col = 'red')
+```
+
+$~$
+
+```{r}
+#create Q-Q plot for residuals
+qqnorm(res)
+
+#add a straight diagonal line to the plot
+qqline(res, col = "red")
+```
+
+-----------------
+
+$~$
+
+## References:
+* Zach. (2020, October 26). How to perform simple linear regression in R (step-by-step). Statology. Retrieved October 24, 2022, from https://www.statology.org/simple-linear-regression-in-r/ 
+* Guide to data cleaning: Definition, benefits, components, and how to clean your data. Tableau. (n.d.). Retrieved October 24, 2022, from https://www.tableau.com/learn/articles/what-is-data-cleaning 
+* How to use LM() function in R to fit linear models? GeeksforGeeks. (2021, December 19). Retrieved October 24, 2022, from https://www.geeksforgeeks.org/how-to-use-lm-function-in-r-to-fit-linear-models/#:~:text=The%20lm()%20function%20is,not%20in%20the%20data%20frame.

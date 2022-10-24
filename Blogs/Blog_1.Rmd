@@ -15,4 +15,27 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Title of Blog: 
+$~$
+
+### Visualizations
+
+
+
+### load libraries
+```{r}
+
+```
+
+
+
+### Loading data
+```{r, load data}
+
+```
+
+
+$~$
+
+### References:
+* https://mode.com/blog/r-data-visualization-packages/
+
