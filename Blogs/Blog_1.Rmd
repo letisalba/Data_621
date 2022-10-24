@@ -19,18 +19,28 @@ $~$
 
 ### Visualizations
 
-
+* Univariate Graphs
+  * Categorical
+  * Quantitative
+* Bivariate Graphs
+  * Categorical vs Categorical
+  * Quantitative vs Quantitative
+  * Categorical vs Quantitative
+* Multivariate Graphs
+  * Grouping
+  * Faceting
+* Maps
 
 ### load libraries
-```{r}
-
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
 ```
 
 
 
 ### Loading data
 ```{r, load data}
-
+head(mtcars)
 ```
 
 
@@ -38,4 +48,5 @@ $~$
 
 ### References:
 * https://mode.com/blog/r-data-visualization-packages/
+* https://rkabacoff.github.io/datavis/
 
