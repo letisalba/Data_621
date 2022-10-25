@@ -1,0 +1,190 @@
+---
+title: "Data 621 - Homework 3"
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar"
+date: "11-06-2022"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE, }
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+$~$
+
+## Overview: 
+In this homework assignment, you will explore, analyze and model a data set containing information on crime for various neighborhoods of a major city. Each record has a response variable indicating whether or not the crime rate is above the median crime rate (1) or not (0).
+
+$~$
+
+## Objective: 
+Build a binary logistic regression model on the training data set to predict whether the neighborhood will be at risk for high crime levels. You will provide classifications and probabilities for the evaluation data set using your binary logistic regression model. You can only use the variables given to you (or variables that you derive from the variables provided). 
+
+$~$
+
+## Description:
+
+Below is a short description of the variables of interest in the data set:
+
+* zn: proportion of residential land zoned for large lots (over 25000 square feet)(predictor variable)
+* indus: proportion of non-retail business acres per suburb (predictor variable) 
+* chas: a dummy var. for whether the suburb borders the Charles River (1) or not (0) (predictor variable)
+* nox: nitrogren oxides concentration (parts per 10 million) (predictor variable)
+* rm: average number of rooms per dwelling (predictor variable)
+* age: proportion of owner-occupied units built prior to 1940 (predictor variable)
+* dis: weighted mean of distances to five Boston employment centers (predictor variable)
+* rad: index of accessibility to radical highways (predictor variable)
+* tax: full-value property-tax rate per $10,000 (predictor variable)
+* ptratio: pupil-teacher ratio by town (predictor variable)
+* black: $1000(B_k - 0.63)^2$ where $B_k$ is the proportion of blacks by town (predictor variable)
+* lstat: lower status of the population (percent)(predictor variable)
+* medv: median value of owner-occupied homes in $1000s (predictor variable)
+* target: whether the crime rate is above the median crime rate (1) or not (0) (response variable)
+
+-------------------------
+
+$~$
+
+### Load Libraries:
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(caret)
+library(pROC)
+library(corrplot)
+library(DataExplorer)
+library(ggplot2)
+library(hrbrthemes)
+library(viridis)
+library(forcats)
+```
+
+
+-------------------------
+
+$~$
+
+### Load Data set:
+
+```{r, loading data}
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
+dftrain
+  
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
+```
+
+```{r}
+print(paste0("Number of observations: ", nrow(dftrain)))
+```
+
+
+-------------------------
+
+$~$
+
+## Data Exploration:
+
+There's 466 observation in the training data set and 40 observations in the evaluation data set
+```{r}
+dim(dftrain)
+dim(dfeval)
+```
+
+From the summary we notice all of our values are numerical.
+```{r summary}
+summary(dftrain)
+```
+
+
+```{r corrplot train}
+corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
+```
+
+```{r histogram}
+# Plot of entire data set
+dftrain <- dftrain %>%
+  gather(key="text", value="value") %>%
+  mutate(text = gsub("\\.", " ",text)) 
+
+# plot
+p <- data %>%
+  mutate(text = fct_reorder(text, value)) %>%
+  ggplot( aes(x=value, color=text, fill=text)) +
+    geom_histogram(alpha=0.8, binwidth = 5) +
+    scale_fill_viridis(discrete=TRUE) +
+    scale_color_viridis(discrete=TRUE) +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.2, "lines"),
+      strip.text.x = element_text(size = 10)
+    ) +
+    xlab("") +
+    ylab("Frequency") +
+    facet_wrap(~text)
+p
+```
+
+```{r boxplot}
+par(mfrow=c(5,3)
+boxplot(crime.train[,1] ~ crime.train[,14], col = boxcol, main = colnames(crime.train)[1], xlab = 'Crime')
+```
+
+
+
+-------------------------
+
+$~$
+
+## Data Preparation:
+
+Being that there's no missing values we can continue on ....
+
+```{r}
+round(100*colSums(is.na(dftrain))/nrow(dftrain),2)
+```
+
+```{r}
+round(100*colSums(is.na(dfeval))/nrow(dfeval),2)
+```
+
+-------------------------
+
+$~$
+
+## Model Building:
+
+Using the training data, build at least three different logistic regression models, using different variables (or the same variables with different transformations). 
+
+```{r}
+
+```
+
+
+-------------------------
+
+$~$
+
+## Select Models: 
+
+For the binary logistic regression model, will you use a mtric such as log likelihood, AIC, ROC curve, etc? Using the training data set, evaluate the binary logistic regression model based on (a) accuracy, (b) classification error rate, (c) precision, (d) sensitivity, (e) specificity, (f) F1 score, (g) AUC, and (h) confusion matrix. Make predictions using the evaluation data set.
+
+```{r}
+
+```
+
+
+
+
+
+-------------------------
+
+$~$
+
+## References:
+

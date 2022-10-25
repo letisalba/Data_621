@@ -57,6 +57,11 @@ library(tidyverse)
 library(caret)
 library(pROC)
 library(corrplot)
+library(GGally)
+library(psych)
+library(car)
+library(kableExtra)
+library(gridExtra)
 ```
 
 
@@ -66,6 +71,7 @@ $~$
 
 ### Load Data set:
 
+We have included the original data sets in our GitHub account and read from this location.
 ```{r, loading data}
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
 dftrain
@@ -80,26 +86,136 @@ $~$
 
 ## Data Exploration:
 
-```{r}
-dim(dftrain)
-```
-
-
-```{r}
-summary(dftrain)
-```
-
 
 ```{r corrplot train}
 corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
 ```
+
+```{r fig.width=12, fig.height=12}
+# Summary
+summary(dftrain)
+describe(dftrain)
+```
+
+```{r}
+# Factor categorical variables
+dftrain$target <- factor(dftrain$target, levels=c(0, 1))
+levels(dftrain$target) <- list(below_median=0, above_median=1)
+dftrain$chas <- factor(dftrain$chas)
+levels(dftrain$chas) <- list(not_on_charles=0, on_charles=1)
+```
+
+
+```{r}
+# EDA
+pairs(dftrain)
+```
+
+
+```{r}
+# Boxplots
+par(mfrow=c(4, 3))
+boxplot(zn ~ target, data=dftrain)
+boxplot(indus ~ target, data=dftrain)
+#boxplot(chas ~ target, data=dftrain)
+boxplot(nox ~ target, data=dftrain)
+boxplot(rm ~ target, data=dftrain)
+boxplot(age ~ target, data=dftrain)
+boxplot(dis ~ target, data=dftrain)
+boxplot(rad ~ target, data=dftrain)
+boxplot(tax ~ target, data=dftrain)
+boxplot(ptratio ~ target, data=dftrain)
+boxplot(lstat ~ target, data=dftrain)
+boxplot(medv ~ target, data=dftrain)
+```
+
+
+```{r}
+# Contingency table and jittered plot for chas variable
+dfconting <- data.frame(target=dftrain$target, chas=dftrain$chas)
+table(dfconting)
+plot(jitter(as.numeric(dftrain$chas), amount=.15), jitter(as.numeric(dftrain$target), amount=0.03), 
+     xlab="Borders Charles River (2=yes)", ylab="Crime Rate > Median (2=yes)", col=dftrain$chas, pch=as.numeric(dftrain$chas))
+```
+
+
+### Explore colinearity of predictor variables
+
+```{r fig.width=12, fig.height=12}
+
+# Correlation matrix
+print('Correlation matrix (numerical variables):')
+round(cor(dftrain[, c(1,2,4:12)]), 2)
+
+
+par(mfrow=c(6, 3))
+
+plot(zn ~ dis, data=dftrain)
+abline(lm(zn ~ dis, data=dftrain), lt=2, col=2)
+
+plot(indus ~ nox, data=dftrain)
+abline(lm(indus ~ nox, dftrain), lt=2, col=2)
+
+plot(indus ~ age, data=dftrain)
+abline(lm(indus ~ age, dftrain), lt=2, col=2)
+
+plot(indus ~ dis, data=dftrain)
+abline(lm(indus ~ dis, dftrain), lt=2, col=2)
+
+plot(indus ~ rad, data=dftrain)
+abline(lm(indus ~ dis, dftrain), lt=2, col=2)
+
+plot(indus ~ tax, data=dftrain)
+abline(lm(indus ~ tax, dftrain), lt=2, col=2)
+
+plot(indus ~ lstat, data=dftrain)
+abline(lm(indus ~ lstat, dftrain), lt=2, col=2)
+
+plot(nox ~ age, data=dftrain)
+abline(lm(nox ~ age, dftrain), lt=2, col=2)
+
+plot(nox ~ dis, data=dftrain)
+abline(lm(nox ~ dis, dftrain), lt=2, col=2)
+
+plot(nox ~ rad, data=dftrain)
+abline(lm(nox ~ rad, dftrain), lt=2, col=2)
+
+plot(nox ~ tax, data=dftrain)
+abline(lm(nox ~ tax, dftrain), lt=2, col=2)
+
+plot(nox ~ lstat, data=dftrain)
+abline(lm(nox ~ lstat, dftrain), lt=2, col=2)
+
+plot(rm ~ lstat, data=dftrain)
+abline(lm(rm ~ lstat, dftrain), lt=2, col=2)
+
+plot(rm ~ medv, data=dftrain)
+abline(lm(rm ~ medv, dftrain), lt=2, col=2)
+
+plot(age ~ dis, data=dftrain)
+abline(lm(age ~ dis, dftrain), lt=2, col=2)
+
+plot(age ~ lstat, data=dftrain)
+abline(lm(age ~ lstat, dftrain), lt=2, col=2)
+
+plot(rad ~ tax, data=dftrain)
+abline(lm(rad ~ tax, dftrain), lt=2, col=2)
+
+plot(lstat ~ medv, data=dftrain)
+abline(lm(lstat ~ medv, dftrain), lt=2, col=2)
+
+```
+
+[describe colinear relationships here]
+
+
+
 
 -------------------------
 
 $~$
 
 ## Data Preparation:
-
 
 ```{r}
 round(100*colSums(is.na(dftrain))/nrow(dftrain),2)
@@ -109,15 +225,142 @@ round(100*colSums(is.na(dftrain))/nrow(dftrain),2)
 round(100*colSums(is.na(dfeval))/nrow(dfeval),2)
 ```
 
+The rad predictor is a categorical value and has some unknown meaning for values 1-8, 24. We need to introduce dummy variables rad1, rad2, etc to indicate if the neighborhood is in which category. We will exclude rad24 since we only need N-1 variables to represent each value.
+
+```{r}
+clean_df <- function(df) {
+  df$rad_1 <- ifelse(df$rad == 1, 1, 0)
+  df$rad_2 <- ifelse(df$rad == 2, 1, 0)
+  df$rad_3 <- ifelse(df$rad == 3, 1, 0)
+  df$rad_4 <- ifelse(df$rad == 4, 1, 0)
+  df$rad_5 <- ifelse(df$rad == 5, 1, 0)
+  df$rad_6 <- ifelse(df$rad == 6, 1, 0)
+  df$rad_7 <- ifelse(df$rad == 7, 1, 0)
+  df$rad_8 <- ifelse(df$rad == 8, 1, 0)
+  df$rad <- NULL
+  return(df)
+}
+
+dftrain_clean <- clean_df(dftrain)
+
+```
+
 -------------------------
 
 $~$
 
 ## Model Building:
 
+Logistic Regression: Ippolito
 ```{r}
+# Maximal model for backward elimination
+lmod.max <- glm(target ~ ., family=binomial(), data=dftrain)
+summary(lmod.max)
 
+# Backward elimination
+lmod.back <- step(lmod.max, data=dftrain, direction='backward')
+summary(lmod.back)
+
+# Minimal model for forward elimination
+lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain)
+summary(lmod.min)
+lmod.max.form <- formula(lmod.max)
+
+# Forward elimination
+lmod.fwd <- step(lmod.min, data=dftrain, direction='forward', scope=lmod.max.form)
+summary(lmod.fwd)
 ```
+
+
+### Linear Model
+Logistic Regression: Butler
+```{r model-lm, warning=FALSE, error=FALSE}
+olsreg <- lm(data = dftrain_clean, formula = target ~ .)
+summary(olsreg)
+```
+
+#### Linear Model Accuracy
+
+```{r model_linear_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(olsreg)))
+```
+
+Accuracy: $\frac{210+225}{466}=93\%$
+Classification Error Rate: $\frac{12+19}{466}=7\%$
+Precision: $\frac{210}{210+12}=95\%$
+Sensitivity: $\frac{210}{210+19}=92\%$
+Specificity: $\frac{225}{225+12}=95\%$
+F1 Score: $\frac{2 * .95 * .92}{.95 + .92}=93\%$
+
+### Logit Model
+
+```{r model_logit, warning=FALSE, message=FALSE}
+logit <- glm(data = dftrain_clean, formula = target ~ ., family = binomial (link = "logit"))
+summary(logit)
+```
+
+#### Logit Model Prediction Accuracy
+
+Compare the models prediction with the actual value from the dataset.
+
+```{r model_logit_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(logit)))
+```
+
+Accuracy: $\frac{219+233}{466}=97\%$
+Classification Error Rate: $\frac{4+10}{466}=3\%$
+Precision: $\frac{219}{219+4}=98\%$
+Sensitivity: $\frac{219}{219+10}=96\%$
+Specificity: $\frac{233}{233+4}=98\%$
+F1 Score: $\frac{2 * .98 * .96}{.98 + .96}=97\%$
+
+### Logit Model with Backward Elimination
+
+```{r model_logit_back, warning=FALSE, message=FALSE}
+# Backward elimination
+lmod.back <- step(logit, data=dftrain_clean, direction='backward')
+summary(lmod.back)
+```
+
+#### Logit Model with Backward Elimination Prediction Accuracy
+
+```{r model_logit_back_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
+```
+
+Accuracy: $\frac{217+232}{466}=96\%$
+Classification Error Rate: $\frac{5+12}{466}=4\%$
+Precision: $\frac{217}{217+5}=98\%$
+Sensitivity: $\frac{217}{217+12}=95\%$
+Specificity: $\frac{232}{232+5}=98\%$
+F1 Score: $\frac{2 * .98 * .95}{.98 + .95}=96\%$
+
+###  Logit Minimal Model with forward elimination
+
+```{r model_minimal, warning=FALSE, message=FALSE}
+# Minimal model for forward elimination
+lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain_clean)
+summary(lmod.min)
+```
+
+```{r model_forward, warning=FALSE, message=FALSE}
+# Forward elimination
+lmod.fwd <- step(lmod.min, data=dftrain_clean, direction='forward', scope=formula(logit))
+summary(lmod.fwd)
+```
+
+#### Logit Model with Forward Elimination Prediction Accuracy
+
+```{r model_forward_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.fwd)))
+```
+
+Accuracy: $\frac{220+234}{466}=97\%$
+Classification Error Rate: $\frac{5+12}{466}=3\%$
+Precision: $\frac{220}{220+3}=99\%$
+Sensitivity: $\frac{220}{220+9}=96\%$
+Specificity: $\frac{234}{234+3}=98\%$
+F1 Score: $\frac{2 * .99 * .96}{.99 + .96}=97\%$
 
 
 -------------------------
