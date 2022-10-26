@@ -17,36 +17,129 @@ knitr::opts_chunk$set(echo = TRUE)
 
 $~$
 
-### Visualizations
+## Visualizations
 
-* Univariate Graphs
-  * Categorical
-  * Quantitative
-* Bivariate Graphs
-  * Categorical vs Categorical
-  * Quantitative vs Quantitative
-  * Categorical vs Quantitative
-* Multivariate Graphs
-  * Grouping
-  * Faceting
-* Maps
+Data visualization it's a key part of presenting and understanding your data and be able to share it with others in an accessible way. Yet visualizations alone can also have a downside, if not presented well it can be misrepresented or misinterpreted. There's plenty of things to consider when creating visualization like color palette, text sizing, ledger, etc but before we get to all that there's a couple different types of visualizations to know:
 
-### load libraries
+-   Univariate Graphs
+    -   Categorical
+    -   Quantitative
+-   Bivariate Graphs
+    -   Categorical vs Categorical
+    -   Quantitative vs Quantitative
+    -   Categorical vs Quantitative
+-   Multivariate Graphs
+    -   Grouping
+    -   Faceting
+
+Using the `marriage`, `mpg` and `salaries` data set from the library `ggplot2` to explore these different types of visualizations
+
+### Load Libraries
+
 ```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
+library(tidyverse)
+library(psych)
+library(mosaicData)
 ```
 
+### Loading Data
 
-
-### Loading data
 ```{r, load data}
-head(mtcars)
+head(Marriage)
 ```
 
+Let's look into the data, by using the `summary()` function we get statistics on each variable within the data set.
+
+```{r}
+summary(Marriage)
+```
+
+I also like using the `glimpse()` function to get a different overview of the data set along with how many observations we have. In the `mtcars` data set we have 32 observations.
+
+```{r}
+glimpse(Marriage)
+```
+
+## Univariate Graphs
+
+These plots help understand each attribute alone
+
+### Categorical
+
+```{r bar chart}
+
+```
+
+```{r tree map}
+
+```
+
+### Quantitative
+
+```{r histogram}
+
+```
+
+```{r density}
+
+```
+
+```{r dot chart}
+
+```
+
+## Bivariate Graphs
+
+These plots help you understand two attributes
+
+### Categorical vs. Categorical
+
+```{r stacked bar chart}
+
+```
+
+```{r grouped bar chart}
+
+```
+
+### Quantitative vs. Quantitative
+
+```{r scatter plot}
+
+```
+
+```{r line plot}
+
+```
+
+### Categorical vs. Quantitative
+
+```{r grouped kernel density plots}
+
+```
+
+```{r box plots}
+
+```
+
+## Multivariate Graphs
+
+These plots help you better understand the interactions between attributes
+
+```{r grouping scatterplot}
+
+```
+
+```{r faceting}
+
+```
 
 $~$
 
-### References:
-* https://mode.com/blog/r-data-visualization-packages/
-* https://rkabacoff.github.io/datavis/
+## References:
 
+-   <https://mode.com/blog/r-data-visualization-packages/>
+-   <https://rkabacoff.github.io/datavis/>
+-   <https://www.tableau.com/learn/articles/data-visualization>
+-   <https://machinelearningmastery.com/data-visualization-in-r/>
