@@ -37,29 +37,15 @@ Using the `marriage`, `mpg` and `salaries` data set from the library `ggplot2` t
 ### Load Libraries
 
 ```{r, warning=FALSE, message=FALSE}
-library(ggplot2)
-library(tidyverse)
+library(ggplot2) # used for data sets and graphing
+library(tidyverse) # used for exploration of data
 library(psych)
-library(mosaicData)
+library(mosaicData) # used to get data set marriage
 ```
 
-### Loading Data
 
-```{r, load data}
-head(Marriage)
-```
+In a traditional setting we would explore this data set, look into their observations, 
 
-Let's look into the data, by using the `summary()` function we get statistics on each variable within the data set.
-
-```{r}
-summary(Marriage)
-```
-
-I also like using the `glimpse()` function to get a different overview of the data set along with how many observations we have. In the `mtcars` data set we have 32 observations.
-
-```{r}
-glimpse(Marriage)
-```
 
 ## Univariate Graphs
 
