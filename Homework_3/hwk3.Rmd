@@ -62,6 +62,7 @@ library(psych)
 library(car)
 library(kableExtra)
 library(gridExtra)
+library(performance)
 ```
 
 
@@ -74,7 +75,7 @@ $~$
 We have included the original data sets in our GitHub account and read from this location.
 ```{r, loading data}
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
-dftrain
+glimpse(dftrain)
   
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
 ```
@@ -103,6 +104,9 @@ dftrain$target <- factor(dftrain$target, levels=c(0, 1))
 levels(dftrain$target) <- list(below_median=0, above_median=1)
 dftrain$chas <- factor(dftrain$chas)
 levels(dftrain$chas) <- list(not_on_charles=0, on_charles=1)
+
+dfeval$chas <- factor(dfeval$chas)
+levels(dfeval$chas) <- list(not_on_charles=0, on_charles=1)
 ```
 
 
@@ -242,6 +246,9 @@ clean_df <- function(df) {
 }
 
 dftrain_clean <- clean_df(dftrain)
+dftrain_clean <- dftrain_clean %>%
+  select(target, everything())
+dfeval_clean <- clean_df(dfeval)
 
 ```
 
@@ -274,23 +281,16 @@ summary(lmod.fwd)
 
 ### Linear Model
 Logistic Regression: Butler
-```{r model-lm, warning=FALSE, error=FALSE}
-olsreg <- lm(data = dftrain_clean, formula = target ~ .)
+
+#### You can't calculate residuals for a factor so I created a dummy target variable for this model
+
+```{r model-lm, warning = FALSE, error = FALSE}
+dftrain_clean_dummy <- dftrain_clean %>% mutate(target = as.numeric(target == "above_median"))
+olsreg <- lm(data = dftrain_clean_dummy, formula = target ~ .)
 summary(olsreg)
 ```
 
-#### Linear Model Accuracy
 
-```{r model_linear_accuracy, warning=FALSE, message=FALSE}
-table(true = dftrain_clean$target, pred = round(fitted(olsreg)))
-```
-
-Accuracy: $\frac{210+225}{466}=93\%$
-Classification Error Rate: $\frac{12+19}{466}=7\%$
-Precision: $\frac{210}{210+12}=95\%$
-Sensitivity: $\frac{210}{210+19}=92\%$
-Specificity: $\frac{225}{225+12}=95\%$
-F1 Score: $\frac{2 * .95 * .92}{.95 + .92}=93\%$
 
 ### Logit Model
 
@@ -299,20 +299,6 @@ logit <- glm(data = dftrain_clean, formula = target ~ ., family = binomial (link
 summary(logit)
 ```
 
-#### Logit Model Prediction Accuracy
-
-Compare the models prediction with the actual value from the dataset.
-
-```{r model_logit_accuracy, warning=FALSE, message=FALSE}
-table(true = dftrain_clean$target, pred = round(fitted(logit)))
-```
-
-Accuracy: $\frac{219+233}{466}=97\%$
-Classification Error Rate: $\frac{4+10}{466}=3\%$
-Precision: $\frac{219}{219+4}=98\%$
-Sensitivity: $\frac{219}{219+10}=96\%$
-Specificity: $\frac{233}{233+4}=98\%$
-F1 Score: $\frac{2 * .98 * .96}{.98 + .96}=97\%$
 
 ### Logit Model with Backward Elimination
 
@@ -322,18 +308,6 @@ lmod.back <- step(logit, data=dftrain_clean, direction='backward')
 summary(lmod.back)
 ```
 
-#### Logit Model with Backward Elimination Prediction Accuracy
-
-```{r model_logit_back_accuracy, warning=FALSE, message=FALSE}
-table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
-```
-
-Accuracy: $\frac{217+232}{466}=96\%$
-Classification Error Rate: $\frac{5+12}{466}=4\%$
-Precision: $\frac{217}{217+5}=98\%$
-Sensitivity: $\frac{217}{217+12}=95\%$
-Specificity: $\frac{232}{232+5}=98\%$
-F1 Score: $\frac{2 * .98 * .95}{.98 + .95}=96\%$
 
 ###  Logit Minimal Model with forward elimination
 
@@ -349,18 +323,8 @@ lmod.fwd <- step(lmod.min, data=dftrain_clean, direction='forward', scope=formul
 summary(lmod.fwd)
 ```
 
-#### Logit Model with Forward Elimination Prediction Accuracy
 
-```{r model_forward_accuracy, warning=FALSE, message=FALSE}
-table(true = dftrain_clean$target, pred = round(fitted(lmod.fwd)))
-```
 
-Accuracy: $\frac{220+234}{466}=97\%$
-Classification Error Rate: $\frac{5+12}{466}=3\%$
-Precision: $\frac{220}{220+3}=99\%$
-Sensitivity: $\frac{220}{220+9}=96\%$
-Specificity: $\frac{234}{234+3}=98\%$
-F1 Score: $\frac{2 * .99 * .96}{.99 + .96}=97\%$
 
 
 -------------------------
@@ -369,8 +333,152 @@ $~$
 
 ## Select Models: 
 
+#### Here we are evaluating the performance our models to decide which model should we use
+
+
+#### **Linear Model Accuracy**
+
+```{r model_linear_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean_dummy$target, pred = round(fitted(olsreg)))
+```
+
+Accuracy: $\frac{210+225}{466}=93\%$
+
+Classification Error Rate: $\frac{12+19}{466}=7\%$
+
+Precision: $\frac{210}{210+12}=95\%$
+
+Sensitivity: $\frac{210}{210+19}=92\%$
+
+Specificity: $\frac{225}{225+12}=95\%$
+
+F1 Score: $\frac{2 * .95 * .92}{.95 + .92}=93\%$
+
+
+#### **Logit Model Prediction Accuracy**
+
+
+```{r model_logit_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(logit)))
+```
+
+Accuracy: $\frac{219+233}{466}=97\%$
+
+Classification Error Rate: $\frac{4+10}{466}=3\%$
+
+Precision: $\frac{219}{219+4}=98\%$
+
+Sensitivity: $\frac{219}{219+10}=96\%$
+
+Specificity: $\frac{233}{233+4}=98\%$
+
+F1 Score: $\frac{2 * .98 * .96}{.98 + .96}=97\%$
+
+
+#### **Logit Model with Forward Elimination Prediction Accuracy**
+
+```{r model_forward_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.fwd)))
+```
+
+Accuracy: $\frac{220+234}{466}=97\%$
+
+Classification Error Rate: $\frac{5+12}{466}=3\%$
+
+Precision: $\frac{220}{220+3}=99\%$
+
+Sensitivity: $\frac{220}{220+9}=96\%$
+
+Specificity: $\frac{234}{234+3}=98\%$
+
+F1 Score: $\frac{2 * .99 * .96}{.99 + .96}=97\%$
+
+
+#### **Logit Model with Backward Elimination Prediction Accuracy**
+
+```{r model_logit_back_accuracy, warning=FALSE, message=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
+```
+
+Accuracy: $\frac{217+232}{466}=96\%$
+
+Classification Error Rate: $\frac{5+12}{466}=4\%$
+
+Precision: $\frac{217}{217+5}=98\%$
+
+Sensitivity: $\frac{217}{217+12}=95\%$
+
+Specificity: $\frac{232}{232+5}=98\%$
+
+F1 Score: $\frac{2 * .98 * .95}{.98 + .95}=96\%$
+
+### Model AUCs
+
+* Linear Model
+
 ```{r}
 
+pred = round(fitted(olsreg))
+pROC::auc(dftrain_clean_dummy$target, pred)
+
+```
+
+* Logit Model
+
+```{r}
+pred = round(fitted(logit))
+pROC::auc(dftrain_clean$target, pred)
+
+```
+
+
+* Logit Model with Forward Elimination 
+
+```{r}
+pred = round(fitted(lmod.fwd))
+pROC::auc(dftrain_clean$target, pred)
+
+```
+
+* Logit Model with Backward Elimination
+
+```{r}
+pred = round(fitted(lmod.back))
+pROC::auc(dftrain_clean$target, pred)
+
+```
+
+#### Findings
+
+All of our Logistic Models had a better AUC than our Linear Model with Logit with Forward Elimination having the best (0.974)
+
+Now lets make predictions with the evaluation df.
+
+* Linear Model
+
+```{r}
+prediction <- broom::augment(olsreg, newdata = dfeval_clean)
+prediction$.fitted
+```
+* Logit Model
+
+```{r}
+prediction <- broom::augment(logit, newdata = dfeval_clean)
+prediction$.fitted
+```
+
+* Logit Model with Forward Elimination 
+
+```{r}
+prediction <- broom::augment(lmod.fwd, newdata = dfeval_clean)
+prediction$.fitted
+```
+
+* Logit Model with Backward Elimination
+
+```{r}
+prediction <- broom::augment(lmod.back, newdata = dfeval_clean)
+prediction$.fitted
 ```
 
 
