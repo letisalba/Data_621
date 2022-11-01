@@ -131,8 +131,8 @@ p
 ```
 
 ```{r boxplot}
-par(mfrow=c(5,3)
-boxplot(crime.train[,1] ~ crime.train[,14], col = boxcol, main = colnames(crime.train)[1], xlab = 'Crime')
+par(mfrow=c(4,5))
+#boxplot(crime.train[,1] ~ crime.train[,14], col = boxcol, main = colnames(crime.train)[1], xlab = 'Crime')
 ```
 
 
