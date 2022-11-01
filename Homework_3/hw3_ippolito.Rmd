@@ -16,6 +16,7 @@ library(psych)
 library(car)
 library(kableExtra)
 library(gridExtra)
+library(faraway)
 
 ```
 
@@ -32,8 +33,7 @@ summary(dftrain)
 describe(dftrain)
 
 # Factor categorical variables
-dftrain$target <- factor(dftrain$target, levels=c(0, 1))
-levels(dftrain$target) <- list(below_median=0, above_median=1)
+dftrain$target <- factor(dftrain$target, levels=c(0, 1), labels=c('below_median', 'above_median'))
 dftrain$chas <- factor(dftrain$chas)
 levels(dftrain$chas) <- list(not_on_charles=0, on_charles=1)
 
@@ -66,8 +66,8 @@ plot(jitter(as.numeric(dftrain$chas), amount=.15), jitter(as.numeric(dftrain$tar
 
 Relationship of median crime rate to the following predictor variables:
 
-| Predictor | Definition | Relationship |
-|-----------|------------|--------------|
+| Predictor | Definition | Relationship to Median Crim Rate |
+|-----------|------------|----------------------------------|
 | zn | Proportion of residential land zoned for large lots (over 25000 square feet) | negative |
 | indus | Proportion of non-retail business acres per suburb | positive |
 | chas | Dummy var. for whether the suburb borders the Charles River | unclear |
@@ -81,15 +81,22 @@ Relationship of median crime rate to the following predictor variables:
 | lstat | Lower status of the population (percent) | positive |
 | medv | Median value of owner-occupied homes in $1000s | negative |
 
+As indicated in the table, several predictors exhibit exhibite an inverse relationship with median crime rate. Based on the zn and medv variables, larger lot sizes and higher median home values correspond to a drop in crime rate, which is expected since larger lots and higher home values typically indicate higher economic status and, hence, lower crime. The same is true for the dis variable, which indicates that the farther a neighborhood is away from a major employment center, the lower the crime rate; this also makes sense, given that employment centers are often located in denser, more urban settings, which typically have higher rates of crime.
+
+For the most part, variables exhibiting positive relationships with median crime rate also make intuitive sense. It would follow that neighborhoods having higher rates of industry (and, therefore, higher concentrations of pollutants like nitrogen oxides--nox--in the air) would also have higher crime rates. Likewise, neighborhoods with older homes (indicated by the age variable) located near radial highways (rad variable) and with a high pupil-to-teacher ratio (ptratio variable) could also be interpreted to have higher rates of crime.
+
+Two variables didn't exhibit a clear relationships to crime rate: whether the neighborhood borders the Charles River (chas) and the average number of rooms per dwelling (rm). In addition, while the the lstat predictor exhibitied a positive relationship with crime rate, the description of the variable ("lower status of the population") didn't clearly state what the data values represent.
+
 
 ### Explore colinearity of predictor variables
+
+Now we'll look for any significant relationships among predictor variables. We considered correlation values above 0.6 to be significant.
 
 ```{r fig.width=12, fig.height=12}
 
 # Correlation matrix
 print('Correlation matrix (numerical variables):')
 round(cor(dftrain[, c(1,2,4:12)]), 2)
-
 
 par(mfrow=c(6, 3))
 
@@ -149,7 +156,7 @@ abline(lm(lstat ~ medv, dftrain), lt=2, col=2)
 
 ```
 
-[describe colinear relationships here]
+As shown in the graphs, a number of significant correlations exist. Some of the stronger relationships are discussed here. Frist, the proportion of area zoned for large lots (zn) has a positive relationship with the distance to employment centers (dis), since it is more difficult to locate large lots close to the city center. A strong positive correlation exists between indus and nox, which is intuitively obvious. Likewise, tax rates in industrial areas are likely to be higher, as shown by the strong positive correlation of 0.73. Another strong correlation that makes obvious intuitive sense is that between median home values (medv) and the average number of rooms per dwelling (rm). The strongest positive correlation (0.91) exists between tax rate (tax) and the index of accessibility to radial highways (rad), which also corresponds to the fact that industrial areas are typically close to radial highways and also exhibit higher tax rates. The strongest negative correlation (-0.77) exists between nox and dis, indicating that the farther away from employment centers (and, hence, industrial areas), the lower the concentration of nitrogen oxide pollutants. Almost equally strong (-0.75) is the correlation between the age of dwellings (age) and the distance from employment centers (dis), indicating that the farther from urban centers, the newer the houses, which makes intuitive sense.
 
 
 ### Logistic regression
@@ -173,5 +180,135 @@ lmod.max.form <- formula(lmod.max)
 # Forward elimination
 lmod.fwd <- step(lmod.min, data=dftrain, direction='forward', scope=lmod.max.form)
 summary(lmod.fwd)
+
+```
+
+
+### Model selection
+
+```{r fig.width=12, fig.height=12}
+
+# Marginal model plots
+par(mfrow=c(3, 3))
+mmp(lmod.fwd, dftrain$nox)
+mmp(lmod.fwd, dftrain$rad)
+mmp(lmod.fwd, dftrain$tax)
+mmp(lmod.fwd, dftrain$ptratio)
+mmp(lmod.fwd, dftrain$age)
+mmp(lmod.fwd, dftrain$medv)
+mmp(lmod.fwd, dftrain$dis)
+mmp(lmod.fwd, dftrain$zn)
+
+# Find leverage points
+p <- length(lmod.fwd$coefficients) - 1
+n <- nrow(dftrain)
+hvals <- hatvalues(lmod.fwd)
+stanresDeviance <- residuals(lmod.fwd) / sqrt(1 - hvals)
+plot.new()
+par(mfrow=c(1, 1))
+plot(hvals, stanresDeviance, ylab="Standardized Deviance Residuals", xlab="Leverage Values", ylim=c(-3,3), xlim=c(-0.05,0.7))
+abline(v=2*p/n, lty=2)
+#tmp <- identify(hvals, stanresDeviance, labels=dftrain$target, cex=0.75, plot=T, n=3, pos=T)
+
+# Pearson's chi-squared - goodness of fit test
+chisq <- sum(residuals(lmod.fwd, type="pearson")^2)
+print(paste0('Pearson\'s chi-squared: ', chisq))
+pval <- pchisq(chisq, lmod.fwd$df.residual, lower.tail=F)
+print(paste0("P-value: ", pval))
+
+
+```
+
+
+```{r}
+
+# Functions to return model scoring metrics
+
+# Accuracy
+func.accuracy <- function (df, actual, predict) {
+    return(sum(df[actual] == df[predict]) / nrow(df))
+}
+
+# Error rate
+func.error_rate <- function(df, actual, predict) {
+    return(sum(df[actual] != df[predict]) / nrow(df))
+}
+
+# Precision
+func.precision <- function(df, actual, predict) {
+    TP <- sum(as.numeric(df[[actual]]) == 2 & as.numeric(df[[actual]]) == 2)
+    FP <- sum(as.numeric(df[[actual]]) == 1 & as.numeric(df[[predict]]) == 2)
+    return(TP / (TP + FP))
+}
+
+# Sensitivity
+func.sensitivity <- function(df, actual, predict) {
+    TP <- sum(as.numeric(df[[actual]]) == 2 & as.numeric(df[[predict]]) == 2)
+    FN <- sum(as.numeric(df[[actual]]) == 2 & as.numeric(df[[predict]]) == 1)
+    return(TP / (TP + FN))
+}
+
+# Specificity
+func.specificity <- function(df, actual, predict) {
+    TN <- sum(as.numeric(df[[actual]]) == 1 & as.numeric(df[[predict]]) == 1)
+    FP <- sum(as.numeric(df[[actual]]) == 1 & as.numeric(df[[predict]]) == 2)
+    return(TN / (TN + FP))
+}
+
+# ROC curve
+func.ROC <- function(df, pred_p, actual) {
+    tpr <- c()
+    fpr <- c()
+    for (i in seq(0, 1, 0.01)) {
+        df$pred_target = ifelse(df[[pred_p]] > i, 2, 1)
+        predict = 'pred_target'
+        df$TP <- as.vector(ifelse(as.numeric(df[[actual]]) == 2 & as.numeric(df[[predict]]) == 2, 1, 0))
+        df$TN <- as.vector(ifelse(as.numeric(df[[actual]]) == 1 & as.numeric(df[[predict]]) == 1, 1, 0))
+        df$FP <- as.vector(ifelse(as.numeric(df[[actual]]) == 1 & as.numeric(df[[predict]]) == 2, 1, 0))
+        df$FN <- as.vector(ifelse(as.numeric(df[[actual]]) == 2 & as.numeric(df[[predict]]) == 1, 1, 0))
+        tpr <- c(tpr, sum(df$TP) / (sum(df$TP) + sum(df$FN)))
+        fpr <- c(fpr, sum(df$FP) / (sum(df$FP) + sum(df$TN)))
+    }
+    print(df)
+    plot(tpr ~ fpr, type='l', xlim=c(0, 1), ylim=c(0, 1))
+    abline(a=0, b=1, lt=2, col=2, xlim=c(0, 1), ylim=c(0, 1))
+}
+
+```
+
+### Predictions
+
+```{r}
+
+# Make predictions on training set
+dftrain$pred_odds <- predict(lmod.fwd, newdata=dftrain)
+dftrain$pred_p <- ilogit(dftrain$pred_odds)
+dftrain$pred_target <- ifelse(dftrain$pred_p > 0.5, 1, 0)
+dftrain$pred_target <- factor(dftrain$pred_target, levels=c(0, 1), labels=c('below_median', 'above_median'))
+model_accuracy <- func.accuracy(dftrain, 'target', 'pred_target')
+model_error_rate <- func.error_rate(dftrain, 'target', 'pred_target')
+model_precision <- func.precision(dftrain, 'target', 'pred_target')
+model_sensitivity <- func.sensitivity(dftrain, 'target', 'pred_target')
+model_specificity <- func.specificity(dftrain, 'target', 'pred_target')
+print(paste0('Accuracy: ', round(model_accuracy, 3)))
+print(paste0('Error rate: ', round(model_error_rate, 3)))
+print(paste0('Precision: ', round(model_precision, 3)))
+print(paste0('Sensitivity: ', round(model_sensitivity, 3)))
+print(paste0('Specificity: ', round(model_specificity, 3)))
+func.ROC(dftrain, 'pred_p', 'target')
+
+# Load eval set
+dfeval <- read.csv('https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv')
+
+# Summary
+summary(dfeval)
+describe(dfeval)
+
+# Make predictions on eval set
+dfeval$pred_odds <- predict(lmod.fwd, newdata=dfeval)
+dfeval$pred_p <- ilogit(dfeval$pred_odds)
+dfeval$pred_target <- ifelse(dfeval$pred_p > 0.5, 1, 0)
+dfeval$pred_target <- factor(dfeval$pred_target, levels=c(0, 1), labels=c('below_median', 'above_median'))
+dfeval
 
 ```
