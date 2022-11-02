@@ -17,9 +17,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 $~$
 
-## Visualizations
+## Exploration and Visualizations
 
-Data visualization it's a key part of presenting and understanding your data and be able to share it with others in an accessible way. Yet visualizations alone can also have a downside, if not presented well it can be misrepresented or misinterpreted. There's plenty of things to consider when creating visualization like color palette, text sizing, ledger, etc but before we get to all that there's a couple different types of visualizations to know:
+Data exploration is one of the first things you'll do when you are analyzing data sets for any project. It allows you to have an initial understanding the variables in your given data set, detect outliers and explore relationships of your data before any preparation or deeper analysis.
+
+Data visualization helps present and understand your data to later share it with others in an accessible way. Yet visualizations alone can also have a downside, if not presented well it can be misrepresented or misinterpreted. There's plenty of things to consider when creating visualization like color palette, text sizing, ledger, etc but before we get to all that there's a couple different types of visualizations to know:
 
 -   Univariate Graphs
     -   Categorical
@@ -31,95 +33,254 @@ Data visualization it's a key part of presenting and understanding your data and
 -   Multivariate Graphs
     -   Grouping
     -   Faceting
-
-Using the `marriage`, `mpg` and `salaries` data set from the library `ggplot2` to explore these different types of visualizations
+    
+Using the `marriage`, `mpg` and `salaries` data set from the library `ggplot2` as well as the `iris` data set from the library `datasets` to explore and create different types of visualizations.
 
 ### Load Libraries
 
 ```{r, warning=FALSE, message=FALSE}
 library(ggplot2) # used for data sets and graphing
 library(tidyverse) # used for exploration of data
-library(psych)
 library(mosaicData) # used to get data set marriage
+library(datasets) # iris data set
+library(hrbrthemes) # adds themes to ggplot2
+library(carData) # Salaries data set
 ```
 
 
-In a traditional setting we would explore this data set, look into their observations, 
+## Data Exploration
+
+For this portion we will use the `mpg` data set to explore. After importing your data set you'd want to display the data. You'll find that plenty of times you have a large data set and loading it all will just end up being chaotic. By using the `head()` you'll be able to display the first 6 rows of the data set as seen below:
+```{r}
+# display the data
+head(mpg)
+```
 
 
-## Univariate Graphs
+You may also want to just get the column names in case you want to rename them. 
+```{r}
+# display column names
+colnames(mpg)
+```
 
-These plots help understand each attribute alone
 
-### Categorical
+The function below allows you to view the number of columns and rows in a data set
+```{r}
+# display columns and rows
+dim(mpg)
+```
 
+
+You may also want to explore the structure of the data by using the `str()`
+```{r}
+# display structure of data
+str(mpg)
+```
+
+
+If you want to find the statistical structure of any data set, the `summary()`will allow you to do just that. This function give you the minimum, first quartile, median, mean, third quartile and maximum values of each variable. All other non numerical values you get the count of values in that variable.
+```{r}
+# finding statistical structure of the data
+summary(mpg)
+```
+
+
+I also like to use the `glimpse()` which semi combines the `dim()` and `str()` functions as seen below
+```{r}
+glimpse(mpg)
+```
+
+
+We can't forget the missing values or NA's either and `colSums` is great at providing the count of the missing values for each column. `rowSums` provides the count of the missing values in each row.
+```{r}
+# can't forget about the NA's
+colSums(is.na(mpg))
+#rowSums(is.na(mpg))
+```
+
+
+---------------
+
+
+## Visualizations
+
+Part of the exploration process is to also visualize what the data looks like so far. Be mindful that every categorical and quantitative variable in a data set should be displayed accordingly to represent your data well and avoid misrepresentation / misinterpretation. Here's a couple of visualization you can start with:
+
+### Univariate Graphs
+
+Univariate graphs help display each attribute **alone**
+
+#### Categorical:
+
+Variables pertaining to race, sex, species, etc are labeled categorical
 ```{r bar chart}
-
+# bar chart
+Marriage %>% 
+  ggplot(aes(x = race, fill = race)) +
+    geom_bar() +
+    ggtitle("Plotting race from Marriage data set") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
 
-```{r tree map}
 
-```
+#### Quantitative
 
-### Quantitative
-
+Variables such as age, weight, length, etc are labeled quantitative
 ```{r histogram}
-
+# histogram
+iris %>% # pipe through the data set
+ggplot( aes(x = Sepal.Length)) +
+    geom_histogram( binwidth = 0.5, fill = "#69b3a2", color = "#e9ecef", alpha=0.9) +   
+  ggtitle("Plotting sepal length fom iris dataset") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
+
 
 ```{r density}
-
+# density plot
+ggplot(Marriage, aes(x = age)) +
+  geom_density(fill = "deepskyblue", 
+               bw = 1) + 
+  labs(title = "Participants by age",
+       subtitle = "bandwidth = 1") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
+
 
 ```{r dot chart}
-
+# dot chart
+ggplot(Marriage, aes(x = age)) +
+  geom_dotplot() + 
+  labs(title = "Participants by age",
+       y = "Proportion",
+       x = "Age") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
 
-## Bivariate Graphs
+### Bivariate Graphs
 
-These plots help you understand two attributes
+Bivariate graphs help you display **two** attributes
 
-### Categorical vs. Categorical
+#### Categorical vs. Categorical
 
 ```{r stacked bar chart}
-
+# stacked bar chart
+mpg %>% 
+  ggplot(aes(x = class, fill = drv)) +
+    geom_bar(position = "stack") +   
+    ggtitle("Type of drive per class of car") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10), axis.text.x = element_text(angle = 90)
+    )
 ```
+
 
 ```{r grouped bar chart}
-
+# grouped bar chart
+mpg %>% 
+  ggplot(aes(x = class, fill = drv)) +
+    geom_bar(position = "dodge") +   
+    ggtitle("Type of drive per class of car") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10), axis.text.x = element_text(angle = 90)
+    )
 ```
 
-### Quantitative vs. Quantitative
+#### Quantitative vs. Quantitative
 
 ```{r scatter plot}
-
+# scatter plot
+iris %>% 
+ggplot(aes(x = Sepal.Length, 
+           y = Sepal.Width)) +
+  geom_point() +
+  labs(title = "Sepal.Length vs. Sepal.Width") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
+
 
 ```{r line plot}
-
+# line plot
+Salaries %>% 
+ggplot( aes(x = yrs.service, 
+           y = salary)) +
+  geom_line() +
+  labs(title = "Years of Service vs Salary") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
 
-### Categorical vs. Quantitative
-
-```{r grouped kernel density plots}
-
-```
+#### Categorical vs. Quantitative
 
 ```{r box plots}
-
+# box plot
+Salaries %>% 
+ggplot(aes(x = rank, 
+           y = salary)) +
+  geom_boxplot() +
+  labs(title = "Salary distribution by rank") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
 
-## Multivariate Graphs
+### Multivariate Graphs
 
-These plots help you better understand the interactions between attributes
+Multivariate graphs help you better understand the **interactions between attributes**
 
 ```{r grouping scatterplot}
-
+# grouping scatter plots
+Salaries %>% 
+ggplot(aes(x = yrs.since.phd, 
+                     y = salary, 
+                     color=rank)) +
+  geom_point() +
+  labs(title = "title") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
+
 
 ```{r faceting}
-
+# faceting
+mpg %>% 
+ggplot(aes(x = hwy)) +
+  geom_histogram(fill = "cornflowerblue",
+                 color = "white") +
+  facet_wrap(~drv, ncol = 1) +
+  labs(title = "title") +
+    theme_ipsum() +
+    theme(
+      plot.title = element_text(size=10)
+    )
 ```
+
+
+---------------
+
+While there's plenty of other ways to perform these tasks being able to know how to start will make it easier to use other functions to explore your data set or libraries other than `ggplot2` to upgrade your visualizations.
 
 $~$
 
