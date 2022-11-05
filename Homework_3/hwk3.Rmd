@@ -2,7 +2,7 @@
 title: "Data 621 - Homework 3"
 author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
   and Leticia Salazar'
-date: "11-06-2022"
+date: "November 6, 2022"
 output:
   pdf_document:
     toc: yes
@@ -67,10 +67,9 @@ library(kableExtra)
 library(gridExtra)
 library(performance)
 library(faraway)
+library(jtools)
 ```
 
-
--------------------------
 
 $~$
 
@@ -85,32 +84,36 @@ glimpse(dftrain)
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
 ```
 
-
--------------------------
-
 $~$
 
 ## Data Exploration:
 
 The correlation plot below is measuring the degree of linear relationship within the training data set. The values in which this is measured falls between -1 and +1, with +1 being a stronger correlation.
 
-```{r corrplot train, echo=FALSE}
+```{r corrplot train, echo=FALSE, fig.align='center'}
 corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
 ```
 
 $~$
 
 To give more insight on our data set we used the `summary()` and `describe()` functions below: 
-```{r fig.width=12, fig.height=12}
+
+`summary()`:
+```{r, fig.width=12, fig.height=12, echo=FALSE}
 # summarizing data set
 summary(dftrain)
+```
 
+`describe()`:
+```{r, fig.width=12, fig.height=12, echo=FALSE}
 describe(dftrain)
 ```
 
 $~$
 
-Factor categorical variables
+Factor categorical variables:
+
+Since categorical variables enter differently into statistical model, storing them as factors insures that the functions will treat the data correctly.
 ```{r}
 # from the training data set; variable: target
 dftrain$target <- factor(dftrain$target, levels=c(0, 1))
@@ -128,15 +131,15 @@ levels(dfeval$chas) <- list(not_on_charles=0, on_charles=1)
 $~$
 
 The plot matrix below consists of scatter plots corresponding to each data frame
-```{r, echo=FALSE, fig.width=12, fig.height=12}
+```{r, echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
 pairs(dftrain)
 ```
 
 
 $~$
 
-These boxplots below are show plenty of variables in our training data set with outliers. We also notice that variables `rad` and `tax` have a higher median for crime rate.
-```{r,echo=FALSE, fig.width=12, fig.height=12}
+These boxplots show plenty of variables in our training data set with outliers. We also notice that variables `rad` and `tax` have a higher median for crime rate.
+```{r,echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
 # Boxplots
 par(mfrow=c(4, 3))
 boxplot(zn ~ target, data=dftrain)
@@ -157,7 +160,7 @@ boxplot(medv ~ target, data=dftrain)
 $~$
 
 We created a contingency table to show the distribution of a variables `target` and `chas`. By using a jitter plot we are trying to visualize the relationship between these two variables.
-```{r,echo=FALSE}
+```{r,echo=FALSE, fig.align='center'}
 # Contingency table 
 dfconting <- data.frame(target=dftrain$target, chas=dftrain$chas)
 table(dfconting)
@@ -185,19 +188,407 @@ Relationship of median crime rate to the following predictor variables:
 | lstat     | Lower status of the population (percent)                                      | positive                          |
 | medv      | Median value of owner-occupied homes in $1000s                                | negative                          |
 
-As indicated in the table, several predictors exhibit exhibite an inverse relationship with median crime rate. Based on the zn and medv variables, larger lot sizes and higher median home values correspond to a drop in crime rate, which is expected since larger lots and higher home values typically indicate higher economic status and, hence, lower crime. The same is true for the dis variable, which indicates that the farther a neighborhood is away from a major employment center, the lower the crime rate; this also makes sense, given that employment centers are often located in denser, more urban settings, which typically have higher rates of crime.
+As indicated in the table, several predictors exhibit an inverse relationship with median crime rate. Based on the `zn` and `medv` variables, larger lot sizes and higher median home values correspond to a drop in crime rate, which is expected since larger lots and higher home values typically indicate higher economic status and, hence, lower crime. The same is true for the `dis` variable, which indicates that the farther a neighborhood is away from a major employment center, the lower the crime rate; this also makes sense, given that employment centers are often located in denser, more urban settings, which typically have higher rates of crime.
 
-For the most part, variables exhibiting positive relationships with median crime rate also make intuitive sense. It would follow that neighborhoods having higher rates of industry (and, therefore, higher concentrations of pollutants like nitrogen oxides--nox--in the air) would also have higher crime rates. Likewise, neighborhoods with older homes (indicated by the age variable) located near radial highways (rad variable) and with a high pupil-to-teacher ratio (ptratio variable) could also be interpreted to have higher rates of crime.
+For the most part, variables exhibiting positive relationships with median crime rate also make intuitive sense. It would follow that neighborhoods having higher rates of industry (and, therefore, higher concentrations of pollutants like nitrogen oxides--`nox`--in the air) would also have higher crime rates. Likewise, neighborhoods with older homes (indicated by the `age` variable) located near radial highways (`rad` variable) and with a high pupil-to-teacher ratio (`ptratio` variable) could also be interpreted to have higher rates of crime.
 
-Two variables didn't exhibit a clear relationships to crime rate: whether the neighborhood borders the Charles River (chas) and the average number of rooms per dwelling (rm). In addition, while the the lstat predictor exhibitied a positive relationship with crime rate, the description of the variable ("lower status of the population") didn't clearly state what the data values represent.
+Two variables didn't exhibit a clear relationships to crime rate: whether the neighborhood borders the Charles River (`chas`) and the average number of rooms per dwelling (`rm`). In addition, while the the `lstat` predictor exhibited a positive relationship with crime rate, the description of the variable ("lower status of the population") didn't clearly state what the data values represent.
 
 $~$
 
-Now we'll look for any significant relationships among predictor variables. We considered correlation values above 0.6 to be significant.
+Let's look for any significant relationships among predictor variables. We considered correlation values above 0.6 to be significant. We explore colinearity of predictor variables with the help of a correlation matrix:
 
-Let's explore colinearity of predictor variables with the help of a correlation matrix:
+```{r fig.width=12, fig.height=12, echo=FALSE, fig.align='center'}
+# Correlation matrix
+#print('Correlation matrix (numerical variables):')
+round(cor(dftrain[, c(1,2,4:12)]), 2)
 
-```{r fig.width=12, fig.height=12, echo=FALSE}
+# plots
+par(mfrow=c(6, 3))
+
+plot(zn ~ dis, data=dftrain)
+abline(lm(zn ~ dis, data=dftrain), lt=2, col=2)
+
+plot(indus ~ nox, data=dftrain)
+abline(lm(indus ~ nox, dftrain), lt=2, col=2)
+
+plot(indus ~ age, data=dftrain)
+abline(lm(indus ~ age, dftrain), lt=2, col=2)
+
+plot(indus ~ dis, data=dftrain)
+abline(lm(indus ~ dis, dftrain), lt=2, col=2)
+
+plot(indus ~ rad, data=dftrain)
+abline(lm(indus ~ dis, dftrain), lt=2, col=2)
+
+plot(indus ~ tax, data=dftrain)
+abline(lm(indus ~ tax, dftrain), lt=2, col=2)
+
+plot(indus ~ lstat, data=dftrain)
+abline(lm(indus ~ lstat, dftrain), lt=2, col=2)
+
+plot(nox ~ age, data=dftrain)
+abline(lm(nox ~ age, dftrain), lt=2, col=2)
+
+plot(nox ~ dis, data=dftrain)
+abline(lm(nox ~ dis, dftrain), lt=2, col=2)
+
+plot(nox ~ rad, data=dftrain)
+abline(lm(nox ~ rad, dftrain), lt=2, col=2)
+
+plot(nox ~ tax, data=dftrain)
+abline(lm(nox ~ tax, dftrain), lt=2, col=2)
+
+plot(nox ~ lstat, data=dftrain)
+abline(lm(nox ~ lstat, dftrain), lt=2, col=2)
+
+plot(rm ~ lstat, data=dftrain)
+abline(lm(rm ~ lstat, dftrain), lt=2, col=2)
+
+plot(rm ~ medv, data=dftrain)
+abline(lm(rm ~ medv, dftrain), lt=2, col=2)
+
+plot(age ~ dis, data=dftrain)
+abline(lm(age ~ dis, dftrain), lt=2, col=2)
+
+plot(age ~ lstat, data=dftrain)
+abline(lm(age ~ lstat, dftrain), lt=2, col=2)
+
+plot(rad ~ tax, data=dftrain)
+abline(lm(rad ~ tax, dftrain), lt=2, col=2)
+
+plot(lstat ~ medv, data=dftrain)
+abline(lm(lstat ~ medv, dftrain), lt=2, col=2)
+```
+
+As shown in the graphs above, a number of significant correlations exist. Some of the stronger relationships are discussed here. First, the proportion of area zoned for large lots (`zn`) has a positive relationship with the distance to employment centers (`dis`), since it is more difficult to locate large lots close to the city center. A strong positive correlation exists between `indus` and `nox`, which is intuitively obvious. Likewise, tax rates in industrial areas are likely to be higher, as shown by the strong positive correlation of 0.73. Another strong correlation that makes obvious intuitive sense is that between median home values (`medv`) and the average number of rooms per dwelling (`rm`). The strongest positive correlation (0.91) exists between tax rate (`tax`) and the index of accessibility to radial highways (`rad`), which also corresponds to the fact that industrial areas are typically close to radial highways and also exhibit higher tax rates. The strongest negative correlation (-0.77) exists between nox and dis, indicating that the farther away from employment centers (and, hence, industrial areas), the lower the concentration of nitrogen oxide pollutants. Almost equally strong (-0.75) is the correlation between the age of dwellings (`age`) and the distance from employment centers (`dis`), indicating that the farther from urban centers, the newer the houses, which makes intuitive sense.
+
+-------------------------
+
+$~$
+
+## Data Preparation:
+
+There are no missing values for our data sets
+
+training data:
+```{r, echo=FALSE}
+round(100*colSums(is.na(dftrain))/nrow(dftrain),2)
+```
+evaluation data:
+```{r, echo=FALSE}
+round(100*colSums(is.na(dfeval))/nrow(dfeval),2)
+```
+$~$
+
+The `rad` predictor is a categorical value and has some unknown meaning for values 1-8 and 24. We need to introduce dummy variables `rad1`, `rad2`, etc to indicate if the neighborhood is in which category. We will exclude `rad24` since we only need N-1 variables to represent each value.
+
+```{r, echo=FALSE}
+# cleaning train data 
+clean_df <- function(df) {
+  df$rad_1 <- ifelse(df$rad == 1, 1, 0)
+  df$rad_2 <- ifelse(df$rad == 2, 1, 0)
+  df$rad_3 <- ifelse(df$rad == 3, 1, 0)
+  df$rad_4 <- ifelse(df$rad == 4, 1, 0)
+  df$rad_5 <- ifelse(df$rad == 5, 1, 0)
+  df$rad_6 <- ifelse(df$rad == 6, 1, 0)
+  df$rad_7 <- ifelse(df$rad == 7, 1, 0)
+  df$rad_8 <- ifelse(df$rad == 8, 1, 0)
+  df$rad <- NULL
+  return(df)
+}
+
+dftrain_clean <- clean_df(dftrain)
+dftrain_clean <- dftrain_clean %>%
+  select(target, everything())
+dfeval_clean <- clean_df(dfeval)
+```
+
+Cleaned training data:
+```{r}
+head(dftrain_clean)
+```
+
+Cleaned evaluation data:
+```{r}
+head(dfeval_clean)
+```
+
+-------------------------
+
+$~$
+
+## Model Building:
+
+You can't calculate residuals for a factor so we created a dummy target variable for this model. Below are the results:
+
+```{r model-lm, warning = FALSE, error = FALSE, echo=FALSE}
+dftrain_clean_dummy <- dftrain_clean %>% mutate(target = as.numeric(target == "above_median"))
+olsreg <- lm(data = dftrain_clean_dummy, formula = target ~ .)
+summ(olsreg)
+```
+
+We start our model building with the following models:
+
+* **Logit Model**
+```{r model_logit, warning=FALSE, message=FALSE, echo=FALSE}
+logit <- glm(data = dftrain_clean, formula = target ~ ., family = binomial (link = "logit"))
+summ(logit)
+```
+
+
+* **Logit Model with Backward Elimination**
+```{r model_logit_back, warning=FALSE, message=FALSE, echo=FALSE}
+lmod.back <- step(logit, data=dftrain_clean, direction='backward')
+summ(lmod.back)
+```
+
+
+* **Logit Minimal Model with forward elimination**
+```{r model_minimal, warning=FALSE, message=FALSE, echo=FALSE}
+lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain_clean)
+summ(lmod.min)
+```
+
+* **Forward Elimination**
+```{r model_forward, warning=FALSE, message=FALSE, echo=FALSE}
+lmod.fwd <- step(lmod.min, data=dftrain_clean, direction='forward', scope=formula(logit))
+summ(lmod.fwd)
+```
+
+
+-------------------------
+
+$~$
+
+## Select Models: 
+
+We evaluated the performance our models to decide which model should we use:
+
+
+* **Linear Model Accuracy**
+
+```{r model_linear_accuracy, warning=FALSE, message=FALSE, echo=FALSE}
+table(true = dftrain_clean_dummy$target, pred = round(fitted(olsreg)))
+```
+
+Accuracy: $\frac{210+225}{466}=93\%$
+
+Classification Error Rate: $\frac{12+19}{466}=7\%$
+
+Precision: $\frac{210}{210+12}=95\%$
+
+Sensitivity: $\frac{210}{210+19}=92\%$
+
+Specificity: $\frac{225}{225+12}=95\%$
+
+F1 Score: $\frac{2 * .95 * .92}{.95 + .92}=93\%$
+
+
+* **Logit Model Prediction Accuracy**
+
+```{r model_logit_accuracy, warning=FALSE, message=FALSE, echo=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(logit)))
+```
+
+Accuracy: $\frac{219+233}{466}=97\%$
+
+Classification Error Rate: $\frac{4+10}{466}=3\%$
+
+Precision: $\frac{219}{219+4}=98\%$
+
+Sensitivity: $\frac{219}{219+10}=96\%$
+
+Specificity: $\frac{233}{233+4}=98\%$
+
+F1 Score: $\frac{2 * .98 * .96}{.98 + .96}=97\%$
+
+
+* **Logit Model with Forward Elimination Prediction Accuracy**
+
+```{r model_forward_accuracy, warning=FALSE, message=FALSE, echo=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.fwd)))
+```
+
+Accuracy: $\frac{220+234}{466}=97\%$
+
+Classification Error Rate: $\frac{5+12}{466}=3\%$
+
+Precision: $\frac{220}{220+3}=99\%$
+
+Sensitivity: $\frac{220}{220+9}=96\%$
+
+Specificity: $\frac{234}{234+3}=98\%$
+
+F1 Score: $\frac{2 * .99 * .96}{.99 + .96}=97\%$
+
+
+* **Logit Model with Backward Elimination Prediction Accuracy**
+
+```{r model_logit_back_accuracy, warning=FALSE, message=FALSE, echo=FALSE}
+table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
+```
+
+Accuracy: $\frac{217+232}{466}=96\%$
+
+Classification Error Rate: $\frac{5+12}{466}=4\%$
+
+Precision: $\frac{217}{217+5}=98\%$
+
+Sensitivity: $\frac{217}{217+12}=95\%$
+
+Specificity: $\frac{232}{232+5}=98\%$
+
+F1 Score: $\frac{2 * .98 * .95}{.98 + .95}=96\%$
+
+-------------------------
+
+### Model AUCs
+
+* **Linear Model**
+```{r, echo=FALSE}
+pred = round(fitted(olsreg))
+pROC::auc(dftrain_clean_dummy$target, pred)
+```
+
+
+* **Logit Model**
+```{r, echo=FALSE}
+pred = round(fitted(logit))
+pROC::auc(dftrain_clean$target, pred)
+```
+
+
+* **Logit Model with Forward Elimination**
+```{r, echo=FALSE}
+pred = round(fitted(lmod.fwd))
+pROC::auc(dftrain_clean$target, pred)
+```
+
+
+* **Logit Model with Backward Elimination**
+```{r, echo=FALSE}
+pred = round(fitted(lmod.back))
+pROC::auc(dftrain_clean$target, pred)
+```
+
+-------------------------
+
+## Findings
+
+All of our Logistic models had a better AUC than our Linear Model with 'Logit with Forward Elimination' having the best (0.974).
+
+Now lets make predictions with the evaluation data:
+
+* **Linear Model**
+```{r, echo=FALSE}
+prediction <- broom::augment(olsreg, newdata = dfeval_clean)
+prediction$.fitted
+```
+
+
+* **Logit Model**
+```{r, echo=FALSE}
+prediction <- broom::augment(logit, newdata = dfeval_clean)
+prediction$.fitted
+```
+
+
+* **Logit Model with Forward Elimination**
+```{r, echo=FALSE}
+prediction <- broom::augment(lmod.fwd, newdata = dfeval_clean)
+prediction$.fitted
+```
+
+
+* **Logit Model with Backward Elimination**
+```{r, echo=FALSE}
+prediction <- broom::augment(lmod.back, newdata = dfeval_clean)
+prediction$.fitted
+```
+
+$~$
+
+Using the logit model with forward elimination and a 0.5 threshold with our `dfeval_clean` data to predict how many neighborhoods are above and below the median crime rate, we obtain the following results:
+```{r, echo=FALSE}
+predict <- predict(lmod.fwd, dfeval_clean, interval = "prediction")
+eval <- table(as.integer(predict > .5))
+print(paste(eval[1], "are above median crime rate", "and", eval[2], "are below median crime rate."))
+```
+
+-------------------------
+
+$~$
+
+## Appendix:
+
+Code used in this homework
+```{r, eval=FALSE}
+# libraries used
+library(tidyverse)
+library(caret)
+library(pROC)
+library(corrplot)
+library(GGally)
+library(psych)
+library(car)
+library(kableExtra)
+library(gridExtra)
+library(performance)
+library(faraway)
+library(jtools)
+
+# loading data
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
+glimpse(dftrain)
+
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
+
+# correlation plot
+corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
+
+# summarizing data set
+summary(dftrain)
+describe(dftrain)
+
+# factor categorical variables
+# from the training data set; variable: target
+dftrain$target <- factor(dftrain$target, levels=c(0, 1))
+levels(dftrain$target) <- list(below_median=0, above_median=1)
+
+# from the training data set; variable: chas
+dftrain$chas <- factor(dftrain$chas)
+levels(dftrain$chas) <- list(not_on_charles=0, on_charles=1)
+
+# from the evaluation data set; variable: chas
+dfeval$chas <- factor(dfeval$chas)
+levels(dfeval$chas) <- list(not_on_charles=0, on_charles=1)
+
+# matrix scatter plot
+pairs(dftrain)
+
+# Boxplots
+par(mfrow=c(4, 3))
+boxplot(zn ~ target, data=dftrain)
+boxplot(indus ~ target, data=dftrain)
+#boxplot(chas ~ target, data=dftrain) # excluding chas
+boxplot(nox ~ target, data=dftrain)
+boxplot(rm ~ target, data=dftrain)
+boxplot(age ~ target, data=dftrain)
+boxplot(dis ~ target, data=dftrain)
+boxplot(rad ~ target, data=dftrain)
+boxplot(tax ~ target, data=dftrain)
+boxplot(ptratio ~ target, data=dftrain)
+boxplot(lstat ~ target, data=dftrain)
+boxplot(medv ~ target, data=dftrain)
+
+# Contingency table 
+dfconting <- data.frame(target=dftrain$target, chas=dftrain$chas)
+table(dfconting)
+
+# jittered plot for chas variable
+plot(jitter(as.numeric(dftrain$chas), amount=.15), jitter(as.numeric(dftrain$target), amount=0.03), 
+     xlab="Borders Charles River (2=yes)", ylab="Crime Rate > Median (2=yes)", col=dftrain$chas, pch=as.numeric(dftrain$chas))
 
 # Correlation matrix
 print('Correlation matrix (numerical variables):')
@@ -259,28 +650,11 @@ abline(lm(rad ~ tax, dftrain), lt=2, col=2)
 
 plot(lstat ~ medv, data=dftrain)
 abline(lm(lstat ~ medv, dftrain), lt=2, col=2)
-```
 
-As shown in the graphs above, a number of significant correlations exist. Some of the stronger relationships are discussed here. First, the proportion of area zoned for large lots (zn) has a positive relationship with the distance to employment centers (dis), since it is more difficult to locate large lots close to the city center. A strong positive correlation exists between indus and nox, which is intuitively obvious. Likewise, tax rates in industrial areas are likely to be higher, as shown by the strong positive correlation of 0.73. Another strong correlation that makes obvious intuitive sense is that between median home values (medv) and the average number of rooms per dwelling (rm). The strongest positive correlation (0.91) exists between tax rate (tax) and the index of accessibility to radial highways (rad), which also corresponds to the fact that industrial areas are typically close to radial highways and also exhibit higher tax rates. The strongest negative correlation (-0.77) exists between nox and dis, indicating that the farther away from employment centers (and, hence, industrial areas), the lower the concentration of nitrogen oxide pollutants. Almost equally strong (-0.75) is the correlation between the age of dwellings (age) and the distance from employment centers (dis), indicating that the farther from urban centers, the newer the houses, which makes intuitive sense.
-
--------------------------
-
-$~$
-
-## Data Preparation:
-
-There are no missing values for our data sets
-```{r, echo=FALSE}
+# checking for missing values
 round(100*colSums(is.na(dftrain))/nrow(dftrain),2)
-```
-
-```{r, echo=FALSE}
 round(100*colSums(is.na(dfeval))/nrow(dfeval),2)
-```
 
-The rad predictor is a categorical value and has some unknown meaning for values 1-8, 24. We need to introduce dummy variables rad1, rad2, etc to indicate if the neighborhood is in which category. We will exclude rad24 since we only need N-1 variables to represent each value.
-
-```{r}
 # cleaning train data 
 clean_df <- function(df) {
   df$rad_1 <- ifelse(df$rad == 1, 1, 0)
@@ -299,249 +673,80 @@ dftrain_clean <- clean_df(dftrain)
 dftrain_clean <- dftrain_clean %>%
   select(target, everything())
 dfeval_clean <- clean_df(dfeval)
-```
+head(dftrain_clean)
+head(dfeval_clean)
 
--------------------------
+# Model building
 
-$~$
-
-## Model Building:
-
-Logistic Regression: Ippolito
-```{r}
-# Maximal model for backward elimination
-lmod.max <- glm(target ~ ., family=binomial(), data=dftrain)
-summary(lmod.max)
-
-# Backward elimination
-lmod.back <- step(lmod.max, data=dftrain, direction='backward')
-summary(lmod.back)
-
-# Minimal model for forward elimination
-lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain)
-summary(lmod.min)
-lmod.max.form <- formula(lmod.max)
-
-# Forward elimination
-lmod.fwd <- step(lmod.min, data=dftrain, direction='forward', scope=lmod.max.form)
-summary(lmod.fwd)
-```
-
-
-### Linear Model
-Logistic Regression: Butler
-
-#### You can't calculate residuals for a factor so I created a dummy target variable for this model
-
-```{r model-lm, warning = FALSE, error = FALSE}
+#Start with dummy target variable
 dftrain_clean_dummy <- dftrain_clean %>% mutate(target = as.numeric(target == "above_median"))
 olsreg <- lm(data = dftrain_clean_dummy, formula = target ~ .)
-summary(olsreg)
-```
+summ(olsreg)
 
-
-
-### Logit Model
-
-```{r model_logit, warning=FALSE, message=FALSE}
+# logit
 logit <- glm(data = dftrain_clean, formula = target ~ ., family = binomial (link = "logit"))
-summary(logit)
-```
+summ(logit)
 
-
-### Logit Model with Backward Elimination
-
-```{r model_logit_back, warning=FALSE, message=FALSE}
-# Backward elimination
+# logit backwards elimination
 lmod.back <- step(logit, data=dftrain_clean, direction='backward')
-summary(lmod.back)
-```
+summ(lmod.back)
 
-
-###  Logit Minimal Model with forward elimination
-
-```{r model_minimal, warning=FALSE, message=FALSE}
-# Minimal model for forward elimination
+# logit minimal forward elimination
 lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain_clean)
-summary(lmod.min)
-```
+summ(lmod.min)
 
-```{r model_forward, warning=FALSE, message=FALSE}
-# Forward elimination
+# forward elimination
 lmod.fwd <- step(lmod.min, data=dftrain_clean, direction='forward', scope=formula(logit))
-summary(lmod.fwd)
-```
+summ(lmod.fwd)
 
-
-
-
-
--------------------------
-
-$~$
-
-## Select Models: 
-
-#### Here we are evaluating the performance our models to decide which model should we use
-
-
-#### **Linear Model Accuracy**
-
-```{r model_linear_accuracy, warning=FALSE, message=FALSE}
+# Model Selection
+# Linear Model Accuracy
 table(true = dftrain_clean_dummy$target, pred = round(fitted(olsreg)))
-```
-
-Accuracy: $\frac{210+225}{466}=93\%$
-
-Classification Error Rate: $\frac{12+19}{466}=7\%$
-
-Precision: $\frac{210}{210+12}=95\%$
-
-Sensitivity: $\frac{210}{210+19}=92\%$
-
-Specificity: $\frac{225}{225+12}=95\%$
-
-F1 Score: $\frac{2 * .95 * .92}{.95 + .92}=93\%$
-
-
-#### **Logit Model Prediction Accuracy**
-
-
-```{r model_logit_accuracy, warning=FALSE, message=FALSE}
+# Logit Model Prediction Accuracy
 table(true = dftrain_clean$target, pred = round(fitted(logit)))
-```
-
-Accuracy: $\frac{219+233}{466}=97\%$
-
-Classification Error Rate: $\frac{4+10}{466}=3\%$
-
-Precision: $\frac{219}{219+4}=98\%$
-
-Sensitivity: $\frac{219}{219+10}=96\%$
-
-Specificity: $\frac{233}{233+4}=98\%$
-
-F1 Score: $\frac{2 * .98 * .96}{.98 + .96}=97\%$
-
-
-#### **Logit Model with Forward Elimination Prediction Accuracy**
-
-```{r model_forward_accuracy, warning=FALSE, message=FALSE}
-table(true = dftrain_clean$target, pred = round(fitted(lmod.fwd)))
-```
-
-Accuracy: $\frac{220+234}{466}=97\%$
-
-Classification Error Rate: $\frac{5+12}{466}=3\%$
-
-Precision: $\frac{220}{220+3}=99\%$
-
-Sensitivity: $\frac{220}{220+9}=96\%$
-
-Specificity: $\frac{234}{234+3}=98\%$
-
-F1 Score: $\frac{2 * .99 * .96}{.99 + .96}=97\%$
-
-
-#### **Logit Model with Backward Elimination Prediction Accuracy**
-
-```{r model_logit_back_accuracy, warning=FALSE, message=FALSE}
+# Logit Model with Forward Elimination Prediction Accuracy
 table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
-```
+# Logit Model with Backward Elimination Prediction Accuracy
+table(true = dftrain_clean$target, pred = round(fitted(lmod.back)))
 
-Accuracy: $\frac{217+232}{466}=96\%$
-
-Classification Error Rate: $\frac{5+12}{466}=4\%$
-
-Precision: $\frac{217}{217+5}=98\%$
-
-Sensitivity: $\frac{217}{217+12}=95\%$
-
-Specificity: $\frac{232}{232+5}=98\%$
-
-F1 Score: $\frac{2 * .98 * .95}{.98 + .95}=96\%$
-
-### Model AUCs
-
-* Linear Model
-
-```{r}
-
+# Model AUCs
+# Linear Model
 pred = round(fitted(olsreg))
 pROC::auc(dftrain_clean_dummy$target, pred)
 
-```
-
-* Logit Model
-
-```{r}
+# Logit Model
 pred = round(fitted(logit))
 pROC::auc(dftrain_clean$target, pred)
 
-```
-
-
-* Logit Model with Forward Elimination 
-
-```{r}
+# Logit Model with Forward Elimination 
 pred = round(fitted(lmod.fwd))
 pROC::auc(dftrain_clean$target, pred)
 
-```
-
-* Logit Model with Backward Elimination
-
-```{r}
+# Logit Model with Backward Elimination
 pred = round(fitted(lmod.back))
 pROC::auc(dftrain_clean$target, pred)
 
-```
-
-#### Findings
-
-All of our Logistic Models had a better AUC than our Linear Model with Logit with Forward Elimination having the best (0.974)
-
-Now lets make predictions with the evaluation df.
-
-* Linear Model
-
-```{r}
+# Findings
+# Linear Model
 prediction <- broom::augment(olsreg, newdata = dfeval_clean)
 prediction$.fitted
-```
-* Logit Model
 
-```{r}
+# Logit Model
 prediction <- broom::augment(logit, newdata = dfeval_clean)
 prediction$.fitted
-```
 
-* Logit Model with Forward Elimination 
-
-```{r}
+# Logit Model with Forward Elimination 
 prediction <- broom::augment(lmod.fwd, newdata = dfeval_clean)
 prediction$.fitted
-```
 
-* Logit Model with Backward Elimination
-
-```{r}
+# Logit Model with Backward Elimination
 prediction <- broom::augment(lmod.back, newdata = dfeval_clean)
 prediction$.fitted
-```
 
-
-
-
-
--------------------------
-
-$~$
-
-## Appendix:
-
-```{r}
-# Code used
+# final prediction using eval data
+predict <- predict(lmod.fwd, dfeval_clean, interval = "prediction")
+eval <- table(as.integer(predict > .5))
+print(paste(eval[1], "are above median crime rate", "and", eval[2], "are below median crime rate."))
 ```
 
 
