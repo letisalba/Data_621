@@ -1,9 +1,11 @@
 ---
 title: "Data 621 - Homework 3"
-author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
-  and Leticia Salazar"
+author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar'
 date: "11-06-2022"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     theme: yeti
     highlight: tango
@@ -34,7 +36,7 @@ Below is a short description of the variables of interest in the data set:
 * zn: proportion of residential land zoned for large lots (over 25000 square feet)(predictor variable)
 * indus: proportion of non-retail business acres per suburb (predictor variable) 
 * chas: a dummy var. for whether the suburb borders the Charles River (1) or not (0) (predictor variable)
-* nox: nitrogren oxides concentration (parts per 10 million) (predictor variable)
+* nox: nitrogen oxides concentration (parts per 10 million) (predictor variable)
 * rm: average number of rooms per dwelling (predictor variable)
 * age: proportion of owner-occupied units built prior to 1940 (predictor variable)
 * dis: weighted mean of distances to five Boston employment centers (predictor variable)
@@ -52,6 +54,7 @@ $~$
 
 ### Load Libraries:
 
+These are the libraries used to explore, prepare, analyze and build our models
 ```{r libraries, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(caret)
@@ -63,6 +66,7 @@ library(car)
 library(kableExtra)
 library(gridExtra)
 library(performance)
+library(faraway)
 ```
 
 
@@ -72,10 +76,11 @@ $~$
 
 ### Load Data set:
 
-We have included the original data sets in our GitHub account and read from this location.
-```{r, loading data}
+We have included the original data sets in our GitHub account and read from this location. Our data set includes 466 records and 13 variables.
+```{r, loading data, echo=FALSE}
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-training-data_modified.csv")
 glimpse(dftrain)
+
   
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_3/csv/crime-evaluation-data_modified.csv")
 ```
@@ -87,41 +92,56 @@ $~$
 
 ## Data Exploration:
 
+The correlation plot below is measuring the degree of linear relationship within the training data set. The values in which this is measured falls between -1 and +1, with +1 being a stronger correlation.
 
-```{r corrplot train}
+```{r corrplot train, echo=FALSE}
 corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
 ```
 
+$~$
+
+To give more insight on our data set we used the `summary()` and `describe()` functions below: 
 ```{r fig.width=12, fig.height=12}
-# Summary
+# summarizing data set
 summary(dftrain)
+
 describe(dftrain)
 ```
 
+$~$
+
+Factor categorical variables
 ```{r}
-# Factor categorical variables
+# from the training data set; variable: target
 dftrain$target <- factor(dftrain$target, levels=c(0, 1))
 levels(dftrain$target) <- list(below_median=0, above_median=1)
+
+# from the training data set; variable: chas
 dftrain$chas <- factor(dftrain$chas)
 levels(dftrain$chas) <- list(not_on_charles=0, on_charles=1)
 
+# from the evaluation data set; variable: chas
 dfeval$chas <- factor(dfeval$chas)
 levels(dfeval$chas) <- list(not_on_charles=0, on_charles=1)
 ```
 
+$~$
 
-```{r}
-# EDA
+The plot matrix below consists of scatter plots corresponding to each data frame
+```{r, echo=FALSE, fig.width=12, fig.height=12}
 pairs(dftrain)
 ```
 
 
-```{r}
+$~$
+
+These boxplots below are show plenty of variables in our training data set with outliers. We also notice that variables `rad` and `tax` have a higher median for crime rate.
+```{r,echo=FALSE, fig.width=12, fig.height=12}
 # Boxplots
 par(mfrow=c(4, 3))
 boxplot(zn ~ target, data=dftrain)
 boxplot(indus ~ target, data=dftrain)
-#boxplot(chas ~ target, data=dftrain)
+#boxplot(chas ~ target, data=dftrain) # excluding chas
 boxplot(nox ~ target, data=dftrain)
 boxplot(rm ~ target, data=dftrain)
 boxplot(age ~ target, data=dftrain)
@@ -134,24 +154,56 @@ boxplot(medv ~ target, data=dftrain)
 ```
 
 
-```{r}
-# Contingency table and jittered plot for chas variable
+$~$
+
+We created a contingency table to show the distribution of a variables `target` and `chas`. By using a jitter plot we are trying to visualize the relationship between these two variables.
+```{r,echo=FALSE}
+# Contingency table 
 dfconting <- data.frame(target=dftrain$target, chas=dftrain$chas)
 table(dfconting)
+
+# jittered plot for chas variable
 plot(jitter(as.numeric(dftrain$chas), amount=.15), jitter(as.numeric(dftrain$target), amount=0.03), 
      xlab="Borders Charles River (2=yes)", ylab="Crime Rate > Median (2=yes)", col=dftrain$chas, pch=as.numeric(dftrain$chas))
 ```
 
 
-### Explore colinearity of predictor variables
+Relationship of median crime rate to the following predictor variables:
 
-```{r fig.width=12, fig.height=12}
+| Predictor | Definition                                                                    | Relationship to Median Crime Rate |
+|-----------|:-----------------------------------------------------------------------------:|:---------------------------------:|
+| zn        | Proportion of residential land zoned for large lots (over 25000 square feet)  | negative                          |
+| indus     | Proportion of non-retail business acres per suburb                            | positive                          |
+| chas      | Dummy var. for whether the suburb borders the Charles River                   | unclear                           |
+| nox       | Nitrogen oxides concentration                                                 | positive                          |
+| rm        | Average number of rooms per dwelling                                          | unclear                           |
+| age       | Proportion of owner-occupied units built prior to 1940                        | positive                          |
+| dis       | Weighted mean of distances to five Boston employment centers                  | negative                          |
+| rad       | Index of accessibility to radial highways                                     | positive                          |
+| tax       | Full-value property-tax rate per $10,000                                      | positive                          |
+| ptratio   | Pupil-teacher ratio by town                                                   | positive                          |
+| lstat     | Lower status of the population (percent)                                      | positive                          |
+| medv      | Median value of owner-occupied homes in $1000s                                | negative                          |
+
+As indicated in the table, several predictors exhibit exhibite an inverse relationship with median crime rate. Based on the zn and medv variables, larger lot sizes and higher median home values correspond to a drop in crime rate, which is expected since larger lots and higher home values typically indicate higher economic status and, hence, lower crime. The same is true for the dis variable, which indicates that the farther a neighborhood is away from a major employment center, the lower the crime rate; this also makes sense, given that employment centers are often located in denser, more urban settings, which typically have higher rates of crime.
+
+For the most part, variables exhibiting positive relationships with median crime rate also make intuitive sense. It would follow that neighborhoods having higher rates of industry (and, therefore, higher concentrations of pollutants like nitrogen oxides--nox--in the air) would also have higher crime rates. Likewise, neighborhoods with older homes (indicated by the age variable) located near radial highways (rad variable) and with a high pupil-to-teacher ratio (ptratio variable) could also be interpreted to have higher rates of crime.
+
+Two variables didn't exhibit a clear relationships to crime rate: whether the neighborhood borders the Charles River (chas) and the average number of rooms per dwelling (rm). In addition, while the the lstat predictor exhibitied a positive relationship with crime rate, the description of the variable ("lower status of the population") didn't clearly state what the data values represent.
+
+$~$
+
+Now we'll look for any significant relationships among predictor variables. We considered correlation values above 0.6 to be significant.
+
+Let's explore colinearity of predictor variables with the help of a correlation matrix:
+
+```{r fig.width=12, fig.height=12, echo=FALSE}
 
 # Correlation matrix
 print('Correlation matrix (numerical variables):')
 round(cor(dftrain[, c(1,2,4:12)]), 2)
 
-
+# plots
 par(mfrow=c(6, 3))
 
 plot(zn ~ dis, data=dftrain)
@@ -207,13 +259,9 @@ abline(lm(rad ~ tax, dftrain), lt=2, col=2)
 
 plot(lstat ~ medv, data=dftrain)
 abline(lm(lstat ~ medv, dftrain), lt=2, col=2)
-
 ```
 
-[describe colinear relationships here]
-
-
-
+As shown in the graphs above, a number of significant correlations exist. Some of the stronger relationships are discussed here. First, the proportion of area zoned for large lots (zn) has a positive relationship with the distance to employment centers (dis), since it is more difficult to locate large lots close to the city center. A strong positive correlation exists between indus and nox, which is intuitively obvious. Likewise, tax rates in industrial areas are likely to be higher, as shown by the strong positive correlation of 0.73. Another strong correlation that makes obvious intuitive sense is that between median home values (medv) and the average number of rooms per dwelling (rm). The strongest positive correlation (0.91) exists between tax rate (tax) and the index of accessibility to radial highways (rad), which also corresponds to the fact that industrial areas are typically close to radial highways and also exhibit higher tax rates. The strongest negative correlation (-0.77) exists between nox and dis, indicating that the farther away from employment centers (and, hence, industrial areas), the lower the concentration of nitrogen oxide pollutants. Almost equally strong (-0.75) is the correlation between the age of dwellings (age) and the distance from employment centers (dis), indicating that the farther from urban centers, the newer the houses, which makes intuitive sense.
 
 -------------------------
 
@@ -221,17 +269,19 @@ $~$
 
 ## Data Preparation:
 
-```{r}
+There are no missing values for our data sets
+```{r, echo=FALSE}
 round(100*colSums(is.na(dftrain))/nrow(dftrain),2)
 ```
 
-```{r}
+```{r, echo=FALSE}
 round(100*colSums(is.na(dfeval))/nrow(dfeval),2)
 ```
 
 The rad predictor is a categorical value and has some unknown meaning for values 1-8, 24. We need to introduce dummy variables rad1, rad2, etc to indicate if the neighborhood is in which category. We will exclude rad24 since we only need N-1 variables to represent each value.
 
 ```{r}
+# cleaning train data 
 clean_df <- function(df) {
   df$rad_1 <- ifelse(df$rad == 1, 1, 0)
   df$rad_2 <- ifelse(df$rad == 2, 1, 0)
@@ -249,7 +299,6 @@ dftrain_clean <- clean_df(dftrain)
 dftrain_clean <- dftrain_clean %>%
   select(target, everything())
 dfeval_clean <- clean_df(dfeval)
-
 ```
 
 -------------------------
@@ -489,5 +538,10 @@ prediction$.fitted
 
 $~$
 
-## References:
+## Appendix:
+
+```{r}
+# Code used
+```
+
 
