@@ -25,7 +25,7 @@ In this homework assignment, you will explore, analyze and model a data set cont
 
 Your objective is to build multiple linear regression and binary logistic regression models on the training data to predict the probability that a person will crash their car and also the amount of money it will cost if the person does crash their car. You can only use the variables given to you (or variables that you derive from the variables provided). Below is a short description of the variables of interest in the data set:
 
-![](./Images/homework4_table.png)
+![](https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/Images/homework4_table.png)
 
 ## Description:
 

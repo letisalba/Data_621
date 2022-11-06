@@ -1,0 +1,210 @@
+---
+title: "Data 621 - Homework 4"
+author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar'
+date: "November 6, 2022"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE, }
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+## Overview:
+
+In this homework assignment, you will explore, analyze and model a data set containing approximately 8000 records representing a customer at an auto insurance company. Each record has two response variables. The first response variable, TARGET_FLAG, is a 1 or a 0. A “1” means that the person was in a car crash. A zero means that the person was not in a car crash. The second response variable is TARGET_AMT. This value is zero if the person did not crash their car. But if they did crash their car, this number will be a value greater than zero.
+
+## Objective: 
+
+Your objective is to build multiple linear regression and binary logistic regression models on the training data to predict the probability that a person will crash their car and also the amount of money it will cost if the person does crash their car. You can only use the variables given to you (or variables that you derive from the variables provided). Below is a short description of the variables of interest in the data set:
+
+![](https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/Images/homework4_table.png)
+
+## Description:
+
+Below is a short description of the variables of interest in the data set:
+
+### Load Libraries:
+
+These are the libraries used to explore, prepare, analyze and build our models
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(caret)
+library(pROC)
+library(corrplot)
+library(GGally)
+library(psych)
+library(car)
+library(kableExtra)
+library(gridExtra)
+library(performance)
+library(faraway)
+library(jtools)
+```
+
+### Load Data set:
+
+We have included the original data sets in our GitHub account and read from this location. Our data set includes 466 records and 13 variables.
+```{r, loading data, echo=FALSE}
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance-evaluation-data.csv")
+glimpse(dftrain)
+```
+
+
+
+
+
+## Data Exploration:
+
+
+
+```{r}
+summary(dftrain)
+```
+
+### PARENT1
+
+The *PARENT1* variable has two values, Yes and No, to indicate if the observation is a single parent. We will construct a dummy variable *SingleParent* = 1 if *PARENT1* = Yes.
+
+```{r}
+dftrain %>% count(PARENT1)
+```
+
+### SEX
+
+The *SEX* variable has two values, M and z_F. We will create a dummy variable *Male* = 1 if *SEX* = M.
+
+```{r}
+dftrain %>% count(SEX)
+```
+
+### MSTATUS
+
+The variable *MSTATUS* has two values, Yes and z_No, to indicate the marital status. We will create a dummy variable *Married* = 1 if MSTATUS = Yes.
+
+```{r}
+dftrain %>% count(MSTATUS)
+```
+
+### EDUCATION
+
+The *EDUCATION* variable takes on 5 values ranging from less than high school through PHD. We will construct dummy variables: *HighSchool*, *Bachelors*, *Masters*, *PHD*, to indicate the highest level of education completed.
+
+```{r}
+dftrain %>% count(EDUCATION)
+```
+
+### JOB
+
+The *JOB* variable takes on 8 values. The *JOB* variable has 526 missing values, so we will construct dummy variables for all 8 values assuming the missing values are not one of the listed professions. The dummy variables we will create are: *Clerical*, *Doctor*, *HomeMaker*, *Lawyer*, *Manager*, *Professional*, *Student*, and *BlueCollar*.
+
+```{r}
+dftrain %>% count(JOB)
+```
+
+### CAR_USE
+
+The *CAR_USE* variable has two values, Commercial and Private. We will construct a dummy variable *Commercial* = 1 if Commercial.
+
+```{r}
+dftrain %>% count(CAR_USE)
+```
+
+### CAR_TYPE
+
+The *CAR_TYPE* variable takes on 6 values. We will create dummy variables; *Minivan*, *PanelTruck*, *Pickup*, *SportsCar*, and *Van*.
+
+```{r}
+dftrain %>% count(CAR_TYPE)
+```
+
+### RED_CAR
+
+The *RED_CAR* variable has two values, yes and no. We will create a dummy variable *RedCar* = 1 if *RED_CAR* = yes.
+
+```{r}
+dftrain %>% count(RED_CAR)
+```
+
+### REVOKED
+
+The *REVOKED* variable has two values, Yes and No. We will create a dummy variable *DLRevoked* = 1 if *REVOKED* = Yes.
+
+```{r}
+dftrain %>% count(REVOKED)
+```
+
+### URBANICITY
+
+The *URBANICITY* variable has two values, Highly Urban/ Urban and z_Highly Rural/ Rural. We will create a dummy variable *Urban* = 1 if *URBANICITY* = Highly Urban/ Urban.
+
+```{r}
+dftrain %>% count(URBANICITY)
+```
+
+
+## Data Preparation:
+
+The attributes BLUEBOOK, HOME_VAL, INCOME, and OLDCLAIM are dollar amounts stored as characters. Need to convert to int.
+Variables with NA: AGE (6), YOJ (454), CAR_AGE (510)
+Consider creating AGE groups Under25 and Over65 to account for young and older drivers.
+Consider creating CAR_AGE groups to identify new cars. One observation has a CAR_AGE = -3, which shouldn't be possible.
+Consider creating YOJ (Year on Job) groups to identify job stability; Over5years etc.
+
+### Data Cleaning Function
+
+```{r}
+clean_df <- function(df) {
+  
+  df$BLUEBOOK <- as.numeric(gsub('[$,]','',df$BLUEBOOK))
+  df$HOME_VAL <- as.numeric(gsub('[$,]','',df$HOME_VAL))
+  df$INCOME <- as.numeric(gsub('[$,]','',df$INCOME))
+  df$OLDCLAIM <- as.numeric(gsub('[$,]','',df$OLDCLAIM))
+
+  df <- df %>%
+    mutate(SingleParent = ifelse(PARENT1 == 'Yes', 1, 0)) %>% select(-PARENT1) %>%
+    mutate(Male = ifelse(SEX == 'M', 1, 0)) %>% select(-SEX) %>%
+    mutate(Married = ifelse(MSTATUS == 'Yes', 1, 0)) %>% select(-MSTATUS) %>%
+    mutate(HighSchool = ifelse(EDUCATION == 'z_High School', 1, 0)) %>%
+    mutate(Bachelors = ifelse(EDUCATION == 'Bachelors', 1, 0)) %>%
+    mutate(Masters = ifelse(EDUCATION == 'Masters', 1, 0)) %>%
+    mutate(PHD = ifelse(EDUCATION == 'PhD', 1, 0)) %>% select(-EDUCATION) %>%
+    mutate(Clerical = ifelse(JOB == 'Clerical', 1, 0)) %>%
+    mutate(Doctor = ifelse(JOB == 'Doctor', 1, 0)) %>%
+    mutate(HomeMaker = ifelse(JOB == 'Home Maker', 1, 0)) %>%
+    mutate(Lawyer = ifelse(JOB == 'Lawyer', 1, 0)) %>%
+    mutate(Manager = ifelse(JOB == 'Manager', 1, 0)) %>%
+    mutate(Professional = ifelse(JOB == 'Professional', 1, 0)) %>%
+    mutate(Student = ifelse(JOB == 'Student', 1, 0)) %>%
+    mutate(BlueCollar = ifelse(JOB == 'z_Blue Collar', 1, 0)) %>% select(-JOB) %>%
+    mutate(Commercial = ifelse(CAR_USE == 'Commercial', 1, 0)) %>% select(-CAR_USE) %>%
+    mutate(Minivan = ifelse(CAR_TYPE == 'Minivan', 1, 0)) %>%
+    mutate(PanelTruck = ifelse(CAR_TYPE == 'Panel Truck', 1, 0)) %>%
+    mutate(Pickup = ifelse(CAR_TYPE == 'Pickup', 1, 0)) %>%
+    mutate(SportsCar = ifelse(CAR_TYPE == 'Sports Car', 1, 0)) %>%
+    mutate(Van = ifelse(CAR_TYPE == 'Van', 1, 0)) %>% select(-CAR_TYPE) %>%
+    mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% select(-RED_CAR) %>%
+    mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% select(-REVOKED) %>%
+    mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% select(-URBANICITY)
+  return(df)
+}
+
+cleandf <- clean_df(dftrain)
+```
+
+
+
+
+
+## Model Building:
+
+
+## Select Models: 
