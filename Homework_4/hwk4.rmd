@@ -1,0 +1,72 @@
+---
+title: "Data 621 - Homework 4"
+author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar'
+date: "November 6, 2022"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE, }
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+## Overview:
+
+In this homework assignment, you will explore, analyze and model a data set containing approximately 8000 records representing a customer at an auto insurance company. Each record has two response variables. The first response variable, TARGET_FLAG, is a 1 or a 0. A “1” means that the person was in a car crash. A zero means that the person was not in a car crash. The second response variable is TARGET_AMT. This value is zero if the person did not crash their car. But if they did crash their car, this number will be a value greater than zero.
+
+## Objective: 
+
+Your objective is to build multiple linear regression and binary logistic regression models on the training data to predict the probability that a person will crash their car and also the amount of money it will cost if the person does crash their car. You can only use the variables given to you (or variables that you derive from the variables provided). Below is a short description of the variables of interest in the data set:
+
+![](./Images/homework4_table.png)
+
+## Description:
+
+Below is a short description of the variables of interest in the data set:
+
+### Load Libraries:
+
+These are the libraries used to explore, prepare, analyze and build our models
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(caret)
+library(pROC)
+library(corrplot)
+library(GGally)
+library(psych)
+library(car)
+library(kableExtra)
+library(gridExtra)
+library(performance)
+library(faraway)
+library(jtools)
+```
+
+### Load Data set:
+
+We have included the original data sets in our GitHub account and read from this location. Our data set includes 466 records and 13 variables.
+```{r, loading data, echo=FALSE}
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance-evaluation-data.csv")
+glimpse(dftrain)
+```
+
+## Data Exploration:
+
+
+
+
+## Data Preparation:
+
+
+## Model Building:
+
+
+## Select Models: 
