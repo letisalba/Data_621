@@ -4,13 +4,13 @@ author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittal
   and Leticia Salazar'
 date: "November 6, 2022"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     theme: yeti
     highlight: tango
     toc: yes
     toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 ```{r setup, include=FALSE, }
@@ -26,6 +26,8 @@ $~$
 
 ## Objective: 
 Build a binary logistic regression model on the training data set to predict whether the neighborhood will be at risk for high crime levels. You will provide classifications and probabilities for the evaluation data set using your binary logistic regression model. You can only use the variables given to you (or variables that you derive from the variables provided). 
+
+\newpage
 
 $~$
 
@@ -70,7 +72,7 @@ library(faraway)
 library(jtools)
 ```
 
-
+\newpage
 $~$
 
 ### Load Data set:
@@ -85,16 +87,19 @@ dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/
 ```
 
 $~$
+\newpage
 
 ## Data Exploration:
 
-The correlation plot below is measuring the degree of linear relationship within the training data set. The values in which this is measured falls between -1 and +1, with +1 being a stronger correlation.
+The correlation plot below is measuring the degree of linear relationship within the training data set. The values in which this is measured falls between -1 and +1, with +1 being a strong positive correlation and -1 a strong negative correlation.
 
 ```{r corrplot train, echo=FALSE, fig.align='center'}
 corrplot(cor(dftrain, use = 'complete.obs'), tl.cex = 0.5)
 ```
 
 $~$
+
+\newpage
 
 To give more insight on our data set we used the `summary()` and `describe()` functions below: 
 
@@ -103,6 +108,7 @@ To give more insight on our data set we used the `summary()` and `describe()` fu
 # summarizing data set
 summary(dftrain)
 ```
+\newpage
 
 `describe()`:
 ```{r, fig.width=12, fig.height=12, echo=FALSE}
@@ -129,14 +135,15 @@ levels(dfeval$chas) <- list(not_on_charles=0, on_charles=1)
 ```
 
 $~$
+\newpage
 
 The plot matrix below consists of scatter plots corresponding to each data frame
 ```{r, echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
 pairs(dftrain)
 ```
-
-
 $~$
+
+\newpage
 
 These boxplots show plenty of variables in our training data set with outliers. We also notice that variables `rad` and `tax` have a higher median for crime rate.
 ```{r,echo=FALSE, fig.width=12, fig.height=12, fig.align='center'}
@@ -156,7 +163,7 @@ boxplot(lstat ~ target, data=dftrain)
 boxplot(medv ~ target, data=dftrain)
 ```
 
-
+\newpage
 $~$
 
 We created a contingency table to show the distribution of a variables `target` and `chas`. By using a jitter plot we are trying to visualize the relationship between these two variables.
@@ -169,7 +176,7 @@ table(dfconting)
 plot(jitter(as.numeric(dftrain$chas), amount=.15), jitter(as.numeric(dftrain$target), amount=0.03), 
      xlab="Borders Charles River (2=yes)", ylab="Crime Rate > Median (2=yes)", col=dftrain$chas, pch=as.numeric(dftrain$chas))
 ```
-
+\newpage
 
 Relationship of median crime rate to the following predictor variables:
 
@@ -194,6 +201,7 @@ For the most part, variables exhibiting positive relationships with median crime
 
 Two variables didn't exhibit a clear relationships to crime rate: whether the neighborhood borders the Charles River (`chas`) and the average number of rooms per dwelling (`rm`). In addition, while the the `lstat` predictor exhibited a positive relationship with crime rate, the description of the variable ("lower status of the population") didn't clearly state what the data values represent.
 
+\newpage
 $~$
 
 Let's look for any significant relationships among predictor variables. We considered correlation values above 0.6 to be significant. We explore colinearity of predictor variables with the help of a correlation matrix:
@@ -328,6 +336,8 @@ olsreg <- lm(data = dftrain_clean_dummy, formula = target ~ .)
 summ(olsreg)
 ```
 
+\newpage
+
 We start our model building with the following models:
 
 * **Logit Model**
@@ -335,28 +345,28 @@ We start our model building with the following models:
 logit <- glm(data = dftrain_clean, formula = target ~ ., family = binomial (link = "logit"))
 summ(logit)
 ```
-
+\newpage
 
 * **Logit Model with Backward Elimination**
 ```{r model_logit_back, warning=FALSE, message=FALSE, echo=FALSE}
 lmod.back <- step(logit, data=dftrain_clean, direction='backward')
 summ(lmod.back)
 ```
-
+\newpage
 
 * **Logit Minimal Model with forward elimination**
 ```{r model_minimal, warning=FALSE, message=FALSE, echo=FALSE}
 lmod.min <- glm(target ~ 1, family=binomial(), data=dftrain_clean)
-summ(lmod.min)
+summary(lmod.min)
 ```
+\newpage
 
 * **Forward Elimination**
 ```{r model_forward, warning=FALSE, message=FALSE, echo=FALSE}
 lmod.fwd <- step(lmod.min, data=dftrain_clean, direction='forward', scope=formula(logit))
 summ(lmod.fwd)
 ```
-
-
+\newpage
 -------------------------
 
 $~$
@@ -365,9 +375,7 @@ $~$
 
 We evaluated the performance our models to decide which model should we use:
 
-
 * **Linear Model Accuracy**
-
 ```{r model_linear_accuracy, warning=FALSE, message=FALSE, echo=FALSE}
 table(true = dftrain_clean_dummy$target, pred = round(fitted(olsreg)))
 ```
@@ -452,6 +460,7 @@ pROC::auc(dftrain_clean_dummy$target, pred)
 ```
 
 
+
 * **Logit Model**
 ```{r, echo=FALSE}
 pred = round(fitted(logit))
@@ -459,11 +468,13 @@ pROC::auc(dftrain_clean$target, pred)
 ```
 
 
+
 * **Logit Model with Forward Elimination**
 ```{r, echo=FALSE}
 pred = round(fitted(lmod.fwd))
 pROC::auc(dftrain_clean$target, pred)
 ```
+
 
 
 * **Logit Model with Backward Elimination**
@@ -478,7 +489,7 @@ pROC::auc(dftrain_clean$target, pred)
 
 All of our Logistic models had a better AUC than our Linear Model with 'Logit with Forward Elimination' having the best (0.974).
 
-Now lets make predictions with the evaluation data:
+Now let's make predictions with the evaluation data:
 
 * **Linear Model**
 ```{r, echo=FALSE}
@@ -513,10 +524,12 @@ Using the logit model with forward elimination and a 0.5 threshold with our `dfe
 ```{r, echo=FALSE}
 predict <- predict(lmod.fwd, dfeval_clean, interval = "prediction")
 eval <- table(as.integer(predict > .5))
-print(paste(eval[1], "are above median crime rate", "and", eval[2], "are below median crime rate."))
+print(paste(eval[1], "neighborhoods are above median crime rate", "and", eval[2], "neighborhoods are below median crime rate."))
 ```
 
 -------------------------
+
+\newpage
 
 $~$
 

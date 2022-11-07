@@ -32,6 +32,8 @@ Here we'll use `ggplot2` to be able to load the data set, but it is also a great
 ```{r, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(tidyverse)
+library(gtsummary) # great to summarize statistical tables
+library(jtools) # use of summ() to view statistical info
 ```
 
 -----------------
@@ -71,9 +73,19 @@ Another exploratory function is `glimpse()` which provides a rundown of the colu
 glimpse(diamonds)
 ```
 
+One of my recent favorites functions in r is `gtsummary` which was introduced to me by a peer. It offers a cleaner way to present these statistical information and there's various of customization options. For more information check references for the link on this function.
+
+```{r}
+sum1 <- diamonds %>% 
+  select(c("carat", "depth", "table", "price"))
+sum2 <- tbl_summary(sum1)
+sum2
+```
+
 -----------------
 
 ### Data Preparation 
+
 In most data sets, you have to prepare the data before you can start plotting or in this case building models. Since our data set doesn't need any cleaning or transformations we can go straight to model building. I have provided some tips below on how you can start prepping your data.
 
 * Remove duplicate or irrelevant observations
@@ -96,28 +108,34 @@ To fit a linear model in R we use the `lm()` function. Some parameters to consid
 
 `lm(fitting_formula, dataframe)`
 
-* fitting_formula : determines the formula for the linear model
-* dataframe: determines the name of the dataframe 
+* **fitting_formula**: determines the formula for the linear model
+* **dataframe**: determines the name of the dataframe 
 
 Using the we get the statistical information on the selected model. It contains the following information: 
 
-* Residual Standard Error: 
-* Multiple R-Squared:
-* Adjusted R-Squared:
-* F-Statistic:
+* **Residual Standard Error**: determines the standard deviation of the error where the square root of variance subtracts n minus 1 + number of variables involved instead of dividing by n - 1
+* **Multiple R-Squared**: determines how well your model fits the data
+* **Adjusted R-Squared**: the same as multiple R-Squared but it takes into account the number of samples and variables you're using
+* **F-Statistic**: global test to check if your model has at least one significant variable (non-zero) 
 
 ```{r, first linear model}
 # model 1 will consist of looking at the data overall
 model <- lm(diamonds)
-summary(model)
+summ(model)
 ```
+
+Using the `summ()` function we get a clear view of the model fit values but what do they tell us? 
+
+1. The value for R-squared ranges from 0 to 1, with 0 indicating that the response variable isn't explained by the predictor variable. With a value of 1 being that response variable can be explained by the predictor variable without error. Of course, when put to practice we won't always get clear numbers but instead ones that fall in between 0 and 1. A good rule of thumb is the larger the R-squared value *the more precisely the predictor variables are able to predict the value of the response variable*.
+
+2. The adjusted R-squared value is a modified R-squared that adjusts according to the number of predictors in a model. This value will increase as the model improves and 
 
 $~$
 
 ```{r second linear model}
 # two variables used are carat over price
 model_2 <- lm(carat ~ price, diamonds)
-summary(model_2)
+summ(model_2)
 ```
 
 -----------------
@@ -153,3 +171,4 @@ $~$
 * Zach. (2020, October 26). How to perform simple linear regression in R (step-by-step). Statology. Retrieved October 24, 2022, from https://www.statology.org/simple-linear-regression-in-r/ 
 * Guide to data cleaning: Definition, benefits, components, and how to clean your data. Tableau. (n.d.). Retrieved October 24, 2022, from https://www.tableau.com/learn/articles/what-is-data-cleaning 
 * How to use LM() function in R to fit linear models? GeeksforGeeks. (2021, December 19). Retrieved October 24, 2022, from https://www.geeksforgeeks.org/how-to-use-lm-function-in-r-to-fit-linear-models/#:~:text=The%20lm()%20function%20is,not%20in%20the%20data%20frame.
+* https://cran.r-project.org/web/packages/gtsummary/readme/README.html
