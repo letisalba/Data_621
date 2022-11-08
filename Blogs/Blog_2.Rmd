@@ -1,11 +1,11 @@
 ---
 title: "Data 621 - Blog 2"
 author: "Leticia Salazar"
-date: "`r Sys.Date()`"
+date: "November 8, 2022"
 output: 
   html_document:
-    theme: lumen
-    highlight: monochrome
+    theme: paper
+    highlight: kate
     toc: True
     toc_float: yes
     toc_depth: 3
@@ -73,7 +73,9 @@ Another exploratory function is `glimpse()` which provides a rundown of the colu
 glimpse(diamonds)
 ```
 
-One of my recent favorites functions in r is `gtsummary` which was introduced to me by a peer. It offers a cleaner way to present these statistical information and there's various of customization options. For more information check references for the link on this function.
+$~$
+
+One of my recent favorites functions in R is `gtsummary` which was introduced to me by a peer. It offers a cleaner way to present these statistical information and there's various of customization options. For more information check references for the link on this function.
 
 ```{r}
 sum1 <- diamonds %>% 
@@ -109,14 +111,23 @@ To fit a linear model in R we use the `lm()` function. Some parameters to consid
 `lm(fitting_formula, dataframe)`
 
 * **fitting_formula**: determines the formula for the linear model
-* **dataframe**: determines the name of the dataframe 
+* **dataframe**: determines the name of the data frame 
 
 Using the we get the statistical information on the selected model. It contains the following information: 
 
-* **Residual Standard Error**: determines the standard deviation of the error where the square root of variance subtracts n minus 1 + number of variables involved instead of dividing by n - 1
-* **Multiple R-Squared**: determines how well your model fits the data
-* **Adjusted R-Squared**: the same as multiple R-Squared but it takes into account the number of samples and variables you're using
-* **F-Statistic**: global test to check if your model has at least one significant variable (non-zero) 
+* **P-value**: it's associated with the model coefficients, any value less than 0.05 we can say that there's a statistically significant association between the variables.
+
+* **Residual Standard Error**: it's the average distance that the observed values fall from the regression line. The lower the value the closer it is for the regression line to match with the observed data.
+
+* **Multiple $R^2$**: it's the percentage of the variation in the variables being examined. The larger the $R^2$ value the better the explanatory variables are able to predict the value of the response variable.
+
+* **Adjusted $R^2$**: the same as multiple $R^2$ but it takes into account the number of samples and variables you're using
+
+* **F-Statistic**: global test to check if your model has at least one significant variable (non-zero). When combined with the p-value, you are able to tell the overall significance of the regression model.
+
+* **T-value**: the predictor variable that's calculated as (Estimate) / (Standard Error)
+
+* **Estimate**: shows us the average increase in the response variable associated with a one unit increase in the predictor variable, assuming all other predictor variables are constant.
 
 ```{r, first linear model}
 # model 1 will consist of looking at the data overall
@@ -124,44 +135,51 @@ model <- lm(diamonds)
 summ(model)
 ```
 
-Using the `summ()` function we get a clear view of the model fit values but what do they tell us? 
-
-1. The value for R-squared ranges from 0 to 1, with 0 indicating that the response variable isn't explained by the predictor variable. With a value of 1 being that response variable can be explained by the predictor variable without error. Of course, when put to practice we won't always get clear numbers but instead ones that fall in between 0 and 1. A good rule of thumb is the larger the R-squared value *the more precisely the predictor variables are able to predict the value of the response variable*.
-
-2. The adjusted R-squared is a positive value modified R-squared that adjusts according to the number of predictors in a model. This value will increase as the model is improved and decreases when a model is improved by less than the expected.
-
-$~$
+Using the `summ()` or `summary()` functions we get a clear view of the model fit values. Let's create a model to view the relationship between carat and price:
 
 ```{r second linear model}
 # two variables used are carat over price
 model_2 <- lm(carat ~ price, diamonds)
+#summary(model_2)
 summ(model_2)
 ```
+
+The equation for a simple regression model is: $\hat{y}_i = \hat\beta_0 + \hat\beta_i x_i + \hat\epsilon_i$ where $\epsilon$ is the residual standard error ($\hat \sigma$).
+
 
 -----------------
 
 ### Plotting
 
+Not only does displaying the model's `summary()` function helpful to see if the model we have created describes a relationship between dependent and independent variables. Plotting the model is helpful in viewing these findings.
+
+For a simple linear regression model we create a histogram as well as a Normal Q-Q Plot. The histogram will allow us to see if there's a normal distribution. 
+
+Based on the plots below there's a right skeweness in the two variables we are using for `model_2`.
+
 ```{r}
-# define residuals
-res <- resid(model_2)
-
-# produce residual vs. fitted plot
-plot(fitted(model_2), res)
-
-# add a horizontal line at 0
-abline(0,0, col = 'red')
+# histogram
+par(mfrow=c(1,2))
+hist(diamonds$price, main = "Price Histogram", xlab = "price")
+hist(diamonds$carat, main = "Carat Histogram", xlab = "carat")
 ```
 
 $~$
 
+The Q-Q plot will show the distribution of the data against the expected normal distribution. Our model's normal Q-Q plot shows that the qqline (in red), which passes through the first and third quartiles, passes through most of the residuals but there a few that don't.
 ```{r}
+# define residuals
+res <- resid(model_2)
+
 #create Q-Q plot for residuals
 qqnorm(res)
 
 #add a straight diagonal line to the plot
 qqline(res, col = "red")
 ```
+
+
+Based on our model and plots we can assume that the model follows a nearly normal distribution and there's a strong relationship between the carat and price.
 
 -----------------
 
@@ -171,5 +189,6 @@ $~$
 * Zach. (2020, October 26). How to perform simple linear regression in R (step-by-step). Statology. Retrieved October 24, 2022, from https://www.statology.org/simple-linear-regression-in-r/ 
 * Guide to data cleaning: Definition, benefits, components, and how to clean your data. Tableau. (n.d.). Retrieved October 24, 2022, from https://www.tableau.com/learn/articles/what-is-data-cleaning 
 * How to use LM() function in R to fit linear models? GeeksforGeeks. (2021, December 19). Retrieved October 24, 2022, from https://www.geeksforgeeks.org/how-to-use-lm-function-in-r-to-fit-linear-models/#:~:text=The%20lm()%20function%20is,not%20in%20the%20data%20frame.
-* https://cran.r-project.org/web/packages/gtsummary/readme/README.html
-* https://www.investopedia.com/ask/answers/012615/whats-difference-between-rsquared-and-adjusted-rsquared.asp#:~:text=Adjusted%20R%2Dsquared%20is%20a,model%20by%20less%20than%20expected.
+* Sjoberg DD, Whiting K, Curry M, Lavery JA, Larmarange J. Reproducible summary tables with the gtsummary package.
+  The R Journal 2021;13:570–80. https://doi.org/10.32614/RJ-2021-053.
+* Zach. (2020, October 26). How to perform simple linear regression in R (step-by-step). Statology. Retrieved November 1, 2022, from https://www.statology.org/simple-linear-regression-in-r/ 
