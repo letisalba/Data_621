@@ -2,7 +2,7 @@
 title: "Data 621 - Homework 4"
 author: 'Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
   and Leticia Salazar'
-date: "November 6, 2022"
+date: "November 20, 2022"
 output:
   pdf_document:
     toc: yes
