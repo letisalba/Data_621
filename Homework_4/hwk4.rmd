@@ -81,7 +81,7 @@ library(jtools)
 
 ### Load Data set:
 
-We have included the original data sets in our GitHub account and read from this location. Our data set includes 8,161 records and 26 variables.
+We have included the original data sets in our GitHub account and read from this location. Our training data set includes 8,161 records and 26 variables.
 ```{r, loading data, echo=FALSE}
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
@@ -93,12 +93,14 @@ glimpse(dftrain)
 
 ## Data Exploration:
 
-
+For insight on the data we use the `summary()` function on the train dataset:
 ```{r, echo=FALSE}
 summary(dftrain)
 ```
 
-### PARENT1
+$~$
+
+#### PARENT1
 
 The *PARENT1* variable has two values, Yes and No, to indicate if the observation is a single parent. We will construct a dummy variable *SingleParent* = 1 if *PARENT1* = Yes.
 
@@ -106,7 +108,9 @@ The *PARENT1* variable has two values, Yes and No, to indicate if the observatio
 dftrain %>% count(PARENT1)
 ```
 
-### SEX
+$~$
+
+#### SEX
 
 The *SEX* variable has two values, M and z_F. We will create a dummy variable *Male* = 1 if *SEX* = M.
 
@@ -114,7 +118,9 @@ The *SEX* variable has two values, M and z_F. We will create a dummy variable *M
 dftrain %>% count(SEX)
 ```
 
-### MSTATUS
+$~$
+
+#### MSTATUS
 
 The variable *MSTATUS* has two values, Yes and z_No, to indicate the marital status. We will create a dummy variable *Married* = 1 if MSTATUS = Yes.
 
@@ -122,7 +128,9 @@ The variable *MSTATUS* has two values, Yes and z_No, to indicate the marital sta
 dftrain %>% count(MSTATUS)
 ```
 
-### EDUCATION
+$~$
+
+#### EDUCATION
 
 The *EDUCATION* variable takes on 5 values ranging from less than high school through PHD. We will construct dummy variables: *HighSchool*, *Bachelors*, *Masters*, *PHD*, to indicate the highest level of education completed.
 
@@ -130,7 +138,9 @@ The *EDUCATION* variable takes on 5 values ranging from less than high school th
 dftrain %>% count(EDUCATION)
 ```
 
-### JOB
+$~$
+
+#### JOB
 
 The *JOB* variable takes on 8 values. The *JOB* variable has 526 missing values, so we will construct dummy variables for all 8 values assuming the missing values are not one of the listed professions. The dummy variables we will create are: *Clerical*, *Doctor*, *HomeMaker*, *Lawyer*, *Manager*, *Professional*, *Student*, and *BlueCollar*.
 
@@ -138,7 +148,9 @@ The *JOB* variable takes on 8 values. The *JOB* variable has 526 missing values,
 dftrain %>% count(JOB)
 ```
 
-### CAR_USE
+$~$
+
+#### CAR_USE
 
 The *CAR_USE* variable has two values, Commercial and Private. We will construct a dummy variable *Commercial* = 1 if Commercial.
 
@@ -146,7 +158,9 @@ The *CAR_USE* variable has two values, Commercial and Private. We will construct
 dftrain %>% count(CAR_USE)
 ```
 
-### CAR_TYPE
+$~$
+
+#### CAR_TYPE
 
 The *CAR_TYPE* variable takes on 6 values. We will create dummy variables; *Minivan*, *PanelTruck*, *Pickup*, *SportsCar*, and *Van*.
 
@@ -154,7 +168,9 @@ The *CAR_TYPE* variable takes on 6 values. We will create dummy variables; *Mini
 dftrain %>% count(CAR_TYPE)
 ```
 
-### RED_CAR
+$~$
+
+#### RED_CAR
 
 The *RED_CAR* variable has two values, yes and no. We will create a dummy variable *RedCar* = 1 if *RED_CAR* = yes.
 
@@ -162,7 +178,9 @@ The *RED_CAR* variable has two values, yes and no. We will create a dummy variab
 dftrain %>% count(RED_CAR)
 ```
 
-### REVOKED
+$~$
+
+#### REVOKED
 
 The *REVOKED* variable has two values, Yes and No. We will create a dummy variable *DLRevoked* = 1 if *REVOKED* = Yes.
 
@@ -170,7 +188,9 @@ The *REVOKED* variable has two values, Yes and No. We will create a dummy variab
 dftrain %>% count(REVOKED)
 ```
 
-### URBANICITY
+$~$
+
+#### URBANICITY
 
 The *URBANICITY* variable has two values, Highly Urban/ Urban and z_Highly Rural/ Rural. We will create a dummy variable *Urban* = 1 if *URBANICITY* = Highly Urban/ Urban.
 
@@ -182,18 +202,20 @@ dftrain %>% count(URBANICITY)
 
 ## Data Preparation:
 
-### Data Cleaning Function
+$~$
 
-The attributes BLUEBOOK, HOME_VAL, INCOME, and OLDCLAIM are dollar amounts stored as characters. Need to convert to int.
-Variables with NA: AGE (6), YOJ (454), CAR_AGE (510)
-Consider creating AGE groups Under25 and Over65 to account for young and older drivers.
-Consider creating CAR_AGE groups to identify new cars. One observation has a CAR_AGE = -3, which shouldn't be possible.
-Consider creating YOJ (Year on Job) groups to identify job stability; Over5years etc.
+#### Data Cleaning Function
+
+* The attributes `BLUEBOOK`, `HOME_VAL`, `INCOME`, and` OLDCLAIM` are dollar amounts stored as characters. Need to convert to int.
+* Variables with NA: `AGE` (6), `YOJ` (454), `CAR_AGE` (510)
+* Consider creating `AGE` groups Under25 and Over65 to account for young and older drivers.
+* Consider creating `CAR_AGE` groups to identify new cars. One observation has a `CAR_AGE` = -3, which shouldn't be possible.
+* Consider creating `YOJ` (Year on Job) groups to identify job stability; Over5years etc.
 
 
 ```{r, echo=FALSE}
 clean_df <- function(df) {
-  
+
   df$BLUEBOOK <- as.numeric(gsub('[$,]','',df$BLUEBOOK))
   df$HOME_VAL <- as.numeric(gsub('[$,]','',df$HOME_VAL))
   df$INCOME <- as.numeric(gsub('[$,]','',df$INCOME))

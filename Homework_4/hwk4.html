@@ -1829,8 +1829,8 @@ our models</p>
 <div id="load-data-set" class="section level3">
 <h3>Load Data set:</h3>
 <p>We have included the original data sets in our GitHub account and
-read from this location. Our data set includes 8,161 records and 26
-variables.</p>
+read from this location. Our training data set includes 8,161 records
+and 26 variables.</p>
 <pre><code>## Rows: 8,161
 ## Columns: 26
 ## $ INDEX       &lt;int&gt; 1, 2, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 19, 20, 2…
@@ -1864,6 +1864,8 @@ variables.</p>
 </div>
 <div id="data-exploration" class="section level2">
 <h2>Data Exploration:</h2>
+<p>For insight on the data we use the <code>summary()</code> function on
+the train dataset:</p>
 <pre><code>##      INDEX        TARGET_FLAG       TARGET_AMT        KIDSDRIV     
 ##  Min.   :    1   Min.   :0.0000   Min.   :     0   Min.   :0.0000  
 ##  1st Qu.: 2559   1st Qu.:0.0000   1st Qu.:     0   1st Qu.:0.0000  
@@ -1920,34 +1922,38 @@ variables.</p>
 ##  3rd Qu.:12.000                     
 ##  Max.   :28.000                     
 ##  NA&#39;s   :510</code></pre>
-<div id="parent1" class="section level3">
-<h3>PARENT1</h3>
+<p><span class="math inline">\(~\)</span></p>
+<div id="parent1" class="section level4">
+<h4>PARENT1</h4>
 <p>The <em>PARENT1</em> variable has two values, Yes and No, to indicate
 if the observation is a single parent. We will construct a dummy
 variable <em>SingleParent</em> = 1 if <em>PARENT1</em> = Yes.</p>
 <pre><code>##   PARENT1    n
 ## 1      No 7084
 ## 2     Yes 1077</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="sex" class="section level3">
-<h3>SEX</h3>
+<div id="sex" class="section level4">
+<h4>SEX</h4>
 <p>The <em>SEX</em> variable has two values, M and z_F. We will create a
 dummy variable <em>Male</em> = 1 if <em>SEX</em> = M.</p>
 <pre><code>##   SEX    n
 ## 1   M 3786
 ## 2 z_F 4375</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="mstatus" class="section level3">
-<h3>MSTATUS</h3>
+<div id="mstatus" class="section level4">
+<h4>MSTATUS</h4>
 <p>The variable <em>MSTATUS</em> has two values, Yes and z_No, to
 indicate the marital status. We will create a dummy variable
 <em>Married</em> = 1 if MSTATUS = Yes.</p>
 <pre><code>##   MSTATUS    n
 ## 1     Yes 4894
 ## 2    z_No 3267</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="education" class="section level3">
-<h3>EDUCATION</h3>
+<div id="education" class="section level4">
+<h4>EDUCATION</h4>
 <p>The <em>EDUCATION</em> variable takes on 5 values ranging from less
 than high school through PHD. We will construct dummy variables:
 <em>HighSchool</em>, <em>Bachelors</em>, <em>Masters</em>, <em>PHD</em>,
@@ -1958,9 +1964,10 @@ to indicate the highest level of education completed.</p>
 ## 3       Masters 1658
 ## 4           PhD  728
 ## 5 z_High School 2330</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="job" class="section level3">
-<h3>JOB</h3>
+<div id="job" class="section level4">
+<h4>JOB</h4>
 <p>The <em>JOB</em> variable takes on 8 values. The <em>JOB</em>
 variable has 526 missing values, so we will construct dummy variables
 for all 8 values assuming the missing values are not one of the listed
@@ -1977,18 +1984,20 @@ professions. The dummy variables we will create are: <em>Clerical</em>,
 ## 7  Professional 1117
 ## 8       Student  712
 ## 9 z_Blue Collar 1825</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="car_use" class="section level3">
-<h3>CAR_USE</h3>
+<div id="car_use" class="section level4">
+<h4>CAR_USE</h4>
 <p>The <em>CAR_USE</em> variable has two values, Commercial and Private.
 We will construct a dummy variable <em>Commercial</em> = 1 if
 Commercial.</p>
 <pre><code>##      CAR_USE    n
 ## 1 Commercial 3029
 ## 2    Private 5132</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="car_type" class="section level3">
-<h3>CAR_TYPE</h3>
+<div id="car_type" class="section level4">
+<h4>CAR_TYPE</h4>
 <p>The <em>CAR_TYPE</em> variable takes on 6 values. We will create
 dummy variables; <em>Minivan</em>, <em>PanelTruck</em>, <em>Pickup</em>,
 <em>SportsCar</em>, and <em>Van</em>.</p>
@@ -1999,27 +2008,30 @@ dummy variables; <em>Minivan</em>, <em>PanelTruck</em>, <em>Pickup</em>,
 ## 4  Sports Car  907
 ## 5         Van  750
 ## 6       z_SUV 2294</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="red_car" class="section level3">
-<h3>RED_CAR</h3>
+<div id="red_car" class="section level4">
+<h4>RED_CAR</h4>
 <p>The <em>RED_CAR</em> variable has two values, yes and no. We will
 create a dummy variable <em>RedCar</em> = 1 if <em>RED_CAR</em> =
 yes.</p>
 <pre><code>##   RED_CAR    n
 ## 1      no 5783
 ## 2     yes 2378</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="revoked" class="section level3">
-<h3>REVOKED</h3>
+<div id="revoked" class="section level4">
+<h4>REVOKED</h4>
 <p>The <em>REVOKED</em> variable has two values, Yes and No. We will
 create a dummy variable <em>DLRevoked</em> = 1 if <em>REVOKED</em> =
 Yes.</p>
 <pre><code>##   REVOKED    n
 ## 1      No 7161
 ## 2     Yes 1000</code></pre>
+<p><span class="math inline">\(~\)</span></p>
 </div>
-<div id="urbanicity" class="section level3">
-<h3>URBANICITY</h3>
+<div id="urbanicity" class="section level4">
+<h4>URBANICITY</h4>
 <p>The <em>URBANICITY</em> variable has two values, Highly Urban/ Urban
 and z_Highly Rural/ Rural. We will create a dummy variable
 <em>Urban</em> = 1 if <em>URBANICITY</em> = Highly Urban/ Urban.</p>
@@ -2031,15 +2043,22 @@ and z_Highly Rural/ Rural. We will create a dummy variable
 </div>
 <div id="data-preparation" class="section level2">
 <h2>Data Preparation:</h2>
-<div id="data-cleaning-function" class="section level3">
-<h3>Data Cleaning Function</h3>
-<p>The attributes BLUEBOOK, HOME_VAL, INCOME, and OLDCLAIM are dollar
-amounts stored as characters. Need to convert to int. Variables with NA:
-AGE (6), YOJ (454), CAR_AGE (510) Consider creating AGE groups Under25
-and Over65 to account for young and older drivers. Consider creating
-CAR_AGE groups to identify new cars. One observation has a CAR_AGE = -3,
-which shouldn’t be possible. Consider creating YOJ (Year on Job) groups
-to identify job stability; Over5years etc.</p>
+<div id="data-cleaning-function" class="section level4">
+<h4>Data Cleaning Function</h4>
+<ul>
+<li>The attributes <code>BLUEBOOK</code>, <code>HOME_VAL</code>,
+<code>INCOME</code>, and<code>OLDCLAIM</code> are dollar amounts stored
+as characters. Need to convert to int.</li>
+<li>Variables with NA: <code>AGE</code> (6), <code>YOJ</code> (454),
+<code>CAR_AGE</code> (510)</li>
+<li>Consider creating <code>AGE</code> groups Under25 and Over65 to
+account for young and older drivers.</li>
+<li>Consider creating <code>CAR_AGE</code> groups to identify new cars.
+One observation has a <code>CAR_AGE</code> = -3, which shouldn’t be
+possible.</li>
+<li>Consider creating <code>YOJ</code> (Year on Job) groups to identify
+job stability; Over5years etc.</li>
+</ul>
 <pre><code>##   INDEX TARGET_FLAG TARGET_AMT KIDSDRIV AGE HOMEKIDS YOJ INCOME HOME_VAL
 ## 1     1           0          0        0  60        0  11  67349        0
 ## 2     2           0          0        0  43        0  11  91449   257252
