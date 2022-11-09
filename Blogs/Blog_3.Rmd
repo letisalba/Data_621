@@ -1,11 +1,11 @@
 ---
 title: "Data 621 - Blog 3"
 author: "Leticia Salazar"
-date: "`r Sys.Date()`"
+date: "November 13, 2022"
 output: 
   html_document:
-    theme: lumen
-    highlight: monochrome
+    theme: paper
+    highlight: kate
     toc: True
     toc_float: yes
     toc_depth: 3
@@ -15,4 +15,88 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Title of Blog:
+## Multiple Linear Regression
+
+The second blog demonstrated how to create a simple linear regression model to find relationships between two quantitative variables where there's one dependent variable (y) and one independent variable (x). In multiple linear regression, there's still one dependent variable but one or more independent variables. 
+
+Below I'll demonstrate how to create a multiple linear regression model using the `diamonds` package from the library `ggplot2`. I'll also reintroduce the library `hrbrthemes` to use on the plots we create.
+
+### Load Libraries
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(jtools)
+library(hrbrthemes)
+library(gtsummary)
+```
+
+
+### Loading Data
+
+Loading data using the `head()` function
+```{r, echo= FALSE}
+head(diamonds)
+```
+
+
+Using `summary()` function
+```{r, echo=FALSE}
+summary(diamonds)
+```
+
+Using `gtsummary()` function
+```{r, echo=FALSE}
+tbl_summary(diamonds)
+```
+
+The `diamonds` data set does not require any cleaning or transformation in order to use but always keep in mind the data sets we use in the future will.
+
+
+### Model Building 
+
+Just like in simple linear regression, we start by creating a model to look at the overall data. This serves as a base model to compare out other models to.
+```{r}
+model <- lm(diamonds)
+summary(model)
+```
+
+```{r}
+par(mfrow=c(2,2))
+
+```
+
+
+```{r}
+model2 <- lm(price ~ carat + cut + depth + table, diamonds)
+summary(model2)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+
+```
+
+
+```{r}
+model3 <- lm(price ~ carat + color + clarity + x + y, diamonds)
+summary(model3)
+```
+
+```{r}
+par(mfrow=c(2,2))
+
+```
+
+
+```{r}
+model4 <- lm(price ~ carat + clarity + x, diamonds)
+summary(model4)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+
+```
