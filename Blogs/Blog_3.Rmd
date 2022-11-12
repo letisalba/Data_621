@@ -98,5 +98,4 @@ summary(model4)
 
 ```{r}
 par(mfrow=c(2,2))
-
 ```
