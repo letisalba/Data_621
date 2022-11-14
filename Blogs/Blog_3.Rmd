@@ -1,7 +1,7 @@
 ---
 title: "Data 621 - Blog 3"
 author: "Leticia Salazar"
-date: "November 13, 2022"
+date: "November 14, 2022"
 output: 
   html_document:
     theme: paper
@@ -39,11 +39,14 @@ Loading data using the `head()` function
 head(diamonds)
 ```
 
+$~$
 
 Using `summary()` function
 ```{r, echo=FALSE}
 summary(diamonds)
 ```
+
+$~$
 
 Using `gtsummary()` function
 ```{r, echo=FALSE}
@@ -52,10 +55,11 @@ tbl_summary(diamonds)
 
 The `diamonds` data set does not require any cleaning or transformation in order to use but always keep in mind the data sets we use in the future will.
 
+$~$
 
 ### Model Building 
 
-Just like in simple linear regression, we start by creating a model to look at the overall data. This serves as a base model to compare out other models to.
+Just like in simple linear regression, we start by creating a model to look at the overall data. This serves as a base model to compare out other models to. The equation for a multiple linear regression model is $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 ... + \beta_p x_p$
 ```{r}
 model <- lm(diamonds)
 summary(model)
@@ -70,16 +74,16 @@ plot(model) # create plots for model
 $~$
 
 1. **Residuals vs Fitted**: scatter plot of the residuals on the y-axis and fitted values on the x-axis. The plot is used to detect non-linearity, whether homoskedasticity holds and outliers.
-2. **Normal Q-Q**:  scatter plot of two sets of quantiles against one another. The theoretical quantities helps us assess if a set of data came from the theroetical distribution such as a Normal or exponential.
+2. **Normal Q-Q**:  scatter plot of two sets of quantiles against one another. The theoretical quantities helps us assess if a set of data came from the theoretical distribution such as a Normal or exponential.
 3. **Scale-Location**: scatter plot showing the spread of the residuals along the ranges of the predictors. Similarly to the residuals vs fitted it simplifies the analysis of the homoskedasticity assumption.
 4. **Residuals vs. Leverage**: scatter plot that looks at the spread of the standardized residuals and it's changes in leverage or sensitivity of the fitted. It can also be used to detect heteroskedasticity and non-linearity. It takes into consideration Cook's distance to detect any points that have influence on the model.
 
 With multiple linear regression there are assumptions to keep in mind:
 
 1. **Linearity**: variables should have a linear relationship; if there's not linear relationship the data can be transformed to make it linear.
-2. **Multucollinearity**: two or more independent variables are correlated with one another.
+2. **Multicollinearity**: two or more independent variables are correlated with one another.
 3. **Homoscedasticity**: equal variance among the data points on both sides of the linear fit
-4. **Multuvariate normality**: assume the state of the residuals from the model are normally distributed
+4. **Multivariate normality**: assume the state of the residuals from the model are normally distributed
 
 
 $~$
@@ -89,6 +93,7 @@ The second model we create will be less variables from the first model to check 
 model2 <- lm(price ~ carat + cut + depth + table, diamonds)
 summary(model2)
 ```
+
 
 Plots for model2
 ```{r, echo=FALSE}
@@ -125,14 +130,16 @@ plot(model4)
 
 $~$
 
-After plotting our models and analyzing the statistical outputs we conclude that the model that best fits our data is `model3`
+After plotting our models and analyzing the summary outputs we conclude that the model that better fits our data is `model3`. Comparing statistical outputs, `model3` had the highest $R^2$ at .9171, compared to `model2` at .8571 and `model4` at .897. While this simple analysis work with our data, a deeper analysis will always help you select the best fit model for your data, perform predictions and more.
+
+If you like to dig deeper into multiple linear regression I found a great article from  [R-Bloggers](https://www.r-bloggers.com/2021/10/multiple-linear-regression-made-simple/) that takes you step by step on the process to create your own models.
 
 $~$
 
 #### References:
-* https://towardsdatascience.com/assumptions-of-multiple-linear-regression-d16f2eb8a2e7
-* https://boostedml.com/2019/03/linear-regression-plots-fitted-vs-residuals.html
-* https://boostedml.com/2019/03/linear-regression-plots-how-to-read-a-qq-plot.html
-* https://boostedml.com/2019/03/linear-regression-plots-scale-location-plot.html
-* https://boostedml.com/2019/03/linear-regression-plots-residuals-vs-leverage.html
+* Assumptions of multiple linear regression | by MD Sohel Mahmood ... (n.d.). Retrieved November 14, 2022, from https://towardsdatascience.com/assumptions-of-multiple-linear-regression-d16f2eb8a2e7 
+* Alex. (2022, February 2). Linear regression plots: Fitted vs residuals. Boostedml. Retrieved November 14, 2022, from https://boostedml.com/2019/03/linear-regression-plots-fitted-vs-residuals.html 
+* Alex. (2020, May 20). The QQ plot in linear regression. Boostedml. Retrieved November 14, 2022, from https://boostedml.com/2019/03/linear-regression-plots-how-to-read-a-qq-plot.html 
+* Alex. (2020, May 20). The scale location plot: Interpretation in R. Boostedml. Retrieved November 14, 2022, from https://boostedml.com/2019/03/linear-regression-plots-scale-location-plot.html 
+* Alex. (2020, September 10). Linear regression plots: Residuals vs leverage. Boostedml. Retrieved November 14, 2022, from https://boostedml.com/2019/03/linear-regression-plots-residuals-vs-leverage.html 
 
