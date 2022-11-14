@@ -17,9 +17,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Multiple Linear Regression
 
-The second blog demonstrated how to create a simple linear regression model to find relationships between two quantitative variables where there's one dependent variable (y) and one independent variable (x). In multiple linear regression, there's still one dependent variable but one or more independent variables. 
+The second blog demonstrated how to create a simple linear regression model to find relationships between two quantitative variables where there's one dependent variable (y) and one independent variable (x). In this third blog I am introducing multiple linear regression, where there's still one dependent variable but one or more independent variables. 
 
-Below I'll demonstrate how to create a multiple linear regression model using the `diamonds` package from the library `ggplot2`. I'll also reintroduce the library `hrbrthemes` to use on the plots we create.
+Below I'll demonstrate how to start a multiple linear regression model using the `diamonds` package from the library `ggplot2`. For a more in depth multiple regression model I'd like to share the work my team and I create for a [homework](https://rpubs.com/letisalba/data621_hwk1). 
 
 ### Load Libraries
 
@@ -61,41 +61,78 @@ model <- lm(diamonds)
 summary(model)
 ```
 
+Plotting our models is the easiest part, first you'll want to create a matrix of nrows x ncols so that the plots are fitted into one page. Using the `plot()` function we can insert our model name and we get 4 different plots:
 ```{r}
-par(mfrow=c(2,2))
-
+# plots
+par(mfrow=c(2,2)) # matrix of plots
+plot(model) # create plots for model
 ```
+$~$
+
+1. **Residuals vs Fitted**: scatter plot of the residuals on the y-axis and fitted values on the x-axis. The plot is used to detect non-linearity, whether homoskedasticity holds and outliers.
+2. **Normal Q-Q**:  scatter plot of two sets of quantiles against one another. The theoretical quantities helps us assess if a set of data came from the theroetical distribution such as a Normal or exponential.
+3. **Scale-Location**: scatter plot showing the spread of the residuals along the ranges of the predictors. Similarly to the residuals vs fitted it simplifies the analysis of the homoskedasticity assumption.
+4. **Residuals vs. Leverage**: scatter plot that looks at the spread of the standardized residuals and it's changes in leverage or sensitivity of the fitted. It can also be used to detect heteroskedasticity and non-linearity. It takes into consideration Cook's distance to detect any points that have influence on the model.
+
+With multiple linear regression there are assumptions to keep in mind:
+
+1. **Linearity**: variables should have a linear relationship; if there's not linear relationship the data can be transformed to make it linear.
+2. **Multucollinearity**: two or more independent variables are correlated with one another.
+3. **Homoscedasticity**: equal variance among the data points on both sides of the linear fit
+4. **Multuvariate normality**: assume the state of the residuals from the model are normally distributed
 
 
-```{r}
+$~$
+
+The second model we create will be less variables from the first model to check if this model is better.
+```{r, echo=FALSE}
 model2 <- lm(price ~ carat + cut + depth + table, diamonds)
 summary(model2)
 ```
 
-
-```{r}
+Plots for model2
+```{r, echo=FALSE}
 par(mfrow=c(2,2))
-
+plot(model2)
 ```
+$~$
 
+The next two models (`model3` and `model4`) are created with the variables not used in the former models to see the differences statistical output we receive. Using backwards elimination these models show differences in the adjusted $R^2$. 
 
-```{r}
+model3
+```{r, echo=FALSE}
 model3 <- lm(price ~ carat + color + clarity + x + y, diamonds)
 summary(model3)
 ```
 
-```{r}
+Plots for model3
+```{r, echo=FALSE}
 par(mfrow=c(2,2))
-
+plot(model3)
 ```
 
-
-```{r}
+model4
+```{r, echo=FALSE}
 model4 <- lm(price ~ carat + clarity + x, diamonds)
 summary(model4)
 ```
 
-
-```{r}
+Plots of model4
+```{r, echo=FALSE}
 par(mfrow=c(2,2))
+plot(model4)
 ```
+
+$~$
+
+After plotting our models and analyzing the statistical outputs we conclude that the model that best fits our data is `model3`
+
+$~$
+
+#### References:
+* https://towardsdatascience.com/assumptions-of-multiple-linear-regression-d16f2eb8a2e7
+* https://boostedml.com/2019/03/linear-regression-plots-fitted-vs-residuals.html
+* https://boostedml.com/2019/03/linear-regression-plots-how-to-read-a-qq-plot.html
+* https://boostedml.com/2019/03/linear-regression-plots-scale-location-plot.html
+* https://boostedml.com/2019/03/linear-regression-plots-residuals-vs-leverage.html
+
