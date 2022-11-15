@@ -253,9 +253,54 @@ cleandf <- clean_df(dftrain)
 head(cleandf)
 ```
 
+
+
 -----------
 
 ## Model Building:
+
+We will be building five different models; two multiple linear regression models and three binary logistic regression models.
+
+**Model 1**
+
+```{r, echo=FALSE}
+model1 <- lm(TARGET_AMT ~., cleandf, na.action = na.omit)
+summary(model1)
+```
+
+$~$
+
+**Model 2**
+
+```{r, echo=FALSE}
+
+```
+
+$~$
+
+**Model 3**
+
+```{r, echo=FALSE}
+
+```
+
+$~$
+
+**Model 4**
+
+```{r, echo=FALSE}
+
+```
+
+$~$
+
+**Model 5**
+
+```{r, echo=FALSE}
+
+```
+
+$~$
 
 -----------
 
