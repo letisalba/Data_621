@@ -3,6 +3,8 @@ title: "Data 621 - Blog 1"
 author: "Leticia Salazar"
 date: "November 1, 2022"
 output: 
+  pdf_document:
+    dev: cairo_pdf
   html_document:
     theme: paper
     highlight: kate
@@ -113,7 +115,7 @@ Univariate graphs help display each attribute **alone**
 #### Categorical:
 
 Variables pertaining to race, sex, species, etc are labeled categorical
-```{r bar chart}
+```{r bar chart, fig.align='center'}
 # bar chart
 Marriage %>% 
   ggplot(aes(x = race, fill = race)) +
@@ -129,7 +131,7 @@ Marriage %>%
 #### Quantitative
 
 Variables such as age, weight, length, etc are labeled quantitative
-```{r histogram}
+```{r histogram, fig.align='center'}
 # histogram
 iris %>% # pipe through the data set
 ggplot( aes(x = Sepal.Length)) +
@@ -142,7 +144,7 @@ ggplot( aes(x = Sepal.Length)) +
 ```
 
 
-```{r density}
+```{r density, fig.align='center'}
 # density plot
 ggplot(Marriage, aes(x = age)) +
   geom_density(fill = "deepskyblue", 
@@ -156,7 +158,7 @@ ggplot(Marriage, aes(x = age)) +
 ```
 
 
-```{r dot chart}
+```{r dot chart, fig.align='center'}
 # dot chart
 ggplot(Marriage, aes(x = age)) +
   geom_dotplot() + 
@@ -175,7 +177,7 @@ Bivariate graphs help you display **two** attributes
 
 #### Categorical vs. Categorical
 
-```{r stacked bar chart}
+```{r stacked bar chart, fig.align='center'}
 # stacked bar chart
 mpg %>% 
   ggplot(aes(x = class, fill = drv)) +
@@ -188,7 +190,7 @@ mpg %>%
 ```
 
 
-```{r grouped bar chart}
+```{r grouped bar chart, fig.align='center'}
 # grouped bar chart
 mpg %>% 
   ggplot(aes(x = class, fill = drv)) +
@@ -202,7 +204,7 @@ mpg %>%
 
 #### Quantitative vs. Quantitative
 
-```{r scatter plot}
+```{r scatter plot, fig.align='center'}
 # scatter plot
 iris %>% 
 ggplot(aes(x = Sepal.Length, 
@@ -216,7 +218,7 @@ ggplot(aes(x = Sepal.Length,
 ```
 
 
-```{r line plot}
+```{r line plot, fig.align='center'}
 # line plot
 Salaries %>% 
 ggplot( aes(x = yrs.service, 
@@ -231,7 +233,7 @@ ggplot( aes(x = yrs.service,
 
 #### Categorical vs. Quantitative
 
-```{r box plots}
+```{r box plots, fig.align='center'}
 # box plot
 Salaries %>% 
 ggplot(aes(x = rank, 
@@ -248,7 +250,7 @@ ggplot(aes(x = rank,
 
 Multivariate graphs help you better understand the **interactions between attributes**
 
-```{r grouping scatterplot}
+```{r grouping scatterplot, fig.align='center'}
 # grouping scatter plots
 Salaries %>% 
 ggplot(aes(x = yrs.since.phd, 
@@ -263,7 +265,7 @@ ggplot(aes(x = yrs.since.phd,
 ```
 
 
-```{r faceting}
+```{r faceting, fig.align='center'}
 # faceting
 mpg %>% 
 ggplot(aes(x = hwy)) +
