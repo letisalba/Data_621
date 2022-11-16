@@ -139,10 +139,6 @@ The *PARENT1* variable has two values, Yes and No, to indicate if the observatio
 dftrain %>% count(PARENT1)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(PARENT1)
-```
-
 
 $~$
 
@@ -154,9 +150,6 @@ The *SEX* variable has two values, M and z_F. We will create a dummy variable *M
 dftrain %>% count(SEX)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(SEX)
-```
 
 $~$
 
@@ -168,9 +161,6 @@ The variable *MSTATUS* has two values, Yes and z_No, to indicate the marital sta
 dftrain %>% count(MSTATUS)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(MSTATUS)
-```
 
 $~$
 
@@ -182,9 +172,6 @@ The *EDUCATION* variable takes on 5 values ranging from less than high school th
 dftrain %>% count(EDUCATION)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(EDUCATION)
-```
 
 $~$
 
@@ -194,10 +181,6 @@ The *JOB* variable takes on 8 values. The *JOB* variable has 526 missing values,
 
 ```{r, echo=FALSE}
 dftrain %>% count(JOB)
-```
-
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(JOB)
 ```
 
 $~$
@@ -210,10 +193,6 @@ The *CAR_USE* variable has two values, Commercial and Private. We will construct
 dftrain %>% count(CAR_USE)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(CAR_USE)
-```
-
 $~$
 
 #### CAR_TYPE
@@ -224,9 +203,6 @@ The *CAR_TYPE* variable takes on 6 values. We will create dummy variables; *Mini
 dftrain %>% count(CAR_TYPE)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(CAR_TYPE)
-```
 
 $~$
 
@@ -236,10 +212,6 @@ The *RED_CAR* variable has two values, yes and no. We will create a dummy variab
 
 ```{r, echo=FALSE}
 dftrain %>% count(RED_CAR)
-```
-
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(RED_CAR)
 ```
 
 $~$
@@ -252,10 +224,6 @@ The *REVOKED* variable has two values, Yes and No. We will create a dummy variab
 dftrain %>% count(REVOKED)
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(REVOKED)
-```
-
 $~$
 
 #### URBANICITY
@@ -264,10 +232,6 @@ The *URBANICITY* variable has two values, Highly Urban/ Urban and z_Highly Rural
 
 ```{r, echo=FALSE}
 dftrain %>% count(URBANICITY)
-```
-
-```{r, echo=FALSE, eval=FALSE}
-dfeval %>% count(URBANICITY)
 ```
 
 -----------
@@ -296,13 +260,13 @@ clean_df <- function(df) {
   df$OLDCLAIM <- as.numeric(gsub('[$,]','',df$OLDCLAIM))
 
   df <- df %>%
-    mutate(SingleParent = ifelse(PARENT1 == 'Yes', 1, 0)) %>% select(-PARENT1) %>%
-    mutate(Male = ifelse(SEX == 'M', 1, 0)) %>% select(-SEX) %>%
-    mutate(Married = ifelse(MSTATUS == 'Yes', 1, 0)) %>% select(-MSTATUS) %>%
+    mutate(SingleParent = ifelse(PARENT1 == 'Yes', 1, 0)) %>% dplyr::select(-PARENT1) %>%
+    mutate(Male = ifelse(SEX == 'M', 1, 0)) %>% dplyr::select(-SEX) %>%
+    mutate(Married = ifelse(MSTATUS == 'Yes', 1, 0)) %>% dplyr::select(-MSTATUS) %>%
     mutate(HighSchool = ifelse(EDUCATION == 'z_High School', 1, 0)) %>%
     mutate(Bachelors = ifelse(EDUCATION == 'Bachelors', 1, 0)) %>%
     mutate(Masters = ifelse(EDUCATION == 'Masters', 1, 0)) %>%
-    mutate(PHD = ifelse(EDUCATION == 'PhD', 1, 0)) %>% select(-EDUCATION) %>%
+    mutate(PHD = ifelse(EDUCATION == 'PhD', 1, 0)) %>% dplyr::select(-EDUCATION) %>%
     mutate(Clerical = ifelse(JOB == 'Clerical', 1, 0)) %>%
     mutate(Doctor = ifelse(JOB == 'Doctor', 1, 0)) %>%
     mutate(HomeMaker = ifelse(JOB == 'Home Maker', 1, 0)) %>%
@@ -310,16 +274,16 @@ clean_df <- function(df) {
     mutate(Manager = ifelse(JOB == 'Manager', 1, 0)) %>%
     mutate(Professional = ifelse(JOB == 'Professional', 1, 0)) %>%
     mutate(Student = ifelse(JOB == 'Student', 1, 0)) %>%
-    mutate(BlueCollar = ifelse(JOB == 'z_Blue Collar', 1, 0)) %>% select(-JOB) %>%
-    mutate(Commercial = ifelse(CAR_USE == 'Commercial', 1, 0)) %>% select(-CAR_USE) %>%
+    mutate(BlueCollar = ifelse(JOB == 'z_Blue Collar', 1, 0)) %>% dplyr::select(-JOB) %>%
+    mutate(Commercial = ifelse(CAR_USE == 'Commercial', 1, 0)) %>% dplyr::select(-CAR_USE) %>%
     mutate(Minivan = ifelse(CAR_TYPE == 'Minivan', 1, 0)) %>%
     mutate(PanelTruck = ifelse(CAR_TYPE == 'Panel Truck', 1, 0)) %>%
     mutate(Pickup = ifelse(CAR_TYPE == 'Pickup', 1, 0)) %>%
     mutate(SportsCar = ifelse(CAR_TYPE == 'Sports Car', 1, 0)) %>%
-    mutate(Van = ifelse(CAR_TYPE == 'Van', 1, 0)) %>% select(-CAR_TYPE) %>%
-    mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% select(-RED_CAR) %>%
-    mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% select(-REVOKED) %>%
-    mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% select(-URBANICITY)
+    mutate(Van = ifelse(CAR_TYPE == 'Van', 1, 0)) %>% dplyr::select(-CAR_TYPE) %>%
+    mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% dplyr::select(-RED_CAR) %>%
+    mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% dplyr::select(-REVOKED) %>%
+    mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% dplyr::select(-URBANICITY)
   return(df)
 }
 
@@ -327,45 +291,6 @@ cleandf <- clean_df(dftrain)
 head(cleandf)
 ```
 
-```{r, eval=FALSE, echo=FALSE}
-eval_clean_df <- function(df) {
-
-  df$BLUEBOOK <- as.numeric(gsub('[$,]','',df$BLUEBOOK))
-  df$HOME_VAL <- as.numeric(gsub('[$,]','',df$HOME_VAL))
-  df$INCOME <- as.numeric(gsub('[$,]','',df$INCOME))
-  df$OLDCLAIM <- as.numeric(gsub('[$,]','',df$OLDCLAIM))
-
-  df <- df %>%
-    mutate(SingleParent = ifelse(PARENT1 == 'Yes', 1, 0)) %>% select(-PARENT1) %>%
-    mutate(Male = ifelse(SEX == 'M', 1, 0)) %>% select(-SEX) %>%
-    mutate(Married = ifelse(MSTATUS == 'Yes', 1, 0)) %>% select(-MSTATUS) %>%
-    mutate(HighSchool = ifelse(EDUCATION == 'z_High School', 1, 0)) %>%
-    mutate(Bachelors = ifelse(EDUCATION == 'Bachelors', 1, 0)) %>%
-    mutate(Masters = ifelse(EDUCATION == 'Masters', 1, 0)) %>%
-    mutate(PHD = ifelse(EDUCATION == 'PhD', 1, 0)) %>% select(-EDUCATION) %>%
-    mutate(Clerical = ifelse(JOB == 'Clerical', 1, 0)) %>%
-    mutate(Doctor = ifelse(JOB == 'Doctor', 1, 0)) %>%
-    mutate(HomeMaker = ifelse(JOB == 'Home Maker', 1, 0)) %>%
-    mutate(Lawyer = ifelse(JOB == 'Lawyer', 1, 0)) %>%
-    mutate(Manager = ifelse(JOB == 'Manager', 1, 0)) %>%
-    mutate(Professional = ifelse(JOB == 'Professional', 1, 0)) %>%
-    mutate(Student = ifelse(JOB == 'Student', 1, 0)) %>%
-    mutate(BlueCollar = ifelse(JOB == 'z_Blue Collar', 1, 0)) %>% select(-JOB) %>%
-    mutate(Commercial = ifelse(CAR_USE == 'Commercial', 1, 0)) %>% select(-CAR_USE) %>%
-    mutate(Minivan = ifelse(CAR_TYPE == 'Minivan', 1, 0)) %>%
-    mutate(PanelTruck = ifelse(CAR_TYPE == 'Panel Truck', 1, 0)) %>%
-    mutate(Pickup = ifelse(CAR_TYPE == 'Pickup', 1, 0)) %>%
-    mutate(SportsCar = ifelse(CAR_TYPE == 'Sports Car', 1, 0)) %>%
-    mutate(Van = ifelse(CAR_TYPE == 'Van', 1, 0)) %>% select(-CAR_TYPE) %>%
-    mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% select(-RED_CAR) %>%
-    mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% select(-REVOKED) %>%
-    mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% select(-URBANICITY)
-  return(df)
-}
-
-eval_cleandf <- eval_clean_df(dfeval)
-head(eval_cleandf)
-```
 
 $~$
 
@@ -435,11 +360,12 @@ $~$
 
 **Model 5**
 
-The dropterm() function from the MASS package tests all models from the current model selected by fitting all models that differ from the current model by dropping a single term, maintaining marginality.
+The `dropterm()` function from the MASS package tests all models from the current model selected by fitting all models that differ from the current model by dropping a single term, maintaining marginality.
 
 ```{r, echo=FALSE, warning=FALSE}
 dropterm(model4, test = "F")
 ```
+
 
 Working on model 5
 ```{r, echo=FALSE}
@@ -456,10 +382,23 @@ summary(model5)
 $~$
 
 **Model 6**
+Backward Elimination
+```{r, echo=FALSE, warning=FALSE}
+model6 <- glm(TARGET_FLAG ~ INDEX + TARGET_AMT + KIDSDRIV + AGE + HOMEKIDS + 
+    YOJ + HOME_VAL + TRAVTIME + BLUEBOOK + TIF + OLDCLAIM + 
+    CLM_FREQ + CAR_AGE + SingleParent + Male + Married + Bachelors + Clerical + Doctor + 
+    HomeMaker + Lawyer + Manager + Student + BlueCollar + 
+    Commercial + Minivan + PanelTruck + Pickup + SportsCar + 
+    Van + RedCar + Urban, data = cleandf, family=binomial(link="logit"))
+summary(model6)
+```
 
-```{r, echo=FALSE}
+
+
+```{r}
 
 ```
+
 
 $~$
 -----------
