@@ -469,7 +469,7 @@ model6 <- glm(TARGET_FLAG ~ INDEX + TARGET_AMT + KIDSDRIV + AGE + HOMEKIDS +
 summary(model6)
 #summ(model6)
 ```
-
+Note: Models 3 and 6 should be the best fit
 
 $~$
 -----------
