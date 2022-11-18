@@ -126,6 +126,24 @@ DataExplorer::plot_histogram(
          ggtheme=theme_ipsum())
 ```
 
+Distributions for evaluation data set
+
+```{r fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
+DataExplorer::plot_bar(
+  data = dfeval,
+         order_bar = T,
+         ggtheme=theme_ipsum())
+```
+
+
+```{r, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
+DataExplorer::plot_histogram(
+  geom_histogram_args = list(alpha = 0.5),
+   data = dfeval,
+         ggtheme=theme_ipsum())
+```
+
+
 $~$
 
 The following dummy variables are done to both the training and evaluation data set and only showing the results for the training data.
@@ -269,12 +287,24 @@ $~$
 
 #### Data Cleaning Function
 
-Checking for missing values for our data set
+Checking for missing values for the training data set. This includes NAs that might be introduced as a result of conversion to numeric.
+
 ```{r, echo=FALSE}
+# Display NAs
 colSums(is.na(dftrain))
+
+# Look for blank values in columns that will be converted to numeric, which would introduce NAs
+dollar_cols <- c('BLUEBOOK', 'HOME_VAL', 'INCOME', 'OLDCLAIM')
+ctVals <- c()
+for (dollar_col in dollar_cols) {
+    ctVals <- c(ctVals, sum(str_length(dftrain[,dollar_col]) == 0))
+}
+ctVals <- data.frame(t(ctVals))
+colnames(ctVals) <- dollar_cols
+ctVals
 ```
 
-* The attributes `BLUEBOOK`, `HOME_VAL`, `INCOME`, and` OLDCLAIM` are dollar amounts stored as characters. Need to convert to int.
+* The attributes `BLUEBOOK`, `HOME_VAL`, `INCOME`, and` OLDCLAIM` are dollar amounts stored as characters. Need to convert to int. It is noted that converting blank values to numeric introduces some NAs; therefore our cleaning function will handle these cases.
 * Variables with NA: `AGE` (6), `YOJ` (454), `CAR_AGE` (510)
 * Consider creating `AGE` groups Under25 and Over65 to account for young and older drivers.
 * Consider creating `CAR_AGE` groups to identify new cars. One observation has a `CAR_AGE` = -3, which shouldn't be possible.
@@ -284,6 +314,7 @@ colSums(is.na(dftrain))
 ```{r, echo=FALSE}
 clean_df <- function(df) {
 
+  # Note that some NAs were introduced after cleaning the dollar and commas from these variables
   df$BLUEBOOK <- as.numeric(gsub('[$,]','',df$BLUEBOOK))
   df$HOME_VAL <- as.numeric(gsub('[$,]','',df$HOME_VAL))
   df$INCOME <- as.numeric(gsub('[$,]','',df$INCOME))
@@ -314,13 +345,48 @@ clean_df <- function(df) {
     mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% dplyr::select(-RED_CAR) %>%
     mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% dplyr::select(-REVOKED) %>%
     mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% dplyr::select(-URBANICITY)
+  
+  # Change negative values of car age to NA
+  df$CAR_AGE <- ifelse(df$CAR_AGE < 0, NA, df$CAR_AGE)
+  
+  # Handle NAs
+  df$AGE <- ifelse(is.na(df$AGE), median(df$AGE, na.rm=T), df$AGE)
+  df$YOJ <- ifelse(is.na(df$YOJ), median(df$YOJ, na.rm=T), df$YOJ)
+  df$INCOME <- ifelse(is.na(df$INCOME), median(df$INCOME, na.rm=T), df$INCOME)
+  df$HOME_VAL <- ifelse(is.na(df$HOME_VAL), median(df$HOME_VAL, na.rm=T), df$HOME_VAL)
+  df$CAR_AGE <- ifelse(is.na(df$CAR_AGE), median(df$CAR_AGE, na.rm=T), df$CAR_AGE)
+  
   return(df)
 }
 
 cleandf <- clean_df(dftrain)
 head(cleandf)
+#summary(cleandf)
+
 ```
 
+
+Checking for missing values for the evaluation data set, including NAs that might be introduced as a result of conversion to numeric. The TARGET_FLAG and TARGET_AMT are the response variables so should remain NA for now.
+
+```{r, echo=FALSE}
+# Show NAs
+colSums(is.na(dfeval))
+
+# Look for blank values in columns that will be converted to numeric, which would introduce NAs
+dollar_cols <- c('BLUEBOOK', 'HOME_VAL', 'INCOME', 'OLDCLAIM')
+ctVals <- c()
+for (dollar_col in dollar_cols) {
+    ctVals <- c(ctVals, sum(str_length(dfeval[,dollar_col]) == 0))
+}
+ctVals <- data.frame(t(ctVals))
+colnames(ctVals) <- dollar_cols
+ctVals
+
+```
+
+
+* The attributes `BLUEBOOK`, `HOME_VAL`, `INCOME`, and` OLDCLAIM` are dollar amounts stored as characters. Need to convert to int. It is noted that converting blank values to numeric introduces some NAs; therefore our cleaning function will handle these cases.
+* Variables with NA: `AGE` (1), `YOJ` (94), `CAR_AGE` (125)
 
 ```{r, echo=FALSE, eval=FALSE, warning=FALSE}
 eval_clean_df <- function(df) {
@@ -355,11 +421,21 @@ eval_clean_df <- function(df) {
     mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% dplyr::select(-RED_CAR) %>%
     mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% dplyr::select(-REVOKED) %>%
     mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% dplyr::select(-URBANICITY)
+  
+  # Handle NAs
+  df$AGE <- ifelse(is.na(df$AGE), median(df$AGE, na.rm=T), df$AGE)
+  df$YOJ <- ifelse(is.na(df$YOJ), median(df$YOJ, na.rm=T), df$YOJ)
+  df$INCOME <- ifelse(is.na(df$INCOME), median(df$INCOME, na.rm=T), df$INCOME)
+  df$HOME_VAL <- ifelse(is.na(df$HOME_VAL), median(df$HOME_VAL, na.rm=T), df$HOME_VAL)
+  df$CAR_AGE <- ifelse(is.na(df$CAR_AGE), median(df$CAR_AGE, na.rm=T), df$CAR_AGE)
+  
   return(df)
 }
 
 eval_cleandf <- eval_clean_df(dfeval)
 head(eval_cleandf)
+#summary(eval_cleandf)
+
 ```
 
 
@@ -514,8 +590,32 @@ glimpse(dftrain)
 # summary of training data
 summary(dftrain)
 
+# bar plots for training set
+DataExplorer::plot_bar(
+  data = dftrain,
+         order_bar = T,
+         ggtheme=theme_ipsum())
+
+# histograms for training set
+DataExplorer::plot_histogram(
+  geom_histogram_args = list(alpha = 0.5),
+   data = dftrain,
+         ggtheme=theme_ipsum())
+
 # summary of evaluation data
 summary(dfeval)
+
+# bar plots for evaluation set
+DataExplorer::plot_bar(
+  data = dftrain,
+         order_bar = T,
+         ggtheme=theme_ipsum())
+
+# histograms for evaluation set
+DataExplorer::plot_histogram(
+  geom_histogram_args = list(alpha = 0.5),
+   data = dftrain,
+         ggtheme=theme_ipsum())
 
 # creating dummy variables for some variables in training and evaluation data sets
 dftrain %>% count(PARENT1)
@@ -548,8 +648,18 @@ dfeval %>% count(REVOKED)
 dftrain %>% count(URBANICITY)
 dfeval %>% count(URBANICITY)
   
-# checking for missing values
+# checking for missing values in training data
 colSums(is.na(dftrain))
+
+# Look for blank values in columns that will be converted to numeric, which would introduce NAs
+dollar_cols <- c('BLUEBOOK', 'HOME_VAL', 'INCOME', 'OLDCLAIM')
+ctVals <- c()
+for (dollar_col in dollar_cols) {
+    ctVals <- c(ctVals, sum(str_length(dftrain[,dollar_col]) == 0))
+}
+ctVals <- data.frame(t(ctVals))
+colnames(ctVals) <- dollar_cols
+ctVals
 
 # data cleaning functions for training data
 clean_df <- function(df) {
@@ -584,11 +694,35 @@ clean_df <- function(df) {
     mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% dplyr::select(-RED_CAR) %>%
     mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% dplyr::select(-REVOKED) %>%
     mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% dplyr::select(-URBANICITY)
+
+  # Change negative values of car age to NA
+  df$CAR_AGE <- ifelse(df$CAR_AGE < 0, NA, df$CAR_AGE)
+  
+  # Handle NAs
+  df$AGE <- ifelse(is.na(df$AGE), median(df$AGE, na.rm=T), df$AGE)
+  df$YOJ <- ifelse(is.na(df$YOJ), median(df$YOJ, na.rm=T), df$YOJ)
+  df$INCOME <- ifelse(is.na(df$INCOME), median(df$INCOME, na.rm=T), df$INCOME)
+  df$HOME_VAL <- ifelse(is.na(df$HOME_VAL), median(df$HOME_VAL, na.rm=T), df$HOME_VAL)
+  df$CAR_AGE <- ifelse(is.na(df$CAR_AGE), median(df$CAR_AGE, na.rm=T), df$CAR_AGE)
+  
   return(df)
 }
 
 cleandf <- clean_df(dftrain)
 head(cleandf)
+
+# checking for missing values in evaluation data
+colSums(is.na(dfeval))
+
+# Look for blank values in columns that will be converted to numeric, which would introduce NAs
+dollar_cols <- c('BLUEBOOK', 'HOME_VAL', 'INCOME', 'OLDCLAIM')
+ctVals <- c()
+for (dollar_col in dollar_cols) {
+    ctVals <- c(ctVals, sum(str_length(dfeval[,dollar_col]) == 0))
+}
+ctVals <- data.frame(t(ctVals))
+colnames(ctVals) <- dollar_cols
+ctVals
 
 # data cleaning functions for evaluation data
 eval_clean_df <- function(df) {
@@ -623,6 +757,14 @@ eval_clean_df <- function(df) {
     mutate(RedCar = ifelse(RED_CAR == 'yes', 1, 0)) %>% dplyr::select(-RED_CAR) %>%
     mutate(DLRevoked = ifelse(REVOKED == 'Yes', 1, 0)) %>% dplyr::select(-REVOKED) %>%
     mutate(Urban = ifelse(URBANICITY == 'Highly Urban/ Urban', 1, 0)) %>% dplyr::select(-URBANICITY)
+  
+  # Handle NAs
+  df$AGE <- ifelse(is.na(df$AGE), median(df$AGE, na.rm=T), df$AGE)
+  df$YOJ <- ifelse(is.na(df$YOJ), median(df$YOJ, na.rm=T), df$YOJ)
+  df$INCOME <- ifelse(is.na(df$INCOME), median(df$INCOME, na.rm=T), df$INCOME)
+  df$HOME_VAL <- ifelse(is.na(df$HOME_VAL), median(df$HOME_VAL, na.rm=T), df$HOME_VAL)
+  df$CAR_AGE <- ifelse(is.na(df$CAR_AGE), median(df$CAR_AGE, na.rm=T), df$CAR_AGE)
+  
   return(df)
 }
 
