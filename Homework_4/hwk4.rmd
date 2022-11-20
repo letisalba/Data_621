@@ -361,6 +361,7 @@ clean_df <- function(df) {
 }
 
 cleandf <- clean_df(dftrain)
+clean_evaldf <- clean_df(dfeval)
 head(cleandf)
 #summary(cleandf)
 
@@ -502,7 +503,8 @@ $~$
 ### **Model 4**
 BLR: Base model where all variables are tested
 ```{r, echo=FALSE}
-model4 <- glm(TARGET_FLAG ~., cleandf, family = binomial(link = "logit"))
+reduced_cleandf <- cleandf %>% dplyr::select(-c("INDEX", "TARGET_AMT"))
+model4 <- glm(TARGET_FLAG ~., reduced_cleandf, family = binomial(link = "logit"))
 summary(model4)
 #summ(model4)
 ```
@@ -521,7 +523,7 @@ dropterm(model4, test = "F")
 
 
 ```{r, echo=FALSE}
-model5 <- glm(TARGET_FLAG ~ INDEX + TARGET_AMT + KIDSDRIV + AGE + HOMEKIDS + 
+model5 <- glm(TARGET_FLAG ~  KIDSDRIV + AGE + HOMEKIDS + 
     YOJ + INCOME + HOME_VAL + TRAVTIME + BLUEBOOK + TIF + OLDCLAIM + 
     CLM_FREQ + MVR_PTS + CAR_AGE + SingleParent + Male + Married + 
     HighSchool + Bachelors + Masters + PHD + Clerical + Doctor + 
@@ -537,7 +539,7 @@ $~$
 ### **Model 6**
 BLR: Backward Elimination
 ```{r, echo=FALSE, warning=FALSE}
-model6 <- glm(TARGET_FLAG ~ INDEX + TARGET_AMT + KIDSDRIV + AGE + HOMEKIDS + 
+model6 <- glm(TARGET_FLAG ~  KIDSDRIV + AGE + HOMEKIDS + 
     YOJ + HOME_VAL + TRAVTIME + BLUEBOOK + TIF + OLDCLAIM + 
     CLM_FREQ + CAR_AGE + SingleParent + Male + Married + Bachelors + Clerical + Doctor + 
     HomeMaker + Lawyer + Manager + Student + BlueCollar + 
@@ -553,8 +555,147 @@ $~$
 
 ## Select Models: 
 
-```{r, echo=FALSE}
+* Lets examine our linear models
 
+```{r, echo=FALSE}
+performance::check_model(model1)
+```
+```{r, echo=FALSE}
+performance::check_model(model2)
+```
+
+```{r, echo=FALSE}
+performance::check_model(model3)
+```
+
+Let's evaluate the performance of our linear models
+
+```{r, echo=FALSE}
+performance::model_performance(model1)
+```
+
+```{r, echo=FALSE}
+performance::model_performance(model2)
+```
+
+
+```{r, echo=FALSE}
+performance::model_performance(model3)
+```
+
+ Lets examine our binary logistic models
+
+```{r, echo=FALSE}
+performance::check_model(model4)
+```
+
+```{r, echo=FALSE}
+performance::check_model(model5)
+```
+
+```{r, echo=FALSE}
+performance::check_model(model6)
+```
+
+Let's evaluate the performance of our binary logistic models
+
+```{r, echo=FALSE}
+performance::model_performance(model4)
+```
+
+```{r, echo=FALSE}
+pred = round(fitted(model4))
+pROC::auc(cleandf$TARGET_FLAG, pred)
+```
+
+```{r, echo=FALSE}
+table(true = cleandf$TARGET_FLAG, pred = round(fitted(model4)))
+```
+
+Accuracy: $\frac{5551+918}{8161}=79\%$
+
+Classification Error Rate: $\frac{1235 + 457}{8161}=20\%$
+
+Precision: $\frac{918}{918 + 457}=67%$
+
+Sensitivity: $\frac{918}{918 + 1235}=43\%$
+
+Specificity: $\frac{5551}{5551 + 457}=92\%$
+
+F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
+
+```{r, echo=FALSE}
+performance::model_performance(model5)
+```
+
+```{r, echo=FALSE}
+pred = round(fitted(model5))
+pROC::auc(cleandf$TARGET_FLAG, pred)
+```
+
+```{r, echo=FALSE}
+table(true = cleandf$TARGET_FLAG, pred = round(fitted(model5)))
+```
+
+Accuracy: $\frac{5551+918}{8161}=79\%$
+
+Classification Error Rate: $\frac{1235 + 457}{8161}=20\%$
+
+Precision: $\frac{918}{918 + 457}=67%$
+
+Sensitivity: $\frac{918}{918 + 1235}=43\%$
+
+Specificity: $\frac{5551}{5551 + 457}=92\%$
+
+F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
+
+
+```{r, echo=FALSE}
+performance::model_performance(model6)
+```
+
+```{r, echo=FALSE}
+pred = round(fitted(model6))
+pROC::auc(cleandf$TARGET_FLAG, pred)
+```
+
+
+```{r,echo=FALSE}
+table(true = cleandf$TARGET_FLAG, pred = round(fitted(model6)))
+```
+
+Accuracy: $\frac{5535+848}{8161}=78\%$
+
+Classification Error Rate: $\frac{1305 + 473}{8161}=22\%$
+
+Precision: $\frac{848}{848 + 473}=64%$
+
+Sensitivity: $\frac{848}{848 + 1305}=39\%$
+
+Specificity: $\frac{5535}{5535 + 473}=92\%$
+
+F1 Score: $\frac{2 * 848}{2 * 848 + 473 + 1305}=49\%$
+
+Lets make predictions with our two chosen models:
+
+```{r, echo=FALSE}
+clean_evaldf$TARGET_FLAG <- as.numeric(clean_evaldf$TARGET_FLAG)
+reduced_clean_evaldf <- clean_evaldf %>% dplyr::select(-c( "TARGET_AMT"))
+
+prediction <- broom::augment(model6, newdata = reduced_clean_evaldf)
+head(as.integer(prediction$.fitted > .5), 20)
+
+TARGET_FLAG <- as.data.frame(as.integer(prediction$.fitted > .5))
+names(TARGET_FLAG) <- "TARGET_FLAG"
+```
+
+```{r, echo=FALSE}
+clean_evaldf$TARGET_AMT <- as.numeric(clean_evaldf$TARGET_AMT)
+clean_evaldf$TARGET_FLAG <- NULL
+
+clean_evaldf <- bind_cols(TARGET_FLAG, clean_evaldf)
+prediction <- broom::augment(model3, newdata = clean_evaldf)
+head(prediction$.fitted, 20)
 ```
 
 
@@ -821,6 +962,33 @@ model6 <- glm(TARGET_FLAG ~ INDEX + TARGET_AMT + KIDSDRIV + AGE + HOMEKIDS +
 summary(model6)
 
 # model selection
+performance::check_model(model1)
+
+performance::check_model(model2)
+
+performance::check_model(model3)
+
+
+performance::model_performance(model1)
+
+performance::model_performance(model2)
+
+performance::model_performance(model3)
+
+
+performance::check_model(model4)
+
+performance::check_model(model5)
+
+performance::check_model(model6)
+
+
+performance::model_performance(model4)
+
+performance::model_performance(model5)
+
+performance::model_performance(model6)
+
 
 ```
 
