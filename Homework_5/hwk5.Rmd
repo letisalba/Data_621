@@ -56,44 +56,75 @@ $~$
 -----------
 
 ### Load Libraries:
+
+These are the libraries used to explore, prepare, analyze and build our models
 ```{r libraries, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(corrplot)
+library(skimr)
+library(DataExplorer)
 ```
+
+$~$
 
 ## Load Data set:
 
+We have included the original data sets in our GitHub account and read from this location. Below we are showing the training data set:
 ```{r, echo=FALSE}
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_5/csv/wine-training-data.csv")
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_5/csv/wine-evaluation-data.csv")
+head(dftrain)
 ```
 
 -----------
 
 ## Data Exploration:
+
+Using the `DataExplorer` package we use the `create_report` function which pulls a full data profile from our training data set and create an html file with basic statistcs, structure, missing data, distribution visualizations, correlation matrix and principal component analysis for our data.
+
+Based on this our training data includes 12795 records and 16 variables whereas the evaluation data includes 3335 records and 16 variables.
+
+```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
+#knitr::include_graphics("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_1/Images/homework1_table.png")
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#DataExplorer::create_report(dftrain)
+```
+
+
 ```{r corr-plot, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
-# cor_res <- cor(dftrain, use = "na.or.complete")
-# 
-# corrplot(cor_res,
-#          type = "lower",
-#          order = "original",
-#          tl.col = "black",
-#          tl.srt = 50,
-#          tl.cex = 1)
-# cor_res <- data.frame(cor_res)
+cor_res <- cor(dftrain, use = "na.or.complete")
+
+corrplot(cor_res,
+         type = "lower",
+         order = "original",
+         tl.col = "black",
+         tl.srt = 50,
+         tl.cex = 1)
+cor_res <- data.frame(cor_res)
 ```
 $~$
 
 ## Data Preparation:
 
+Checking for missing values:
+```{r, echo=FALSE}
+
+```
 $~$
 
 ## Build Models:
+```{r, echo=FALSE}
 
+```
 $~$
 
 ## Select Models:
+```{r, echo=FALSE}
 
+```
 $~$
 
 ## Appendix:
