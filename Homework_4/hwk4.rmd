@@ -557,12 +557,31 @@ $~$
 
 * Lets examine our linear models
 
+* **Model 1**
+
+We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
+
+At the right tail our residuals are not normally distributed
+
 ```{r, echo=FALSE}
 performance::check_model(model1)
 ```
+
+* **Model 2**
+
+There are no collinearity issues with the second model
+
+At the right tail our residuals are not normally distributed
+
+
 ```{r, echo=FALSE}
 performance::check_model(model2)
 ```
+* **Model 3**
+
+We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
+
+At the right tail our residuals are not normally distributed
 
 ```{r, echo=FALSE}
 performance::check_model(model3)
@@ -570,28 +589,53 @@ performance::check_model(model3)
 
 Let's evaluate the performance of our linear models
 
+Model 1 and Model 3 have identical adjusted R-square.  We are going to use Model 3 that performs as well as Model 1 but has a Box Cox Transformation to improve the normality of the distribution of the dependent variable.
+
+* **Model 1**
+
 ```{r, echo=FALSE}
 performance::model_performance(model1)
 ```
+
+* **Model 2**
 
 ```{r, echo=FALSE}
 performance::model_performance(model2)
 ```
 
+* **Model 3**
 
 ```{r, echo=FALSE}
 performance::model_performance(model3)
 ```
 
  Lets examine our binary logistic models
+ 
+* **Model 4**
+
+We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
+
+At the right tail our residuals are not normally distributed
 
 ```{r, echo=FALSE}
 performance::check_model(model4)
 ```
 
+* **Model 5**
+
+We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
+
+At the right tail our residuals are not normally distributed
+
 ```{r, echo=FALSE}
 performance::check_model(model5)
 ```
+
+* **Model 6**
+
+There is no collinearity issues in Model 6
+
+Like all our models, at the right tail our residuals are not normally distributed
 
 ```{r, echo=FALSE}
 performance::check_model(model6)
@@ -599,14 +643,19 @@ performance::check_model(model6)
 
 Let's evaluate the performance of our binary logistic models
 
+
+* **Model 4**
+
 ```{r, echo=FALSE}
 performance::model_performance(model4)
 ```
+
 
 ```{r, echo=FALSE}
 pred = round(fitted(model4))
 pROC::auc(cleandf$TARGET_FLAG, pred)
 ```
+
 
 ```{r, echo=FALSE}
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model4)))
@@ -624,14 +673,20 @@ Specificity: $\frac{5551}{5551 + 457}=92\%$
 
 F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
 
+
+* **Model 4**
+
 ```{r, echo=FALSE}
 performance::model_performance(model5)
 ```
+
+
 
 ```{r, echo=FALSE}
 pred = round(fitted(model5))
 pROC::auc(cleandf$TARGET_FLAG, pred)
 ```
+
 
 ```{r, echo=FALSE}
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model5)))
@@ -649,6 +704,8 @@ Specificity: $\frac{5551}{5551 + 457}=92\%$
 
 F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
 
+
+* **Model 6**
 
 ```{r, echo=FALSE}
 performance::model_performance(model6)
@@ -676,7 +733,11 @@ Specificity: $\frac{5535}{5535 + 473}=92\%$
 
 F1 Score: $\frac{2 * 848}{2 * 848 + 473 + 1305}=49\%$
 
+The AUC for all 3 of our models are very similar, we are going to chose model 6 due to the lack of collinearity issues.
+
 Lets make predictions with our two chosen models:
+
+We are able to apply the coefficients of our model to novel data to make predictions on accident incidence.
 
 ```{r, echo=FALSE}
 clean_evaldf$TARGET_FLAG <- as.numeric(clean_evaldf$TARGET_FLAG)
@@ -689,6 +750,8 @@ TARGET_FLAG <- as.data.frame(as.integer(prediction$.fitted > .5))
 names(TARGET_FLAG) <- "TARGET_FLAG"
 ```
 
+Now that we have predictions for accidents, we can make predictions on the recovery amounts.  Anywhere no accident was predicted, the recovery amount should be set to zero.
+
 ```{r, echo=FALSE}
 clean_evaldf$TARGET_AMT <- as.numeric(clean_evaldf$TARGET_AMT)
 clean_evaldf$TARGET_FLAG <- NULL
@@ -696,6 +759,13 @@ clean_evaldf$TARGET_FLAG <- NULL
 clean_evaldf <- bind_cols(TARGET_FLAG, clean_evaldf)
 prediction <- broom::augment(model3, newdata = clean_evaldf)
 head(prediction$.fitted, 20)
+
+recovery <- as.data.frame(prediction$.fitted)
+names(recovery) <- 'recovery'
+
+clean_evaldf <- bind_cols(recovery, clean_evaldf) %>% mutate(recovery = ifelse(TARGET_FLAG == 1, recovery, 0))
+
+head(clean_evaldf$recovery, 20)
 ```
 
 
@@ -962,12 +1032,12 @@ model6 <- glm(TARGET_FLAG ~ INDEX + TARGET_AMT + KIDSDRIV + AGE + HOMEKIDS +
 summary(model6)
 
 # model selection
+
 performance::check_model(model1)
 
 performance::check_model(model2)
 
 performance::check_model(model3)
-
 
 performance::model_performance(model1)
 
@@ -975,20 +1045,60 @@ performance::model_performance(model2)
 
 performance::model_performance(model3)
 
-
 performance::check_model(model4)
 
 performance::check_model(model5)
 
 performance::check_model(model6)
 
-
 performance::model_performance(model4)
+
+pred = round(fitted(model4))
+pROC::auc(cleandf$TARGET_FLAG, pred)
+
+table(true = cleandf$TARGET_FLAG, pred = round(fitted(model4)))
+
+
 
 performance::model_performance(model5)
 
+pred = round(fitted(model5))
+pROC::auc(cleandf$TARGET_FLAG, pred)
+
+
+
+table(true = cleandf$TARGET_FLAG, pred = round(fitted(model5)))
+
+
 performance::model_performance(model6)
 
+pred = round(fitted(model6))
+pROC::auc(cleandf$TARGET_FLAG, pred)
+
+table(true = cleandf$TARGET_FLAG, pred = round(fitted(model6)))
+
+clean_evaldf$TARGET_FLAG <- as.numeric(clean_evaldf$TARGET_FLAG)
+reduced_clean_evaldf <- clean_evaldf %>% dplyr::select(-c( "TARGET_AMT"))
+
+prediction <- broom::augment(model6, newdata = reduced_clean_evaldf)
+head(as.integer(prediction$.fitted > .5), 20)
+
+TARGET_FLAG <- as.data.frame(as.integer(prediction$.fitted > .5))
+names(TARGET_FLAG) <- "TARGET_FLAG"
+
+clean_evaldf$TARGET_AMT <- as.numeric(clean_evaldf$TARGET_AMT)
+clean_evaldf$TARGET_FLAG <- NULL
+
+clean_evaldf <- bind_cols(TARGET_FLAG, clean_evaldf)
+prediction <- broom::augment(model3, newdata = clean_evaldf)
+head(prediction$.fitted, 20)
+
+recovery <- as.data.frame(prediction$.fitted)
+names(recovery) <- 'recovery'
+
+clean_evaldf <- bind_cols(recovery, clean_evaldf) %>% mutate(recovery = ifelse(TARGET_FLAG == 1, recovery, 0))
+
+head(clean_evaldf$recovery, 20)
 
 ```
 
