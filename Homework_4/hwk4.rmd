@@ -557,7 +557,9 @@ $~$
 
 * Lets examine our linear models
 
+
 * **Model 1**
+
 
 We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
 
@@ -577,6 +579,7 @@ At the right tail our residuals are not normally distributed
 ```{r, echo=FALSE}
 performance::check_model(model2)
 ```
+
 * **Model 3**
 
 We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
@@ -674,7 +677,7 @@ Specificity: $\frac{5551}{5551 + 457}=92\%$
 F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
 
 
-* **Model 4**
+* **Model 5**
 
 ```{r, echo=FALSE}
 performance::model_performance(model5)
@@ -733,9 +736,11 @@ Specificity: $\frac{5535}{5535 + 473}=92\%$
 
 F1 Score: $\frac{2 * 848}{2 * 848 + 473 + 1305}=49\%$
 
-The AUC for all 3 of our models are very similar, we are going to chose model 6 due to the lack of collinearity issues.
+The AUC for all 3 of our models are very similar, we are going to chose Model 6 due to the lack of collinearity issues.
 
-Lets make predictions with our two chosen models:
+### **Predictions:**
+
+Lets make predictions with our two chosen models (Linear Model 3 and Logistic Model 6):
 
 We are able to apply the coefficients of our model to novel data to make predictions on accident incidence.
 
