@@ -110,7 +110,7 @@ summary(dfeval)
 
 $~$
 
-Distributions for training data set
+Distributions for training data set:
 
 ```{r fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
 DataExplorer::plot_bar(
@@ -126,7 +126,7 @@ DataExplorer::plot_histogram(
          ggtheme=theme_ipsum())
 ```
 
-Distributions for evaluation data set
+Distributions for evaluation data set:
 
 ```{r fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
 DataExplorer::plot_bar(
@@ -144,9 +144,10 @@ DataExplorer::plot_histogram(
 ```
 
 
+
 $~$
 
-The following dummy variables are done to both the training and evaluation data set and only showing the results for the training data.
+The following dummy variables are done to both the training and evaluation data set:
 
 #### PARENT1
 
