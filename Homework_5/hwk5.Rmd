@@ -1,0 +1,107 @@
+---
+title: "Data 621 - Homework 5"
+author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
+  and Leticia Salazar"
+date: "December 11, 2022"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+$~$
+
+## Overview:
+
+We will explore, analyze and model a data set containing information on approximately 12,000 commercially available wines. The variables are mostly related to the chemical properties of the wine being sold. The response variable is the number of smaple cases of wine that were purchased by wine distribution companies after sampling a wine. These cases would be used to provide tasting samples to restaurants and wine stores around the United States. The more sample cases purchased, the more likely is a wine to be sold at a high end restaurant. A larger wine manufacturer is studying the data in order to predict the number of wone cases ordered based upon the wine characteristics. If the wine maunfacturer can predict the number of cases, then that manufacturer will be able to adjust their wine offering to maximize sales.
+
+## Objective
+
+Build a count regression model to predict the number of cases of wine that will be sold given certain properties of the wine. HINT: Sometimes, the face that a variable is missing is actually predictive of the target. 
+
+## Description
+
+Below is a short description of the variables of interest in the data set:
+
+
+| VARIABLE NAME:      | DEFINITION:                                     | THEORETICAL EFFECT:               |
+|:---                 |:---:                                            |:---:                              |
+|INDEX                |Identification Varoable (do not use)             |None                               |
+|TARGET               |Number of Cases Purchased                        |None                               |
+|AcidIndex            |Proprietary method of testing totalacidity of wine by using a weighted average |     |
+|Alcohol              |Alcohol Content                                  |                                   |
+|Chorides             |Cholride content of wine                         |                                   |
+|CitricAcid           |Citric Acid Content                              |                                   |
+|Density              |Density of Wine                                  |                                   |
+|FixedAcidity         |Fixed Acidity of Wiine                           |                                   |
+|FreeSulfurDioxide    |Sulfur Dioxide content of wine                   |                                   |
+|LabelAppeal          |Marketing Score indicating the appeal of label design for consumers. High numbers suggest customers like the label design. Negative numbers suggest customers don't like the design.   | Many consumers purchase based on the visual appeal of the wine label design. Higher numbers suggest better sales.  |
+|ResidualSugar        |Residual Sugar of wine                           |                                   |
+|STARS                |Wine rating by a team of experts: 4 Stars = Excellent, 1 Star = Poor |A high number of stars suggests high sales   |
+|Sulphates            |Sulfate content of Wine                          |                                   |
+|TotalSulfurDioxide   |Total Sulfur Dioxide of Wine                     |                                   |
+|VolatileAcidity      |Volatile Acid content of wine                    |                                   |
+|pH                   |pH of wine                                       |                                   |
+
+$~$
+
+-----------
+
+### Load Libraries:
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(corrplot)
+```
+
+## Load Data set:
+
+```{r, echo=FALSE}
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_5/csv/wine-training-data.csv")
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_5/csv/wine-evaluation-data.csv")
+```
+
+-----------
+
+## Data Exploration:
+```{r corr-plot, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
+# cor_res <- cor(dftrain, use = "na.or.complete")
+# 
+# corrplot(cor_res,
+#          type = "lower",
+#          order = "original",
+#          tl.col = "black",
+#          tl.srt = 50,
+#          tl.cex = 1)
+# cor_res <- data.frame(cor_res)
+```
+$~$
+
+## Data Preparation:
+
+$~$
+
+## Build Models:
+
+$~$
+
+## Select Models:
+
+$~$
+
+## Appendix:
+```{r, eval=FALSE}
+
+```
+
+
+-----------
+
+## References:
