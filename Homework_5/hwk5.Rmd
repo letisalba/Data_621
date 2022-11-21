@@ -10,6 +10,7 @@ output:
     toc: yes
     toc_float: yes
   pdf_document:
+    dev: cairo_pdf
     toc: yes
 ---
 
@@ -21,7 +22,7 @@ $~$
 
 ## Overview:
 
-We will explore, analyze and model a data set containing information on approximately 12,000 commercially available wines. The variables are mostly related to the chemical properties of the wine being sold. The response variable is the number of smaple cases of wine that were purchased by wine distribution companies after sampling a wine. These cases would be used to provide tasting samples to restaurants and wine stores around the United States. The more sample cases purchased, the more likely is a wine to be sold at a high end restaurant. A larger wine manufacturer is studying the data in order to predict the number of wone cases ordered based upon the wine characteristics. If the wine maunfacturer can predict the number of cases, then that manufacturer will be able to adjust their wine offering to maximize sales.
+We will explore, analyze and model a data set containing information on approximately 12,000 commercially available wines. The variables are mostly related to the chemical properties of the wine being sold. The response variable is the number of sample cases of wine that were purchased by wine distribution companies after sampling a wine. These cases would be used to provide tasting samples to restaurants and wine stores around the United States. The more sample cases purchased, the more likely is a wine to be sold at a high end restaurant. A larger wine manufacturer is studying the data in order to predict the number of wone cases ordered based upon the wine characteristics. If the wine maunfacturer can predict the number of cases, then that manufacturer will be able to adjust their wine offering to maximize sales.
 
 ## Objective
 
@@ -34,7 +35,7 @@ Below is a short description of the variables of interest in the data set:
 
 | VARIABLE NAME:      | DEFINITION:                                     | THEORETICAL EFFECT:               |
 |:---                 |:---:                                            |:---:                              |
-|INDEX                |Identification Varoable (do not use)             |None                               |
+|INDEX                |Identification Variable (do not use)             |None                               |
 |TARGET               |Number of Cases Purchased                        |None                               |
 |AcidIndex            |Proprietary method of testing totalacidity of wine by using a weighted average |     |
 |Alcohol              |Alcohol Content                                  |                                   |
@@ -60,9 +61,12 @@ $~$
 These are the libraries used to explore, prepare, analyze and build our models
 ```{r libraries, warning=FALSE, message=FALSE}
 library(tidyverse)
+library(dplyr)
 library(corrplot)
 library(skimr)
 library(DataExplorer)
+library(ggplot2)
+library(hrbrthemes)
 ```
 
 $~$
@@ -80,61 +84,49 @@ head(dftrain)
 
 ## Data Exploration:
 
-Using the `DataExplorer` package we use the `create_report` function which pulls a full data profile from our training data set and create an html file with basic statistcs, structure, missing data, distribution visualizations, correlation matrix and principal component analysis for our data.
+Using the `summary()` function lets start exploring the training and evaluation data.
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+Training:
+```{r, echo=FALSE}
+summary(dftrain)
+```
+Evaluation:
+```{r, echo=FALSE}
+summary(dfeval)
+```
+
+
+Using the `DataExplorer` package we use the `create_report` function which pulls a full data profile from our training data set and create an html file with basic statistics, structure, missing data, distribution visualizations, correlation matrix and principal component analysis for our data.
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
 # Do not render since it will produce a separate html file
-#DataExplorer::create_report(dftrain)
+DataExplorer::create_report(dftrain)
+DataExplorer::create_report(dfeval)
 ```
 
 Based on this our training data includes 12795 records and 16 variables whereas the evaluation data includes 3335 records and 16 variables.
 
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Basic_stats.png")
+Training:
+```{r, echo=FALSE}
+str(dftrain)
+```
+Evaluation:
+```{r, echo=FALSE}
+str(dfeval)
 ```
 
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Percentages.png")
-```
+Lets take a look at the distribution of each variables in the training data set.
 
+Based on the plots below, we can tell that most of the variables seem to be normally distributed with the exception of `AcidIndex` and `STARS` being right skewed. `INDEX` shows a uniform distribution but has no effect on our data so during the data preparation stage we will be removing it. 
+```{r distribution, echo=FALSE, warning=FALSE, fig.height = 10, fig.width = 10, fig.align="center"}
+plot_train <- dftrain %>% 
+  gather(key = 'variable', value = 'value')
 
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Data_str.png")
-```
-
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Missing_data.png")
-```
-
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Histogram.png")
-```
-
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/QQ-Plot1.png")
-```
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/QQ-PLot2.png")
-```
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Corr-plot.png")
-```
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Principal_component.png")
-```
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Principal_component2.png")
-```
-
-```{r table, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letiix3/Desktop/Data_621/Homework_5/Pics/Principal_component3.png")
+ggplot(plot_train) + 
+  geom_histogram(aes(x=value, y = ..density..), bins=30) + 
+  geom_density(aes(x=value), color='blue') +
+  theme_ipsum() +
+  facet_wrap(. ~variable, scales='free', ncol=4)
 ```
 
 
@@ -142,10 +134,44 @@ $~$
 
 ## Data Preparation:
 
-Checking for missing values:
-```{r, echo=FALSE}
+Performed to both the training and evaluation data sets but will only be displayed for the training data.
 
+Removing `INDEX` variable
+```{r, echo=FALSE}
+dftrain <- dftrain %>% 
+  dplyr::select(-INDEX)
+head(dftrain, 4)
 ```
+
+```{r, echo=FALSE}
+dfeval <- dfeval %>% 
+  dplyr::select(-IN)
+```
+
+
+
+
+
+
+
+
+
+Note: this should be the final plot before we start model building section:
+---------------
+
+The correlation plot below is measuring the degree of linear relationship within the cleaned training data. The values in which this is measured falls between -1 and +1, with +1 being a strong positive correlation and -1 a strong negative correlation.
+
+```{r corr-plot, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
+# cor_res <- cor(cleandf, use = "na.or.complete")
+# corrplot(cor_res,
+#          type = "lower",
+#          order = "original",
+#          tl.col = "black",
+#          tl.srt = 50,
+#          tl.cex = 1)
+# cor_res <- data.frame(cor_res)
+```
+
 $~$
 
 ## Build Models:
