@@ -2,18 +2,19 @@
 title: "Data 621 - Homework 4"
 author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala,
   and Leticia Salazar"
-date: "November 6, 2022"
-output:
+date: "November 20, 2022"
+output: 
   html_document:
     theme: yeti
     highlight: tango
     toc: yes
     toc_float: yes
   pdf_document:
+    dev: cairo_pdf
     toc: yes
 ---
 
-```{r setup, include=FALSE, ref.label = knitr::all_labels(appendix == TRUE)}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
@@ -86,7 +87,7 @@ library(MASS)
 ### Load Data set:
 
 We have included the original data sets in our GitHub account and read from this location. Our training data set includes 8,161 records and 26 variables.
-```{r, loading data, echo=FALSE}
+```{r, loading data, echo=FALSE, tidy.opts=list(width.cutoff=60)}
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance-evaluation-data.csv")
 glimpse(dftrain)
@@ -102,6 +103,7 @@ For insight on the data we use the `summary()` function on the train dataset:
 summary(dftrain)
 ```
 
+$~$
 
 Let's look at the statistical summary for the `dfeval` data as well:
 ```{r, echo=FALSE}
@@ -110,14 +112,17 @@ summary(dfeval)
 
 $~$
 
+\newpage
+
 Distributions for training data set:
 
 ```{r fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
 DataExplorer::plot_bar(
-  data = dftrain,
-         order_bar = T,
-         ggtheme=theme_ipsum())
+  data = dftrain, 
+  order_bar = T, 
+  ggtheme=theme_ipsum())
 ```
+
 
 ```{r, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
 DataExplorer::plot_histogram(
@@ -125,6 +130,10 @@ DataExplorer::plot_histogram(
    data = dftrain,
          ggtheme=theme_ipsum())
 ```
+
+$~$
+
+\newpage
 
 Distributions for evaluation data set:
 
@@ -141,11 +150,12 @@ DataExplorer::plot_histogram(
   geom_histogram_args = list(alpha = 0.5),
    data = dfeval,
          ggtheme=theme_ipsum())
+
 ```
 
-
-
 $~$
+
+\newpage
 
 The following dummy variables are done to both the training and evaluation data set:
 
@@ -157,7 +167,7 @@ The *PARENT1* variable has two values, Yes and No, to indicate if the observatio
 dftrain %>% count(PARENT1)
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(PARENT1)
 ```
 
@@ -170,7 +180,7 @@ The *SEX* variable has two values, M and z_F. We will create a dummy variable *M
 ```{r, echo=FALSE}
 dftrain %>% count(SEX)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(SEX)
 ```
 
@@ -183,7 +193,7 @@ The variable *MSTATUS* has two values, Yes and z_No, to indicate the marital sta
 ```{r, echo=FALSE}
 dftrain %>% count(MSTATUS)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(MSTATUS)
 ```
 
@@ -196,7 +206,7 @@ The *EDUCATION* variable takes on 5 values ranging from less than high school th
 ```{r, echo=FALSE}
 dftrain %>% count(EDUCATION)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(EDUCATION)
 ```
 
@@ -209,7 +219,7 @@ The *JOB* variable takes on 8 values. The *JOB* variable has 526 missing values,
 ```{r, echo=FALSE}
 dftrain %>% count(JOB)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(JOB)
 ```
 $~$
@@ -221,7 +231,7 @@ The *CAR_USE* variable has two values, Commercial and Private. We will construct
 ```{r, echo=FALSE}
 dftrain %>% count(CAR_USE)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(CAR_USE)
 ```
 $~$
@@ -234,7 +244,7 @@ The *CAR_TYPE* variable takes on 6 values. We will create dummy variables; *Mini
 dftrain %>% count(CAR_TYPE)
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(CAR_TYPE)
 ```
 
@@ -248,7 +258,7 @@ The *RED_CAR* variable has two values, yes and no. We will create a dummy variab
 dftrain %>% count(RED_CAR)
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(RED_CAR)
 ```
 
@@ -261,7 +271,7 @@ The *REVOKED* variable has two values, Yes and No. We will create a dummy variab
 ```{r, echo=FALSE}
 dftrain %>% count(REVOKED)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(REVOKED)
 ```
 
@@ -274,7 +284,7 @@ The *URBANICITY* variable has two values, Highly Urban/ Urban and z_Highly Rural
 ```{r, echo=FALSE}
 dftrain %>% count(URBANICITY)
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 dfeval %>% count(URBANICITY)
 ```
 
@@ -311,6 +321,7 @@ ctVals
 * Consider creating `CAR_AGE` groups to identify new cars. One observation has a `CAR_AGE` = -3, which shouldn't be possible.
 * Consider creating `YOJ` (Year on Job) groups to identify job stability; Over5years etc.
 
+\newpage
 
 ```{r, echo=FALSE}
 clean_df <- function(df) {
@@ -367,6 +378,7 @@ head(cleandf)
 
 ```
 
+\newpage
 
 Checking for missing values for the evaluation data set, including NAs that might be introduced as a result of conversion to numeric. The TARGET_FLAG and TARGET_AMT are the response variables so should remain NA for now.
 
@@ -437,14 +449,13 @@ eval_clean_df <- function(df) {
 eval_cleandf <- eval_clean_df(dfeval)
 head(eval_cleandf)
 #summary(eval_cleandf)
-
 ```
-
 
 $~$
 
-The correlation plot below is measuring the degree of linear relationship within the cleaned training data. The values in which this is measured falls between -1 and +1, with +1 being a strong positive correlation and -1 a strong negative correlation.
+\newpage
 
+The correlation plot below is measuring the degree of linear relationship within the cleaned training data. The values in which this is measured falls between -1 and +1, with +1 being a strong positive correlation and -1 a strong negative correlation.
 
 ```{r corr-plot, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
 cor_res <- cor(cleandf, use = "na.or.complete")
@@ -457,9 +468,11 @@ corrplot(cor_res,
          tl.cex = 1)
 cor_res <- data.frame(cor_res)
 ```
-$~$
 
+$~$
 -----------
+
+\newpage
 
 ## Model Building:
 
@@ -496,6 +509,7 @@ model_bc_transformed <- predict(model_boxcox, cleandf)
 model3 <- lm(TARGET_AMT ~ ., model_bc_transformed)
 summary(model3)
 #summ(model3)
+
 ```
 
 $~$
@@ -548,26 +562,27 @@ model6 <- glm(TARGET_FLAG ~  KIDSDRIV + AGE + HOMEKIDS +
 summary(model6)
 #summ(model6)
 ```
-Note: Models 3 and 6 should be the best fit
 
 $~$
 -----------
 
 ## Select Models: 
 
-* Lets examine our linear models
+Lets examine our linear models
 
+$~$
 
 * **Model 1**
-
 
 We can see that there may be some moderate collinearity in 3 of our predictors which may lead to instability in our coefficient estimates
 
 At the right tail our residuals are not normally distributed
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 10, fig.width = 10, fig.align='center'}
 performance::check_model(model1)
 ```
+
+$~$
 
 * **Model 2**
 
@@ -576,9 +591,12 @@ There are no collinearity issues with the second model
 At the right tail our residuals are not normally distributed
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 10, fig.width = 10, fig.align='center'}
 performance::check_model(model2)
 ```
+$~$
+
+\newpage
 
 * **Model 3**
 
@@ -586,25 +604,30 @@ We can see that there may be some moderate collinearity in 3 of our predictors w
 
 At the right tail our residuals are not normally distributed
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 10, fig.width = 10, fig.align='center'}
 performance::check_model(model3)
 ```
+$~$
 
 Let's evaluate the performance of our linear models
 
-Model 1 and Model 3 have identical adjusted R-square.  We are going to use Model 3 that performs as well as Model 1 but has a Box Cox Transformation to improve the normality of the distribution of the dependent variable.
+**Model 1 and Model 3 have identical adjusted R-square.  We are going to use Model 3 that performs as well as Model 1 but has a Box Cox Transformation to improve the normality of the distribution of the dependent variable.**
+
+$~$
 
 * **Model 1**
 
 ```{r, echo=FALSE}
 performance::model_performance(model1)
 ```
+$~$
 
 * **Model 2**
 
 ```{r, echo=FALSE}
 performance::model_performance(model2)
 ```
+$~$
 
 * **Model 3**
 
@@ -612,7 +635,13 @@ performance::model_performance(model2)
 performance::model_performance(model3)
 ```
 
- Lets examine our binary logistic models
+$~$
+
+\newpage
+
+Lets examine our binary logistic models
+
+$~$
  
 * **Model 4**
 
@@ -620,9 +649,12 @@ We can see that there may be some moderate collinearity in 3 of our predictors w
 
 At the right tail our residuals are not normally distributed
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 10, fig.width = 10, fig.align='center'}
 performance::check_model(model4)
 ```
+$~$
+
+\newpage
 
 * **Model 5**
 
@@ -630,9 +662,12 @@ We can see that there may be some moderate collinearity in 3 of our predictors w
 
 At the right tail our residuals are not normally distributed
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 10, fig.width = 10, fig.align='center'}
 performance::check_model(model5)
 ```
+$~$
+
+\newpage
 
 * **Model 6**
 
@@ -640,12 +675,14 @@ There is no collinearity issues in Model 6
 
 Like all our models, at the right tail our residuals are not normally distributed
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 10, fig.width = 10, fig.align='center'}
 performance::check_model(model6)
 ```
+\newpage
 
 Let's evaluate the performance of our binary logistic models
 
+$~$
 
 * **Model 4**
 
@@ -653,12 +690,10 @@ Let's evaluate the performance of our binary logistic models
 performance::model_performance(model4)
 ```
 
-
 ```{r, echo=FALSE}
 pred = round(fitted(model4))
 pROC::auc(cleandf$TARGET_FLAG, pred)
 ```
-
 
 ```{r, echo=FALSE}
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model4)))
@@ -676,6 +711,7 @@ Specificity: $\frac{5551}{5551 + 457}=92\%$
 
 F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
 
+$~$
 
 * **Model 5**
 
@@ -683,13 +719,10 @@ F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
 performance::model_performance(model5)
 ```
 
-
-
 ```{r, echo=FALSE}
 pred = round(fitted(model5))
 pROC::auc(cleandf$TARGET_FLAG, pred)
 ```
-
 
 ```{r, echo=FALSE}
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model5)))
@@ -707,6 +740,7 @@ Specificity: $\frac{5551}{5551 + 457}=92\%$
 
 F1 Score: $\frac{2 * 918}{2 * 918 + 457 + 1235}=52\%$
 
+$~$
 
 * **Model 6**
 
@@ -736,11 +770,19 @@ Specificity: $\frac{5535}{5535 + 473}=92\%$
 
 F1 Score: $\frac{2 * 848}{2 * 848 + 473 + 1305}=49\%$
 
-The AUC for all 3 of our models are very similar, we are going to chose Model 6 due to the lack of collinearity issues.
+$~$
 
-### **Predictions:**
+**The AUC for all 3 of our models are very similar, we are going to chose Model 6 due to the lack of colinearity issues.**
 
-Lets make predictions with our two chosen models (Linear Model 3 and Logistic Model 6):
+-----------
+
+$~$
+
+\newpage
+
+## Predictions:
+
+**Lets make predictions with our two chosen models (Linear Model 3 and Logistic Model 6):**
 
 We are able to apply the coefficients of our model to novel data to make predictions on accident incidence.
 
@@ -754,6 +796,8 @@ head(as.integer(prediction$.fitted > .5), 20)
 TARGET_FLAG <- as.data.frame(as.integer(prediction$.fitted > .5))
 names(TARGET_FLAG) <- "TARGET_FLAG"
 ```
+
+$~$
 
 Now that we have predictions for accidents, we can make predictions on the recovery amounts.  Anywhere no accident was predicted, the recovery amount should be set to zero.
 
@@ -769,7 +813,9 @@ recovery <- as.data.frame(prediction$.fitted)
 names(recovery) <- 'recovery'
 
 clean_evaldf <- bind_cols(recovery, clean_evaldf) %>% mutate(recovery = ifelse(TARGET_FLAG == 1, recovery, 0))
+```
 
+```{r, echo=FALSE}
 head(clean_evaldf$recovery, 20)
 ```
 
@@ -778,10 +824,12 @@ head(clean_evaldf$recovery, 20)
 
 $~$
 
+\newpage
+
 ## Appendix:
 
 Below is all the code used in this homework
-```{r, eval=FALSE, warning=FALSE}
+```{r, eval=FALSE, warning=FALSE, tidy.opts=list(width.cutoff=60)}
 # load libraries
 library(tidyverse)
 library(caret)
@@ -800,8 +848,10 @@ library(hrbrthemes)
 library(MASS)
 
 # load data
-dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
-dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_4/csv/insurance_training_data.csv")
+dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/
+                    Homework_4/csv/insurance_training_data.csv")
+dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/
+                   Homework_4/csv/insurance_training_data.csv")
 glimpse(dftrain)
 
 # summary of training data
@@ -1038,24 +1088,20 @@ summary(model6)
 
 # model selection
 
+# checking our model's performance
 performance::check_model(model1)
-
 performance::check_model(model2)
-
 performance::check_model(model3)
 
 performance::model_performance(model1)
-
 performance::model_performance(model2)
-
 performance::model_performance(model3)
 
 performance::check_model(model4)
-
 performance::check_model(model5)
-
 performance::check_model(model6)
 
+# performance for model 4 only
 performance::model_performance(model4)
 
 pred = round(fitted(model4))
@@ -1064,17 +1110,15 @@ pROC::auc(cleandf$TARGET_FLAG, pred)
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model4)))
 
 
-
+# performance for model 5 only
 performance::model_performance(model5)
 
 pred = round(fitted(model5))
 pROC::auc(cleandf$TARGET_FLAG, pred)
 
-
-
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model5)))
 
-
+# performance for model 6 only
 performance::model_performance(model6)
 
 pred = round(fitted(model6))
@@ -1082,6 +1126,8 @@ pROC::auc(cleandf$TARGET_FLAG, pred)
 
 table(true = cleandf$TARGET_FLAG, pred = round(fitted(model6)))
 
+
+# start our predictions for our chosen models (3 and 6) and start with model 6
 clean_evaldf$TARGET_FLAG <- as.numeric(clean_evaldf$TARGET_FLAG)
 reduced_clean_evaldf <- clean_evaldf %>% dplyr::select(-c( "TARGET_AMT"))
 
@@ -1091,6 +1137,7 @@ head(as.integer(prediction$.fitted > .5), 20)
 TARGET_FLAG <- as.data.frame(as.integer(prediction$.fitted > .5))
 names(TARGET_FLAG) <- "TARGET_FLAG"
 
+# predictions on the recovery amounts model 3
 clean_evaldf$TARGET_AMT <- as.numeric(clean_evaldf$TARGET_AMT)
 clean_evaldf$TARGET_FLAG <- NULL
 
@@ -1103,8 +1150,8 @@ names(recovery) <- 'recovery'
 
 clean_evaldf <- bind_cols(recovery, clean_evaldf) %>% mutate(recovery = ifelse(TARGET_FLAG == 1, recovery, 0))
 
+# print prediction
 head(clean_evaldf$recovery, 20)
-
 ```
 
 $~$
