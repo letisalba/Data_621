@@ -67,6 +67,7 @@ library(skimr)
 library(DataExplorer)
 library(ggplot2)
 library(hrbrthemes)
+library(mic)
 ```
 
 $~$
@@ -100,8 +101,9 @@ Using the `DataExplorer` package we use the `create_report` function which pulls
 
 ```{r, eval=FALSE, message=FALSE, warning=FALSE}
 # Do not render since it will produce a separate html file
-DataExplorer::create_report(dftrain)
-DataExplorer::create_report(dfeval)
+# Remove TARGET from eval report since it will contain all NAs and will make the correlation plot fail to render
+DataExplorer::create_report(dftrain, output_file='training_report.html')
+DataExplorer::create_report(dfeval %>% select(-TARGET), output_file='eval_report.html')
 ```
 
 Based on this our training data includes 12795 records and 16 variables whereas the evaluation data includes 3335 records and 16 variables.
@@ -118,6 +120,7 @@ str(dfeval)
 Lets take a look at the distribution of each variables in the training data set.
 
 Based on the plots below, we can tell that most of the variables seem to be normally distributed with the exception of `AcidIndex` and `STARS` being right skewed. `INDEX` shows a uniform distribution but has no effect on our data so during the data preparation stage we will be removing it. 
+
 ```{r distribution, echo=FALSE, warning=FALSE, fig.height = 10, fig.width = 10, fig.align="center"}
 plot_train <- dftrain %>% 
   gather(key = 'variable', value = 'value')
@@ -138,9 +141,9 @@ Performed to both the training and evaluation data sets but will only be display
 
 Removing `INDEX` variable
 ```{r, echo=FALSE}
+# For some reason R renamed the INDEX column to "ï..INDEX"
 dftrain <- dftrain %>% 
-  dplyr::select(-INDEX)
-head(dftrain, 4)
+  dplyr::select(-ï..INDEX)
 ```
 
 ```{r, echo=FALSE}
@@ -148,10 +151,33 @@ dfeval <- dfeval %>%
   dplyr::select(-IN)
 ```
 
+The fact that some wines are not rated could be a potential predictor. Create a new column for rated vs non-rated wines.
 
+```{r, echo=FALSE}
+# Create logical variable to indicate whether there is a star rating for this wine
+dftrain <- dftrain %>%
+    mutate(Rated=ifelse(is.na(STARS), F, T))
+dfeval <- dfeval %>%
+    mutate(Rated=ifelse(is.na(STARS), F, T))
+```
 
+Now we'll impute missing values using R's Mulitple Imputation by Chained Equations (MICE) package. We'll avoid imputing the STARS variable as the absence of a star rating may be a significant predictor.
 
+```{r, echo=FALSE}
+# Impute missing values in training data (except for STARS)
+dftrain_imputed <- mice(dftrain %>% select(-STARS), m=5, maxit=5, method='pmm')
+cleandf <- complete(dftrain_imputed) %>%
+    mutate(STARS = dftrain$STARS)
 
+# Impute missing values in eval data (except for STARS and TARGET)
+dfeval_imputed <- mice(dfeval %>% select(-STARS, -TARGET), m=5, maxit=5, method='pmm')
+cleandf_eval <- complete(dfeval_imputed) %>%
+    mutate(STARS = dfeval$STARS, TARGET = dfeval$TARGET)
+
+# Look at another summary to make sure there aren't any NAs where we're not expecting them
+summary(cleandf)
+summary(cleandf_eval)
+```
 
 
 
@@ -162,14 +188,14 @@ Note: this should be the final plot before we start model building section:
 The correlation plot below is measuring the degree of linear relationship within the cleaned training data. The values in which this is measured falls between -1 and +1, with +1 being a strong positive correlation and -1 a strong negative correlation.
 
 ```{r corr-plot, fig.height = 10, fig.width = 10, echo=FALSE, fig.align='center'}
-# cor_res <- cor(cleandf, use = "na.or.complete")
-# corrplot(cor_res,
-#          type = "lower",
-#          order = "original",
-#          tl.col = "black",
-#          tl.srt = 50,
-#          tl.cex = 1)
-# cor_res <- data.frame(cor_res)
+cor_res <- cor(cleandf, use = "na.or.complete")
+corrplot(cor_res,
+      type = "lower",
+      order = "original",
+      tl.col = "black",
+      tl.srt = 50,
+      tl.cex = 1)
+cor_res <- data.frame(cor_res)
 ```
 
 $~$
