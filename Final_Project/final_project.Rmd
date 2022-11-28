@@ -1,0 +1,154 @@
+---
+output:
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
+  html_document:
+    theme: flatly
+    highlight: textmate
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **TITLE OF OUR PROJECT**
+
+
+### CUNY SPS DATA 621
+
+#### GROUP 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar
+
+$~$
+
+## Abstract:
+Use 250 words or less to summarize your problem, methodology, and major outcomes.
+
+[insert text here]
+
+$~$
+
+## Key words:
+Select a few key words (up to five) related to your work.
+
+[insert text here]
+
+$~$
+
+## Introduction:
+Describe the background and motivation of your problem.
+
+[insert text here]
+
+$~$
+
+
+## Literature Review:
+Discuss how other researchers have addressed similar problems, what their achievements are, and what the advantage and drawbacks of each reviewed approach are. Explain how your investigation is similar or different to the state-of-the- art. Please cite the relevant papers where appropriate.
+
+
+[insert text here]
+
+$~$
+
+## Methology:
+Discuss the key aspects of your problem, data set and regression model(s). Given that you are working on real-world data, explain at a high-level your exploratory data analysis, how you prepared the data for regression modeling, your process for building regression models, and your model selection.
+
+[insert text here]
+
+$~$
+
+## Discussion of Findings:
+Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.). Conclude your findings, limitations, and suggest areas for future work.
+
+[insert text here]
+
+$~$
+
+#### Recommendations:
+
+[insert text here]
+
+$~$
+
+#### Limitations:
+
+[insert text here]
+
+$~$
+
+## Conclusion:
+
+[insert text here]
+
+$~$
+
+## References / Bibliography:
+Be sure to cite all references used in the report (APA format).
+
+* [insert text here]
+
+* [insert text here]
+
+* [insert text here]
+
+$~$
+
+## Appendices:
+* Supplemental tables and/or figures.
+* R statistical programming code.
+
+
+[insert graphs, tables, etc here]
+
+```{r code, eval=FALSE}
+
+```
+
+
+----------------
+
+START OF OUR CODING HERE! WILL NOT SHOW FOR PDF VERSION
+
+### Load Libraries:
+
+```{r libraries, warning=FALSE, message=FALSE}
+
+```
+
+### Load Data:
+
+```{r, echo=FALSE}
+
+```
+
+
+### Data Exploration:
+
+```{r, echo=FALSE}
+
+```
+
+
+### Data Preparation:
+
+```{r, echo=FALSE}
+
+```
+
+
+### Model Building:
+
+```{r, echo=FALSE}
+
+```
+
+
+### Model Selection:
+
+```{r, echo=FALSE}
+
+```
+

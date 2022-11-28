@@ -1,18 +1,179 @@
 ---
 title: "Data 621 - Blog 4"
 author: "Leticia Salazar"
-date: "`r Sys.Date()`"
-output: 
+date: "November 27th, 2022"
+output:
   html_document:
     theme: lumen
     highlight: monochrome
-    toc: True
+    toc: yes
     toc_float: yes
     toc_depth: 3
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Title of Blog:
+$~$
+
+## Generalized Linear Model:
+
+We have so far created simple and multiple linear models; now I will be introducing generalized linear model. This is a generalization of ordinary linear regression that allows for response variables that have error distribution models other than a normal distribution.
+
+GLM build a linear relationship between the response and predictors even if their relationship is not linear. There are some basic assumptions for GLMs (some are modified for LMs):
+
+* Data should be independent and random (each random variable has the same probability distribution)
+* The response variable `y` does not need to be normally distributed, but the distribution is from an exponential family (e.g. bionmia, Poisson, multinomial, normal)
+* The original response variable need not have a linear relationship with the independent variables, but the transformed response variable (through the link function) is linearly dependent on the independent variables.
+* Feature engineering on the Independent variable can be applied i.e instead of taking the original raw independent variables, variable transformation can be done, and the transformed independent variables, such as taking a log transformation, squaring the variables, reciprocal of the variables,  can also be used to build the GLM model.
+* Homoscedasticity (i.e constant variance) need not be satisfied. Response variable Error variance can increase, or decrease with the independent variables.
+* Errors are independent but need not be normally distributed
+
+$~$
+
+To start we will be using a data from the ['GLMsData'](https://cran.r-project.org/web/packages/GLMsData/GLMsData.pdf) cran r-project package to select a data set to create our generalized linear models.
+
+$~$
+
+### Load Libraries
+
+These are the libraries we will be using:
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(jtools)
+library(hrbrthemes)
+library(GLMsData)
+library(gtsummary)
+library(MASS)
+library(performance)
+```
+
+There's a couple of data sets that we can use from the `GLMsData` but in order to view these options on your end use the function `data()` and you'll see a small box with the list of the data sets in this library.
+
+![](/Users/letisalba/Desktop/Data_621/Blogs/blog4-glm-data.png)
+
+$~$
+
+### Load Data
+
+We will be using the Australian Institute of Sports (AIS) data, which has physical and blood measurements from high performance athletes at the AIS.
+
+$~$
+
+| Name:   | Description:                                                                                          |
+|:--------|:---------                                                                                             |
+|Sex      | the sex of the athlete: F means female, and M means male|
+|Sport    | the sport of the athlete; one of BBall (basketball), Field, Gym (gymnastics), Netball, Rowing, Swim (swimming), T400m, (track, further than 400m), Tennis, TPSprnt (track sprint events), WPolo (waterpolo)                                                                                                       |
+|LBM      | lean body mass, in kg                                                                                 |
+|Ht       | height, in cm                                                                                         |
+|Wt       | weight, in kg                                                                                         |
+|BMI      | body mass index, in kg per metre-squared                                                              |
+|SSF      | sum of skin folds                                                                                     |
+|PBF      | percentage body fat                                                                                   |
+|RBC      | red blood cell count, in 1012 per litre                                                               |
+|WBC      | white blood cell count, in 1012 per litre                                                             |
+|HCT      | hematocrit, in percent                                                                                |
+|HGB      | hemoglobin concentration, in grams per decilitre                                                      |
+|Ferr     | plasma ferritins, in ng per decilitre                                                                 |
+
+$~$
+
+To load the data we the `data()` function and the `head()` function to view it:
+```{r, echo= FALSE}
+data(AIS)
+head(AIS)
+```
+
+$~$
+
+### Data Exploration
+
+Lets get the structure of this data; Using the `str()` function we notice we have 202 observations with 13 variables.
+
+```{r, echo=FALSE}
+str(AIS)
+```
+$~$
+
+Using `summary()` function to get the statistical structure of our data
+```{r, echo=FALSE}
+summary(AIS)
+```
+$~$
+
+And of course use of `gtsummary()` library to view our data's structure differently.
+```{r, echo=FALSE}
+tbl_summary(AIS)
+```
+
+$~$
+
+### Model Building:
+
+$~$
+
+To create our models we use the following syntax:
+
+**glm (formula, family, data, weights, subset, Start=null, model=TRUE,method=””…)**
+
+$~$
+
+Below we have other link functions to use depending on the family you will be using:
+
+|Family           |	Default Link Function   |
+|:--------        | :-----------------------|
+|binomial	        | (link = "logit")        |
+|gaussian	        | (link = "identity")     |
+|Gamma            |	(link = "inverse")      |
+|inverse.gaussian | (link = "1/mu^2")       |
+|poisson          |	(link = "log")          |
+|quasi            |	(link = "identity", variance = "constant") |
+|quasibinomial    |	(link = "logit")        |
+|quasipoisson     |	(link = "log")          |
+
+
+I have opted to used the guassian family for the models below.
+
+$~$
+
+Model 1 will be a base model:
+```{r, echo = FALSE}
+model1 <- glm(BMI ~ Sex + Sport + LBM + Ht + Wt + SSF + PBF + WBC + HCT + HGB + Ferr, data = AIS, family = "gaussian"(link = "identity"))
+summary(model1)
+```
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+plot(model1)
+```
+
+$~$
+
+For Model2 we use Backwards elimination:
+```{r, echo=FALSE}
+model2 <- glm(BMI ~ Sport + Ht + Wt, data = AIS, family = "gaussian"(link = "identity"))
+summary(model2)
+```
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+plot(model2)
+```
+
+Based on the summary output and plots of the two models, model2 has a higher AIC hence seeming to be a better fit model. 
+
+When working with different data you'd be able to perform more than 2 models along with checking performance and making predictions on the evaluation data. Yet this is the start to perform generalized linear models.
+
+$~$
+
+### References:
+
+* Team, D. C. (2020, June 30). GLM in R: Generalized linear model tutorial. DataCamp. Retrieved November 27, 2022, from https://www.datacamp.com/tutorial/generalized-linear-models 
+* Comprehensive R Archive Network (CRAN). (n.d.). Package glmsdata. CRAN. Retrieved November 27, 2022, from https://cran.r-project.org/web/packages/GLMsData/ 
+* Team, G. L. (2022, October 27). Generalized linear model: What does it mean? Great Learning Blog: Free Resources what Matters to shape your Career! Retrieved November 27, 2022, from https://www.mygreatlearning.com/blog/generalized-linear-models/ 
+* robk@statmethods.net, R. K.-. (n.d.). Generalized linear models. Quick-R: Generalized Linear Models. Retrieved November 27, 2022, from https://www.statmethods.net/advstats/glm.html 
