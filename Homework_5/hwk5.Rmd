@@ -4,14 +4,14 @@ author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittal
   and Leticia Salazar"
 date: "December 11, 2022"
 output:
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
   html_document:
     theme: yeti
     highlight: tango
     toc: yes
     toc_float: yes
-  pdf_document:
-    dev: cairo_pdf
-    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -70,6 +70,8 @@ library(hrbrthemes)
 library(mice)
 library(MASS)
 library(dvmisc)
+library(gridExtra)
+library(lattice)
 ```
 
 $~$
@@ -134,14 +136,49 @@ ggplot(plot_train) +
   facet_wrap(. ~variable, scales='free', ncol=4)
 ```
 
+The fact that some wines are not rated could be a potential predictor. We'll treat NAs as its own star rating.
+```{r, echo=FALSE}
+# Create logical variable to indicate whether there is a star rating for this wine
+dftrain <- dftrain %>%
+    mutate(STARS=ifelse(is.na(STARS), 'NR', STARS))
+dfeval <- dfeval %>%
+    mutate(STARS=ifelse(is.na(STARS), 'NR', STARS))
+```
+
+We'll also look at the number of cases of wine sold against the predictors.
+
+```{r warning=FALSE, fig.width=12, fig.heigh=16, echo=FALSE}
+plt <- vector('list', ncol(dftrain) - 1)
+for (i in seq(3, 16)) {  # skip INDEX and TARGET variables
+    if (class(dftrain[, i]) == 'numeric') {
+        tmpmin <- min(dftrain[, i], na.rm=T)
+        tmpinterval <- (max(dftrain[, i], na.rm=T) - tmpmin) / 5
+        tmpcuts <- c()
+        for (j in seq(1, 5)) {
+            tmpcuts <- c(tmpcuts, tmpmin + (j * tmpinterval))
+        }
+        #dftrain$x <- dftrain[, i] %>% cut(breaks=5, ordered_result=T, right=F)
+        dftrain$x <- dftrain[, i] %>% cut(breaks=tmpcuts, ordered_result=T, right=F)
+    } else {
+        dftrain$x <- dftrain[, i]
+    }
+    dftmp <- dftrain %>% group_by(x) %>% summarize(ct=sum(TARGET))
+    plt[[i]] <- barchart(dftmp$ct ~ dftmp$x, horiz=F, col='darkgreen', xlab=colnames(dftrain)[i], ylab='Cases')
+}
+dftrain <- subset(dftrain, select=-x)  # remove temporary variable
+grid.arrange(grobs=plt[3:7], ncol=3, nrow=2)
+grid.arrange(grobs=plt[8:13], ncol=3, nrow=2)
+grid.arrange(grobs=plt[14:16], ncol=3, nrow=2)
+```
+
+As shown, more cases of wine are sold for mid-range values of all categories of acidity, sugar, chlorides, the dioxides, density, pH, sulphates, and alcohol. Surprisingly, more cases were sold for labels that had mid-range label appeal. A lower acid index seemed to indicate more cases sold. And more cases were sold for wines rated only two stars, indicating that consumers may consider higher-starred wines as too pricey.
+
 
 $~$
 
 ## Data Preparation:
 
-Performed to both the training and evaluation data sets but will only be displayed for the training data.
-
-Removing `INDEX` variable
+Data preparation was performed on both the training and evaluation data sets but will only be displayed for the training data. We'll also need to removing the `INDEX` variable.
 ```{r, echo=FALSE}
 # For some reason R renamed the INDEX column to "ï..INDEX"
 dftrain <- dftrain %>% 
@@ -151,15 +188,6 @@ dftrain <- dftrain %>%
 ```{r, echo=FALSE}
 dfeval <- dfeval %>% 
   dplyr::select(-IN)
-```
-
-The fact that some wines are not rated could be a potential predictor. Create a new column for rated vs non-rated wines.
-```{r, echo=FALSE}
-# Create logical variable to indicate whether there is a star rating for this wine
-dftrain <- dftrain %>%
-    mutate(Rated=ifelse(is.na(STARS), F, T))
-dfeval <- dfeval %>%
-    mutate(Rated=ifelse(is.na(STARS), F, T))
 ```
 
 Now we'll impute missing values using R's Multiple Imputation by Chained Equations (MICE) package. We'll avoid imputing the STARS variable as the absence of a star rating may be a significant predictor.
@@ -175,7 +203,7 @@ cleandf_eval <- complete(dfeval_imputed) %>%
     mutate(STARS = dfeval$STARS, TARGET = dfeval$TARGET)
 ```
 
-Lets look at another summary to make sure there aren't any NAs where we're not expecting them
+Lets look at another summary to make sure there aren't any NAs where we're not expecting them.
 
 Training data:
 ```{r, echo=FALSE}
@@ -193,6 +221,8 @@ summary(cleandf_eval)
 $~$
 
 ## Build Models:
+
+Based on the data, we'll try two model types: a poisson general linear model and a Gaussian multiple linear model.
 
 $~$
 
@@ -231,7 +261,7 @@ $~$
 
 ## Select Models:
 
-In this section, an optimal model will be selected based on it's performance when trained on the data. To select the models, we'll use AIC and MSE to measure accuracy of the predicted values.
+In this section, an optimal model will be selected based on its performance when trained on the data. To select the models, we'll use AIC and MSE to measure accuracy of the predicted values.
 
 Below, the Poisson and Multiple Linear Regression models have been compared to select the model with the lowest AIC.
 
@@ -308,7 +338,7 @@ mse_lm_mod2 <- get_mse(lm_mod2)
 
 $~$
 
-### Comparison of Possion and Negative Binomial Model's:
+### Comparison of Possion and Gaussian Linear Models:
 
 By evaluating the AIC's and MSE's of each model, we can choose the best one be looking at the lowest AIC and lowest MSE.
 
@@ -322,9 +352,9 @@ knitr::kable(rbind(MSE, AIC), col.names = models)
 
 $~$
 
-Based on above, linear model has better model statistics than poisson model. 
+Based on the above, the linear model has better model statistics than the poisson model.
 
-Prediction from optimal multiple linear regression model
+Prediction from optimal multiple linear regression model:
 ```{r, echo=FALSE}
 prob2 <- predict(lm_mod2, cleandf_eval, interval ='prediction')
 cleandf_eval$TARGET <- prob2[,1]
@@ -335,6 +365,7 @@ write.csv(cleandf_eval, "wine_predictions2.csv", row.names = FALSE)
 $~$
 
 ## Appendix:
+
 ```{r, eval=FALSE}
 # load libaries
 library(tidyverse)
@@ -374,36 +405,130 @@ ggplot(plot_train) +
   theme_ipsum() +
   facet_wrap(. ~variable, scales='free', ncol=4)
 
-# removing INDEX from training and eval data 
+# Create logical variable to indicate whether there is a star rating for this wine
+dftrain <- dftrain %>%
+    mutate(STARS=ifelse(is.na(STARS), 'NR', STARS))
+dfeval <- dfeval %>%
+    mutate(STARS=ifelse(is.na(STARS), 'NR', STARS))
+
+#Look at the number of cases of wine sold against the predictors.
+plt <- vector('list', ncol(dftrain) - 1)
+for (i in seq(3, 16)) {  # skip INDEX and TARGET variables
+    if (class(dftrain[, i]) == 'numeric') {
+        tmpmin <- min(dftrain[, i], na.rm=T)
+        tmpinterval <- (max(dftrain[, i], na.rm=T) - tmpmin) / 5
+        tmpcuts <- c()
+        for (j in seq(1, 5)) {
+            tmpcuts <- c(tmpcuts, tmpmin + (j * tmpinterval))
+        }
+        #dftrain$x <- dftrain[, i] %>% cut(breaks=5, ordered_result=T, right=F)
+        dftrain$x <- dftrain[, i] %>% cut(breaks=tmpcuts, ordered_result=T, right=F)
+    } else {
+        dftrain$x <- dftrain[, i]
+    }
+    dftmp <- dftrain %>% group_by(x) %>% summarize(ct=sum(TARGET))
+    plt[[i]] <- barchart(dftmp$ct ~ dftmp$x, horiz=F, col='darkgreen', xlab=colnames(dftrain)[i], ylab='Cases')
+}
+dftrain <- subset(dftrain, select=-x)  # remove temporary variable
+grid.arrange(grobs=plt[3:7], ncol=3, nrow=2)
+grid.arrange(grobs=plt[8:13], ncol=3, nrow=2)
+grid.arrange(grobs=plt[14:16], ncol=3, nrow=2)
+
+# Removing INDEX from training and eval data 
 # For some reason R renamed the INDEX column to "ï..INDEX"
 dftrain <- dftrain %>% 
   dplyr::select(-ï..INDEX)
-
 dfeval <- dfeval %>% 
   dplyr::select(-IN)
 
-# Create logical variable to indicate whether there is a star rating for this wine
-dftrain <- dftrain %>%
-    mutate(Rated=ifelse(is.na(STARS), F, T))
-dfeval <- dfeval %>%
-    mutate(Rated=ifelse(is.na(STARS), F, T))
-
-# Impute missing values in training data (except for STARS)
-dftrain_imputed <- mice(dftrain %>% select(-STARS), m=5, maxit=5, method='pmm')
+# Impute missing values in training data
+dftrain_imputed <- mice(dftrain, m=5, maxit=5, method='pmm')
 cleandf <- complete(dftrain_imputed) %>%
     mutate(STARS = dftrain$STARS)
 
-# Impute missing values in eval data (except for STARS and TARGET)
-dfeval_imputed <- mice(dfeval %>% select(-STARS, -TARGET), m=5, maxit=5, method='pmm')
+# Impute missing values in eval data (except for TARGET)
+dfeval_imputed <- mice(dfeval %>% select(-TARGET), m=5, maxit=5, method='pmm')
 cleandf_eval <- complete(dfeval_imputed) %>%
     mutate(STARS = dfeval$STARS, TARGET = dfeval$TARGET)
 
 # Look at another summary to make sure there aren't any NAs where we're not expecting them
 summary(cleandf)
 summary(cleandf_eval)
+
+# Poisson model
+p_mod1 <- glm(TARGET ~., family="poisson", data=cleandf)
+summary(p_mod1)
+
+# Possion Model with stepwise AIC approach
+p_mod2 <- stepAIC(p_mod1, trace = F)
+summary(p_mod2)
+
+# Multiple Linear Regression Models:
+
+# MLR Model 1
+lm_mod1 <- lm(TARGET ~., data = cleandf)
+aic_lm_mod1 = AIC(lm_mod1)
+summary(lm_mod1)
+
+# MLR Model 2
+lm_mod2 <- stepAIC(lm_mod1, trace = F)
+aic_lm_mod2 = AIC(lm_mod2)
+summary(lm_mod2)
+
+# Select Models:
+
+# Comparison of Poisson Models:
+
+# Poisson Model 1:
+aic_p_mod1 <- p_mod1$aic
+aic_p_mod1
+
+# Poisson Model 2:
+aic_p_mod2 <- p_mod2$aic
+aic_p_mod2
+
+# Poisson - Minimum AIC
+c(p_mod1$formula,p_mod2$formula)[which.min(c(p_mod1$aic,p_mod2$aic))]
+
+# Comparsion of Multiple Linar Models:
+
+# Linear Model 1:
+r2_lm_mod1 <- summary(lm_mod1)$adj.r.squared
+r2_lm_mod1
+
+# Linear Model 2:
+r2_lm_mod2 <- summary(lm_mod2)$adj.r.squared
+r2_lm_mod2
+
+# Multiple Linear Regression Model - Highest Adjusted R Squared
+c(formula(lm_mod1),formula(lm_mod2))[which.max(c(summary(lm_mod1)$adj.r.squared, summary(lm_mod2)$adj.r.squared))]
+
+# Mean Square Error:
+mse <- function(df, model){
+  mean((df$TARGET - predict(model))^2)
+}
+mse_p_mod1 <- mse(cleandf, p_mod1)
+mse_p_mod2 <- mse(cleandf, p_mod2)
+mse_lm_mod1 <- get_mse(lm_mod1)
+mse_lm_mod2 <- get_mse(lm_mod2)
+
+# Comparison of Possion and Negative Binomial Model's:
+models <- c("Possion Model 1", "Possion Model 2", "Linear Model 1", "Linear Model 2")
+#rows <- c("Models", "MSE", "AIC")
+MSE <- list(mse_p_mod1, mse_p_mod2, mse_lm_mod1, mse_lm_mod2)
+AIC <- list(aic_p_mod1, aic_p_mod2, aic_lm_mod1, aic_lm_mod2)
+knitr::kable(rbind(MSE, AIC), col.names = models)
+
+# Prediction from optimal multiple linear regression model
+prob2 <- predict(lm_mod2, cleandf_eval, interval ='prediction')
+cleandf_eval$TARGET <- prob2[,1]
+cleandf_eval %>% head(10) %>% as_tibble()
+write.csv(cleandf_eval, "wine_predictions2.csv", row.names = FALSE)
+
 ```
 
 
 -----------
 
 ## References:
+https://englianhu.files.wordpress.com/2016/01/faraway-extending-the-linear-model-with-r-e28093-2006.pdf
