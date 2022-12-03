@@ -4,14 +4,14 @@ author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittal
   and Leticia Salazar"
 date: "December 11, 2022"
 output:
-  pdf_document:
-    dev: cairo_pdf
-    toc: yes
   html_document:
     theme: yeti
     highlight: tango
     toc: yes
     toc_float: yes
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -95,11 +95,15 @@ Training:
 ```{r, echo=FALSE}
 summary(dftrain)
 ```
+
+$~$
+
 Evaluation:
 ```{r, echo=FALSE}
 summary(dfeval)
 ```
 
+$~$
 
 Using the `DataExplorer` package we use the `create_report` function which pulls a full data profile from our training data set and create an html file with basic statistics, structure, missing data, distribution visualizations, correlation matrix and principal component analysis for our data. You can find these output in our github.
 
@@ -110,16 +114,23 @@ DataExplorer::create_report(dftrain, output_file='training_report.html')
 DataExplorer::create_report(dfeval %>% select(-TARGET), output_file='eval_report.html')
 ```
 
+$~$
+
 Based on this our training data includes 12795 records and 16 variables whereas the evaluation data includes 3335 records and 16 variables.
 
 Training:
 ```{r, echo=FALSE}
 str(dftrain)
 ```
+
+$~$
+
 Evaluation:
 ```{r, echo=FALSE}
 str(dfeval)
 ```
+
+$~$
 
 Lets take a look at the distribution of each variables in the training data set.
 
@@ -136,6 +147,8 @@ ggplot(plot_train) +
   facet_wrap(. ~variable, scales='free', ncol=4)
 ```
 
+$~$
+
 The fact that some wines are not rated could be a potential predictor. We'll treat NAs as its own star rating.
 ```{r, echo=FALSE}
 # Create logical variable to indicate whether there is a star rating for this wine
@@ -144,6 +157,8 @@ dftrain <- dftrain %>%
 dfeval <- dfeval %>%
     mutate(STARS=ifelse(is.na(STARS), 'NR', STARS))
 ```
+
+$~$
 
 We'll also look at the number of cases of wine sold against the predictors.
 
@@ -170,6 +185,7 @@ grid.arrange(grobs=plt[3:7], ncol=3, nrow=2)
 grid.arrange(grobs=plt[8:13], ncol=3, nrow=2)
 grid.arrange(grobs=plt[14:16], ncol=3, nrow=2)
 ```
+
 
 As shown, more cases of wine are sold for mid-range values of all categories of acidity, sugar, chlorides, the dioxides, density, pH, sulphates, and alcohol. Surprisingly, more cases were sold for labels that had mid-range label appeal. A lower acid index seemed to indicate more cases sold. And more cases were sold for wines rated only two stars, indicating that consumers may consider higher-starred wines as too pricey.
 
@@ -202,6 +218,8 @@ dfeval_imputed <- mice(dfeval %>% dplyr::select(-STARS, -TARGET), m=5, maxit=5, 
 cleandf_eval <- complete(dfeval_imputed) %>%
     mutate(STARS = dfeval$STARS, TARGET = dfeval$TARGET)
 ```
+
+$~$
 
 Lets look at another summary to make sure there aren't any NAs where we're not expecting them.
 
