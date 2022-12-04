@@ -1,0 +1,252 @@
+---
+output:
+  html_document:
+    theme: flatly
+    highlight: textmate
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **House Prices**
+
+
+### CUNY SPS DATA 621
+
+#### GROUP 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar
+
+$~$
+
+## Abstract:
+Use 250 words or less to summarize your problem, methodology, and major outcomes.
+
+[insert text here]
+
+$~$
+
+## Key words:
+Select a few key words (up to five) related to your work.
+
+[insert text here]
+
+$~$
+
+## Introduction:
+Describe the background and motivation of your problem.
+
+[insert text here]
+
+$~$
+
+
+## Literature Review:
+Discuss how other researchers have addressed similar problems, what their achievements are, and what the advantage and drawbacks of each reviewed approach are. Explain how your investigation is similar or different to the state-of-the- art. Please cite the relevant papers where appropriate.
+
+
+[insert text here]
+
+$~$
+
+## Methology:
+Discuss the key aspects of your problem, data set and regression model(s). Given that you are working on real-world data, explain at a high-level your exploratory data analysis, how you prepared the data for regression modeling, your process for building regression models, and your model selection.
+
+[insert text here]
+
+$~$
+
+## Discussion of Findings:
+Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.). Conclude your findings, limitations, and suggest areas for future work.
+
+[insert text here]
+
+$~$
+
+#### Recommendations:
+
+[insert text here]
+
+$~$
+
+#### Limitations:
+
+[insert text here]
+
+$~$
+
+## Conclusion:
+
+[insert text here]
+
+$~$
+
+## References / Bibliography:
+Be sure to cite all references used in the report (APA format).
+
+* H, M. Y. (2022, January 12). Housing prices dataset. Kaggle. Retrieved November 28, 2022, from https://www.kaggle.com/datasets/yasserh/housing-prices-dataset 
+
+* [insert text here]
+
+* [insert text here]
+
+$~$
+
+## Appendices:
+* Supplemental tables and/or figures.
+* R statistical programming code.
+
+
+[insert graphs, tables, etc here]
+
+```{r code, eval=FALSE}
+
+```
+
+
+------------------------------------------------------
+
+START OF OUR CODING HERE! WILL NOT SHOW FOR PDF VERSION
+
+### Load Libraries:
+
+These are the libraries used to explore, prepare, analyze and build our models
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dplyr)
+library(corrplot)
+```
+
+### Load Data:
+
+We have included the original data sets in our GitHub account and read from this location. Since our data set doesn't come with a training and evaluation data sets we will be splitting our data using the 70% - 30% split. Below we are showing the training data set:
+```{r, echo=FALSE}
+house_prices <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Final_Project/csv/Housing.csv")
+
+# make this example reproducible
+set.seed(1)
+
+# use 70% of data set as training set and 30% as evaluation set
+sample <- sample(c(TRUE, FALSE), nrow(house_prices), replace=TRUE, prob=c(0.7,0.3))
+dftrain  <- house_prices[sample, ]
+dfeval   <- house_prices[!sample, ]
+
+head(dftrain)
+```
+
+$~$
+
+### Data Exploration:
+
+Based on this our training data includes 386 records and 13 variables whereas the evaluation data includes 159 records and 13 variables.
+
+Training:
+```{r, echo=FALSE}
+str(dftrain)
+```
+
+$~$
+
+Evaluation:
+```{r, echo=FALSE}
+str(dfeval)
+```
+
+$~$
+
+Using the `summary()` function lets start exploring the training and evaluation data.
+
+Training:
+```{r, echo=FALSE}
+summary(dftrain)
+```
+
+$~$
+
+Evaluation:
+```{r, echo=FALSE}
+summary(dfeval)
+```
+
+Factor categorical variables:
+```{r, echo=FALSE}
+
+```
+
+Visually evaluation:
+```{r, echo=FALSE, fig.width=11}
+
+# Compare quantitative variables
+pairs(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')])
+corrplot(cor(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')], use = 'complete.obs'), tl.cex = 0.5)
+
+# Compare nominal categorical variables to price
+par(mfrow=c(3, 3))
+boxplot(price ~ mainroad, data=dftrain)
+boxplot(price ~ guestroom, data=dftrain)
+boxplot(price ~ basement, data=dftrain)
+boxplot(price ~ hotwaterheating, data=dftrain)
+boxplot(price ~ airconditioning, data=dftrain)
+boxplot(price ~ prefarea, data=dftrain)
+boxplot(price ~ furnishingstatus, data=dftrain)
+
+# Compare ordinal categorical variables
+par(mfrow=c(2, 2))
+boxplot(price ~ bedrooms, data=dftrain)
+boxplot(price ~ bathrooms, data=dftrain)
+boxplot(price ~ stories, data=dftrain)
+boxplot(price ~ parking, data=dftrain)
+
+```
+
+$~$
+
+### Data Preparation:
+
+```{r, echo=FALSE}
+
+# Factor categorical variables
+print('mainroad: ')
+dftrain$mainroad <- factor(dftrain$mainroad)
+summary(dftrain$mainroad)
+print('guestroom: ')
+dftrain$guestroom <- factor(dftrain$guestroom)
+summary(dftrain$guestroom)
+print('basement: ')
+dftrain$basement <- factor(dftrain$basement)
+summary(dftrain$basement)
+print('hotwaterheating: ')
+dftrain$hotwaterheating <- factor(dftrain$hotwaterheating)
+summary(dftrain$hotwaterheating)
+print('airconditioning: ')
+dftrain$airconditioning <- factor(dftrain$airconditioning)
+summary(dftrain$airconditioning)
+print('prefarea: ')
+dftrain$prefarea <- factor(dftrain$prefarea)
+summary(dftrain$prefarea)
+print('furnishingstatus: ')
+dftrain$furnishingstatus <- factor(dftrain$furnishingstatus)
+summary(dftrain$furnishingstatus)
+
+```
+
+$~$
+
+### Model Building:
+
+```{r, echo=FALSE}
+
+```
+
+$~$
+
+### Model Selection:
+
+```{r, echo=FALSE}
+
+```
+
