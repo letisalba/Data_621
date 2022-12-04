@@ -4,14 +4,14 @@ author: "Group 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittal
   and Leticia Salazar"
 date: "December 11, 2022"
 output:
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
   html_document:
     theme: yeti
     highlight: tango
     toc: yes
     toc_float: yes
-  pdf_document:
-    dev: cairo_pdf
-    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
 
 $~$
 
-## Overview:
+## Overview
 
 We will explore, analyze and model a data set containing information on approximately 12,000 commercially available wines. The variables are mostly related to the chemical properties of the wine being sold. The response variable is the number of sample cases of wine that were purchased by wine distribution companies after sampling a wine. These cases would be used to provide tasting samples to restaurants and wine stores around the United States. The more sample cases purchased, the more likely is a wine to be sold at a high end restaurant. A larger wine manufacturer is studying the data in order to predict the number of wine cases ordered based upon the wine characteristics. If the wine manufacturer can predict the number of cases, then that manufacturer will be able to adjust their wine offering to maximize sales.
 
@@ -56,7 +56,7 @@ $~$
 
 -----------
 
-### Load Libraries:
+### Load Libraries
 
 These are the libraries used to explore, prepare, analyze and build our models
 ```{r libraries, warning=FALSE, message=FALSE}
@@ -78,7 +78,7 @@ library(pscl)
 
 $~$
 
-## Load Data set:
+## Load Data set
 
 We have included the original data sets in our GitHub account and read from this location. Below we are showing the training data set:
 ```{r, echo=FALSE}
@@ -89,7 +89,7 @@ head(dftrain)
 
 -----------
 
-## Data Exploration:
+## Data Exploration
 
 Using the `summary()` function lets start exploring the training and evaluation data.
 
@@ -113,7 +113,7 @@ Using the `DataExplorer` package we use the `create_report` function which pulls
 # Do not render since it will produce a separate html file
 # Remove TARGET from eval report since it will contain all NAs and will make the correlation plot fail to render
 DataExplorer::create_report(dftrain, output_file='training_report.html')
-DataExplorer::create_report(dfeval %>% select(-TARGET), output_file='eval_report.html')
+DataExplorer::create_report(dfeval %>% dplyr::select(-TARGET), output_file='eval_report.html')
 ```
 
 $~$
@@ -149,14 +149,11 @@ ggplot(plot_train) +
   facet_wrap(. ~variable, scales='free', ncol=4)
 ```
 
-<<<<<<< HEAD
 $~$
 
 The fact that some wines are not rated could be a potential predictor. We'll treat NAs as its own star rating.
-=======
 It is noted that there are a significant number of zeros in the TARGET variable, meaning that no cases were sold of that particular variety of wine. In addition, the fact that some wines are not rated could be a potential predictor. We'll treat NAs as its own star rating.
 
->>>>>>> 67bfcfc1ff22e55ffccd59affcbad2f3c6dec13a
 ```{r, echo=FALSE}
 # Create logical variable to indicate whether there is a star rating for this wine
 dftrain <- dftrain %>%
@@ -199,7 +196,7 @@ As shown, more cases of wine are sold for mid-range values of all categories of 
 
 $~$
 
-## Data Preparation:
+## Data Preparation
 
 Data preparation was performed on both the training and evaluation data sets but will only be displayed for the training data. We'll also need to removing the `INDEX` variable.
 ```{r, echo=FALSE}
@@ -214,7 +211,7 @@ dfeval <- dfeval %>%
 ```
 
 Now we'll impute missing values using R's Multiple Imputation by Chained Equations (MICE) package. We'll avoid imputing the STARS variable as the absence of a star rating may be a significant predictor.
-```{r, echo=FALSE}
+```{r, include=FALSE}
 # Impute missing values in training data (except for STARS)
 dftrain_imputed <- mice(dftrain %>% dplyr::select(-STARS), m=5, maxit=5, method='pmm')
 cleandf <- complete(dftrain_imputed) %>%
@@ -245,13 +242,13 @@ summary(cleandf_eval)
 
 $~$
 
-## Build Models:
+## Build Models
 
-Based on the data, we'll try two model types: a poisson general linear model and a Gaussian multiple linear model.
+Based on the data, we'll try several model types: a poisson general linear model (GLM), a Gaussian multiple linear model, a negative binomial model, and a zero-inflated poisson model. If none of these models produce acceptable results, we will consider a hierarchical model, first splitting the data using a binomial model by zero cases sold vs more than zero cases sold, then using a poisson model against the non-zero cases.
 
 $~$
 
-### Poisson Models:
+### Poisson Models
 
 * Possion Model 1
 ```{r, echo=FALSE}
@@ -266,7 +263,7 @@ summary(p_mod2)
 ```
 
 
-### Multiple Linear Regression Models:
+### Multiple Linear Regression Models
 
 * MLR Model 1
 ```{r, echo=FALSE}
@@ -289,7 +286,7 @@ $~$
 Since this is count data, we'll also try out a negative binomial model.
 
 * NB model 1
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 nb_mod1 <- glm.nb(TARGET ~., data=cleandf)
 aic_nb_mod1 = AIC(nb_mod1)
 summary(nb_mod1)
@@ -305,11 +302,11 @@ summary(nb_mod2)
 
 Since there are a number of zeros in the target variable, we'll try a zero-inflated poisson model.
 
-```{r}
+```{r echo=FALSE, warning=FALSE}
 zi_mod1 <- zeroinfl(TARGET ~ ., data=cleandf)
 summary(zi_mod1)
 aic_zi_mod1 = AIC(zi_mod1)
-zi_mod2 <- stepAIC(zi_mod1, trace=F)
+zi_mod2 <- stepAIC(zi_mod1, trace=F)  # this takes a long time to run
 summary(zi_mod2)
 aic_zi_mod2 = AIC(zi_mod2)
 ```
@@ -317,13 +314,13 @@ aic_zi_mod2 = AIC(zi_mod2)
 $~$
 
 
-## Select Models:
+## Select Models
 
 In this section, an optimal model will be selected based on its performance when trained on the data. To select the models, we'll use AIC and MSE to measure accuracy of the predicted values.
 
-Below, the Poisson and Multiple Linear Regression models have been compared to select the model with the lowest AIC.
+Below, the Poisson, multiple linear regression, negative binomial, and zero-inflated models have been compared to select the model with the lowest AIC.
 
-### Comparison of Poisson Models:
+### Comparison of Poisson Models
 
 We'll need to compare the AIC's of each Poisson Model.
 
@@ -349,7 +346,7 @@ c(p_mod1$formula,p_mod2$formula)[which.min(c(p_mod1$aic,p_mod2$aic))]
 
 $~$
 
-### Comparsion of Multiple Linear Models:
+### Comparsion of Multiple Linear Models
 
 We'll need to compare the Adjusted R Squares of each Linear Model.
 
@@ -375,7 +372,7 @@ c(formula(lm_mod1),formula(lm_mod2))[which.max(c(summary(lm_mod1)$adj.r.squared,
 
 $~$
 
-### Comparsion of Negative Binomial Models:
+### Comparsion of Negative Binomial Models
 
 Now we'll compare the AICs of the two negative binomial models.
 
@@ -389,29 +386,29 @@ NB Model 2:
 aic_nb_mod2
 ```
 
-The AIC of model 2 is somewhat lower than that of model 1.
+The AIC of model 2 is lower than that of model 1.
 
 $~$
 
-### Comparsion of Zero-inflated Poisson Models:
+### Comparsion of Zero-inflated Poisson Models
 
 Now we'll compare the AICs of the two zero-inflated binomial models.
 
-NB Model 1:
+ZI Model 1:
 ```{r, echo=FALSE}
 aic_zi_mod1
 ```
 
-NB Model 2:
+ZI Model 2:
 ```{r, echo=FALSE}
 aic_zi_mod2
 ```
 
-The AIC of model 2 is somewhat lower than that of model 1.
+The AIC of model 2 is lower than that of model 1.
 
 $~$
 
-### Mean Square Error:
+### Mean Square Error
 
 The Mean Square Error measures the averaged square different between the estimated values and the actual value. The lower the value of the MSE, the more accurately the model is able to predict the values.
 
@@ -437,7 +434,7 @@ mse_zi_mod2 <- mse(cleandf, zi_mod2)
 
 $~$
 
-### Comparison of Models:
+### Comparison of Models
 
 By evaluating the AIC's and MSE's of each model, we can choose the best one be looking at the lowest AIC and lowest MSE.
 
@@ -447,22 +444,24 @@ models <- c("Possion Model 1", "Possion Model 2", "Linear Model 1", "Linear Mode
 #rows <- c("Models", "MSE", "AIC")
 MSE <- round(c(mse_p_mod1, mse_p_mod2, mse_lm_mod1, mse_lm_mod2, mse_nb_mod1, mse_nb_mod2, mse_zi_mod1, mse_zi_mod2), 1)
 AIC <- round(c(aic_p_mod1, aic_p_mod2, aic_lm_mod1, aic_lm_mod2, aic_nb_mod1, aic_nb_mod2, aic_zi_mod1, aic_zi_mod2), 1)
-knitr::kable(rbind(MSE, AIC), col.names = models)
+knitr::kable(rbind(MSE[1:4], AIC[1:4]), col.names=models[1:4])
+knitr::kable(rbind(MSE[5:8], AIC[5:8]), col.names=models[5:8])
+
 ```
 
 $~$
 
-Based on the above, the linear model has better model statistics than the poisson model.
+Based on the above, the linear model has better model statistics than the poisson and negative binomial models, but the zero-inflated poison is better overall. We'll check the accuracy of each model in a later section, but for now we'll evaluate the modesl for validity in case we want to use them for our predictions.
 
 $~$
 
-While the linear model may have better statistics, we'll need to validate whether the assumptions of the linear model hold:
+While the linear model may have better statistics than the poisson and binomial, we'll need to validate whether the assumptions of the linear model hold:
 1) Homoschedastic residuals
 2) Normally distributed residuals
 3) Independence of predictors
 4) Linearity of response
 
-```{r, fig.width=12, echo=FALSE, warning=FALSE}
+```{r, fig.width=12, echo=FALSE, warning=FALSE, message=FALSE}
 
 # Load libraries
 library(car)
@@ -546,7 +545,6 @@ ModelAnalysis <- function(lmod) {
   print(paste0('    AIC: ', round(AIC(lmod, k=2), 3)))
   print(paste0('    BIC: ', round(BIC(lmod), 3)))
   print(paste0('    Mallow\'s Cp: ', round(ols_mallows_cp(lmod, fullmodel=lmod), 3)))
-  m <- mse(lmod)
   print(paste0('    mean squared error: ', round(calc_mse(lmod), 3)))
   print('')
   
@@ -583,7 +581,7 @@ ModelAnalysis(lm_mod2)
 
 As shown, the residuals are heteroschedastic and exhibit a clearly defined pattern. While the Shapiro test for normality couldn't be performed due to the sample size, the QQ plot shows visually that the residuals are not normally distributed.
 
-Now we'll see if the Poisson models exhibit any overdispersion, which could lead us to invalidate the models and go with the negative binomial model instead. This can be done by dividing the residual deviance by the degrees of freedom.
+Now we'll see if the Poisson models exhibit any overdispersion, which could lead us to invalidate the models and go with a different model instead. This can be done by dividing the residual deviance by the degrees of freedom.
 
 ```{r echo=FALSE}
 op1 <- p_mod1$deviance / p_mod1$df.residual
@@ -592,21 +590,32 @@ print(paste0('Poisson model 1 overdispersion: ', op1))
 print(paste0('Poisson model 2 overdispersion: ', op2))
 ```
 
-Since the overdispersion parameter isn't much greater than 1 (generall, less than 1.10), this suggests that the poisson model is a good fit, and we can be relatively confident that we don't need to go with the negative binomial.
+Since the overdispersion parameter isn't much greater than 1 (generally, less than 1.10), this suggests that the poisson model is a good fit, and we can be relatively confident that we don't need to go with the negative binomial.
 
 Now we'll check the model accuracy by predicting the number of cases sold based on our model parameters. Since we're dealing with whole cases of wine, we'll round the prediction to the nearest integer.
 
 ```{r echo=FALSE, warning=FALSE}
 
-# Negative binomial
+# Show histogram of actual cases sold to compare with histograms generated by predictions
 cleandfnew <- cleandf
+par(mfrow=c(2, 3))
+hist(cleandfnew$TARGET, xlab='Cases', main='Actual Cases Sold')
+
+# Gaussian
+cleandfnew$pred_target <- predict(lm_mod2, cleandfnew, interval ='prediction')
+cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARGET, 1, 0)
+acc_num <- sum(cleandfnew$correct)
+acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
+print(paste0('Gaussian accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Gaussian)')
+
+# Negative binomial
 cleandfnew$pred_target <- exp(predict(nb_mod2, cleandfnew, interval ='prediction'))
 cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARGET, 1, 0)
 acc_num <- sum(cleandfnew$correct)
 acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
 print(paste0('Negative binomial model accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
-hist(cleandfnew$TARGET, xlab='Cases', main='Actual Cases Sold')
-hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predicted Cases Sold')
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Negative Binomial)')
 
 # Poisson
 cleandfnew$pred_target <- exp(predict(p_mod2, cleandfnew, interval ='prediction'))
@@ -614,8 +623,7 @@ cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARG
 acc_num <- sum(cleandfnew$correct)
 acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
 print(paste0('Poisson accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
-hist(cleandfnew$TARGET, xlab='Cases', main='Actual Cases Sold')
-hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predicted Cases Sold')
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Poisson)')
 
 # Zero-inflated
 cleandfnew$pred_target <- predict(zi_mod2, cleandfnew, interval ='prediction')
@@ -623,7 +631,8 @@ cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARG
 acc_num <- sum(cleandfnew$correct)
 acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
 print(paste0('Zero-inflated poisson accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
-hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predicted Cases Sold')
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Zero-Inflated)')
+
 
 ```
 
@@ -659,7 +668,7 @@ AIC of binomial model 2:
 aic_b_mod2
 ```
 
-Since the AIC of the second model is lower, we'll use it to predict whether any cases of each wine variety were sold. Then we'll check the accuracy of the predictions against the training data.
+Since the AIC of the step-reduced binomial model is lower, we'll use it to predict whether any cases of each wine variety were sold. Then we'll check the accuracy of the predictions against the training data.
 
 ```{r echo=FALSE}
 cleandf_binom$pred_p <- ilogit(predict(b_mod2, cleandf_binom, interval='prediction'))
@@ -713,7 +722,7 @@ rf <- roc_func(cleandf_binom)
 print(rf)
 rf[[5]]
 
-# 
+# Find p at the maximum value for accuracy
 cleandf_binom$pred_p <- ilogit(predict(b_mod2, cleandf_binom, interval='prediction'))
 cleandf_binom$pred_pos_cases <- ifelse(cleandf_binom$pred_p > rf[[5]], T, F)
 cleandf_binom$correct_pos_cases <- ifelse(cleandf_binom$pred_pos_cases == cleandf_binom$pos_cases, 1, 0)
@@ -753,26 +762,30 @@ print(paste0('AIC of negative binomial full model: ', aic_nb_mod3))
 print(paste0('AIC of negative binomial step-reduced model: ', aic_nb_mod4))
 ```
 
-Since the AIC of the poisson step-reduced model is lowest, we'll use it to predict cases sold against the training data.
+Since the AIC of the poisson step-reduced model is lowest, we'll use it to predict cases sold against the training data. First, we'll vary the cutoff value of p. Then we'll use a poisson model against the non-zero cases and generate an overall accuracy for that cutoff value. Then we'll choose the cutoff value that yields the maximum accuracy, and we'll use this to generate our predictions against the evaluation data.
 
 ```{r echo=FALSE}
 
-# Vary p
+# Vary p to find the greatest accuracy
 tmp_p <- seq(from = 0, to = 1, by = 0.01)
 c_acc_pct <- c()
 max_acc <- 0
 p_max_acc <- 0
 for (i in seq(1, length(tmp_p))) {
+
     # Make initial prediction on zero cases vs non-zero cases
     cleandf$pred_p <- ilogit(predict(b_mod2, cleandf, interval='prediction'))
     cleandf$pred_target <- ifelse(cleandf$pred_p > tmp_p[i], NA, 0)
+    
     # Split df into zero cases and non-zero cases
-    cleandf1 <- cleandf %>%
-        filter(pred_target == 0)
-    cleandf2 <- cleandf %>%
-        filter(is.na(pred_target))
+    cleandf1 <- cleandf %>% filter(pred_target == 0)
+    cleandf2 <- cleandf %>% filter(is.na(pred_target))
+    
+    # Make predications against non-zero cases
     cleandf2$pred_target <- round(exp(predict(p_mod4, cleandf2, interval ='prediction')), 0)
     cleandfnew <- rbind(cleandf1, cleandf2)
+    
+    # Calculate accuracy
     cleandfnew$correct <- ifelse(cleandfnew$pred_target == cleandfnew$TARGET, 1, 0)
     acc_num <- sum(cleandfnew$correct)
     acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
@@ -784,28 +797,61 @@ for (i in seq(1, length(tmp_p))) {
     #print(paste0('Hierarchical model accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
 }
 plot(c_acc_pct ~ tmp_p)
-print(paste0('Max accuracy is ', max_acc, ' when p=', p_max_acc))
+print(paste0('Max accuracy is ', max_acc, '% when p=', p_max_acc))
+
+# Show histogram at max accuracy
+cleandf$pred_p <- ilogit(predict(b_mod2, cleandf, interval='prediction'))
+cleandf$pred_target <- ifelse(cleandf$pred_p > p_max_acc, NA, 0)
+cleandf1 <- cleandf %>% filter(pred_target == 0)
+cleandf2 <- cleandf %>% filter(is.na(pred_target))
+cleandf2$pred_target <- round(exp(predict(p_mod4, cleandf2, interval ='prediction')), 0)
+cleandfnew <- rbind(cleandf1, cleandf2)
+par(mfrow=c(1, 2))
+hist(cleandfnew$TARGET, xlab='Cases', main='Actual Cases Sold')
+hist(cleandfnew$pred_target, xlab='Cases', main='Predicted Cases Sold')
+
+# Calculate "close" predictions (within one case of the actual number)
+cleandfnew$close <- ifelse((cleandfnew$pred_target >= cleandfnew$TARGET - 1) & (cleandfnew$pred_target <= cleandfnew$TARGET + 1), 1, 0)
+acc_pct <- round(100 * sum(cleandfnew$close) / nrow(cleandfnew), 1)
+print(paste0('Close prediction accuracy (within one case of actual): ', acc_pct, '%'))
 
 ```
 
+Now we'll use this cutoff value against the evaluation data.
 
-
-
-
-Prediction from optimal model:
 ```{r, echo=FALSE}
-prob2 <- exp(predict(p_mod2, cleandf_eval, interval ='prediction'))
-cleandf_eval$TARGET <- prob2
-cleandf_eval %>% head(10) %>% as_tibble()
+
+# Predictions zero vs non-zero
+cleandf_eval$pred_p <- ilogit(predict(b_mod2, cleandf_eval, interval='prediction'))
+cleandf_eval$pred_target <- ifelse(cleandf_eval$pred_p > p_max_acc, NA, 0)
+
+# Split df into zero cases and non-zero cases
+cleandf_eval1 <- cleandf_eval %>% filter(pred_target == 0)
+cleandf_eval2 <- cleandf_eval %>% filter(is.na(pred_target))
+
+# Make predications against non-zero cases
+cleandf_eval2$pred_target <- round(exp(predict(p_mod4, cleandf_eval2, interval ='prediction')), 0)
+cleandf_eval_new <- rbind(cleandf_eval1, cleandf_eval2)
+
+# Show results
+cleandf_eval_new %>% head(10) %>% as_tibble()
+hist(cleandf_eval_new$pred_target, xlab='Cases', main='Predicted Cases Sold')
 write.csv(cleandf_eval, "wine_predictions2.csv", row.names = FALSE)
 ```
 
 $~$
 
-## Appendix:
+## Conclusion
+
+We attempted several models: Gaussian linear, poisson, negative binomial, and zero-inflated poisson. Based on the low performance of these models, we decided to use a hierarchical approach. We first modeled zero counts vs non-zero counts using a binomial model, then modeled the counts of the non-zeroes using a Poisson model. While the binomial model performed well (86.1% accuracy) predicting zero vs non-zero counts, we were only able to obtain an accuracy of 46.1% overall. However, the histograms of the actual vs predicted cases sold are very similar, indicating that, while the exact numbers may not be completely accurate, the numbers are generally within the same range. This is confirmed by the fact that the accuracy is 78% of predicting the number of cases within one case of the actual value.
+
+$~$
+
+## Appendix
 
 ```{r, eval=FALSE}
-# load libaries
+
+# Load Libraries:
 library(tidyverse)
 library(dplyr)
 library(corrplot)
@@ -814,29 +860,25 @@ library(DataExplorer)
 library(ggplot2)
 library(hrbrthemes)
 library(mice)
+library(MASS)
+library(dvmisc)
+library(gridExtra)
+library(lattice)
+library(faraway)
+library(pscl)
 
-# load data
+# Load Data set:
 dftrain <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_5/csv/wine-training-data.csv")
 dfeval <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Homework_5/csv/wine-evaluation-data.csv")
 head(dftrain)
-
-# summary of training and evaluation data sets
 summary(dftrain)
 summary(dfeval)
-
-# Do not render since it will produce a separate html file
-# Remove TARGET from eval report since it will contain all NAs and will make the correlation plot fail to render
 DataExplorer::create_report(dftrain, output_file='training_report.html')
-DataExplorer::create_report(dfeval %>% select(-TARGET), output_file='eval_report.html')
-
-# structure of training and evaluation data 
+DataExplorer::create_report(dfeval %>% dplyr::select(-TARGET), output_file='eval_report.html')
 str(dftrain)
 str(dfeval)
-
-# plotting distribution of training data 
 plot_train <- dftrain %>%
   gather(key = 'variable', value = 'value')
-
 ggplot(plot_train) +
   geom_histogram(aes(x=value, y = ..density..), bins=30) +
   geom_density(aes(x=value), color='blue') +
@@ -849,7 +891,7 @@ dftrain <- dftrain %>%
 dfeval <- dfeval %>%
     mutate(STARS=ifelse(is.na(STARS), 'NR', STARS))
 
-#Look at the number of cases of wine sold against the predictors.
+# Look at cases sold vs predictors
 plt <- vector('list', ncol(dftrain) - 1)
 for (i in seq(3, 16)) {  # skip INDEX and TARGET variables
     if (class(dftrain[, i]) == 'numeric') {
@@ -872,36 +914,33 @@ grid.arrange(grobs=plt[3:7], ncol=3, nrow=2)
 grid.arrange(grobs=plt[8:13], ncol=3, nrow=2)
 grid.arrange(grobs=plt[14:16], ncol=3, nrow=2)
 
-# Removing INDEX from training and eval data 
-# For some reason R renamed the INDEX column to "ï..INDEX"
+# Remove index columns
 dftrain <- dftrain %>% 
-  dplyr::select(-ï..INDEX)
+  dplyr::select(-INDEX)
 dfeval <- dfeval %>% 
   dplyr::select(-IN)
 
-# Impute missing values in training data
-dftrain_imputed <- mice(dftrain, m=5, maxit=5, method='pmm')
+# Impute missing values in training data (except for STARS)
+dftrain_imputed <- mice(dftrain %>% dplyr::select(-STARS), m=5, maxit=5, method='pmm')
 cleandf <- complete(dftrain_imputed) %>%
     mutate(STARS = dftrain$STARS)
 
-# Impute missing values in eval data (except for TARGET)
-dfeval_imputed <- mice(dfeval %>% select(-TARGET), m=5, maxit=5, method='pmm')
+# Impute missing values in eval data (except for STARS and TARGET)
+dfeval_imputed <- mice(dfeval %>% dplyr::select(-STARS, -TARGET), m=5, maxit=5, method='pmm')
 cleandf_eval <- complete(dfeval_imputed) %>%
     mutate(STARS = dfeval$STARS, TARGET = dfeval$TARGET)
 
-# Look at another summary to make sure there aren't any NAs where we're not expecting them
+# Look again at summary
 summary(cleandf)
 summary(cleandf_eval)
 
-# Poisson model
+# Possion Model 1
 p_mod1 <- glm(TARGET ~., family="poisson", data=cleandf)
 summary(p_mod1)
 
 # Possion Model with stepwise AIC approach
 p_mod2 <- stepAIC(p_mod1, trace = F)
 summary(p_mod2)
-
-# Multiple Linear Regression Models:
 
 # MLR Model 1
 lm_mod1 <- lm(TARGET ~., data = cleandf)
@@ -923,9 +962,13 @@ nb_mod2 <- stepAIC(nb_mod1, trace = F)
 aic_nb_mod2 = AIC(nb_mod2)
 summary(nb_mod2)
 
-# Select Models:
-
-# Comparison of Poisson Models:
+# Zero-inflated Poisson Model
+zi_mod1 <- zeroinfl(TARGET ~ ., data=cleandf)
+summary(zi_mod1)
+aic_zi_mod1 = AIC(zi_mod1)
+zi_mod2 <- stepAIC(zi_mod1, trace=F)  # this takes a long time to run
+summary(zi_mod2)
+aic_zi_mod2 = AIC(zi_mod2)
 
 # Poisson Model 1:
 aic_p_mod1 <- p_mod1$aic
@@ -938,18 +981,28 @@ aic_p_mod2
 # Poisson - Minimum AIC
 c(p_mod1$formula,p_mod2$formula)[which.min(c(p_mod1$aic,p_mod2$aic))]
 
-# Comparsion of Multiple Linar Models:
-
-# Linear Model 1:
+#Linear Model 1:
 r2_lm_mod1 <- summary(lm_mod1)$adj.r.squared
 r2_lm_mod1
 
-# Linear Model 2:
+#Linear Model 2:
 r2_lm_mod2 <- summary(lm_mod2)$adj.r.squared
 r2_lm_mod2
 
 # Multiple Linear Regression Model - Highest Adjusted R Squared
 c(formula(lm_mod1),formula(lm_mod2))[which.max(c(summary(lm_mod1)$adj.r.squared, summary(lm_mod2)$adj.r.squared))]
+
+#NB Model 1:
+aic_nb_mod1
+
+#NB Model 2:
+aic_nb_mod2
+
+#ZI Model 1:
+aic_zi_mod1
+
+#ZI Model 2:
+aic_zi_mod2
 
 # Mean Square Error:
 mse <- function(df, model){
@@ -959,18 +1012,350 @@ mse_p_mod1 <- mse(cleandf, p_mod1)
 mse_p_mod2 <- mse(cleandf, p_mod2)
 mse_lm_mod1 <- get_mse(lm_mod1)
 mse_lm_mod2 <- get_mse(lm_mod2)
+mse_nb_mod1 <- mse(cleandf, nb_mod1)
+mse_nb_mod2 <- mse(cleandf, nb_mod2)
+mse_zi_mod1 <- mse(cleandf, zi_mod1)
+mse_zi_mod2 <- mse(cleandf, zi_mod2)
 
-# Comparison of Possion and Negative Binomial Model's:
-models <- c("Possion Model 1", "Possion Model 2", "Linear Model 1", "Linear Model 2")
-#rows <- c("Models", "MSE", "AIC")
-MSE <- list(mse_p_mod1, mse_p_mod2, mse_lm_mod1, mse_lm_mod2)
-AIC <- list(aic_p_mod1, aic_p_mod2, aic_lm_mod1, aic_lm_mod2)
-knitr::kable(rbind(MSE, AIC), col.names = models)
+# Comparison of Models:
+models <- c("Possion Model 1", "Possion Model 2", "Linear Model 1", "Linear Model 2", 
+            "Neg Binom Model 1", "Neg Binom Model 2", "Zero-Infl Model 1", "Zero-Infl Model 2")
+MSE <- round(c(mse_p_mod1, mse_p_mod2, mse_lm_mod1, mse_lm_mod2, mse_nb_mod1, mse_nb_mod2, mse_zi_mod1, mse_zi_mod2), 1)
+AIC <- round(c(aic_p_mod1, aic_p_mod2, aic_lm_mod1, aic_lm_mod2, aic_nb_mod1, aic_nb_mod2, aic_zi_mod1, aic_zi_mod2), 1)
+knitr::kable(rbind(MSE[1:4], AIC[1:4]), col.names=models[1:4])
+knitr::kable(rbind(MSE[5:8], AIC[5:8]), col.names=models[5:8])
 
-# Prediction from optimal multiple linear regression model
-prob2 <- predict(lm_mod2, cleandf_eval, interval ='prediction')
-cleandf_eval$TARGET <- prob2[,1]
-cleandf_eval %>% head(10) %>% as_tibble()
+# LM model evaluation
+
+# Load libraries
+library(car)
+library(lmtest)
+library(olsrr)
+
+# Define function to calculate mean squared error
+calc_mse <- function(lmod) {
+  return(mean((summary(lmod))$residuals ^ 2))
+}
+
+# Define function to aid in model analysis
+ModelAnalysis <- function(lmod) {
+
+  # Plot residuals
+  print('--------------------------------------------------')
+  print(lmod$call)
+  par(mfrow=c(2,2))
+  plot(lmod)
+  print('')
+
+  # Shapiro test to determine normality of residuals
+  # Null hypothesis: the residuals are normal.
+  # If the p-value is small, reject the null, i.e., consider the residuals *not* normally distributed.
+  if (length(lmod$fitted.values) > 3 & length(lmod$fitted.values) < 5000) {
+      st <- shapiro.test(lmod$residuals)
+      if (st$p.value <= 0.05) {
+        print(paste0("Shapiro test for normality: The p-value of ", st$p.value, " is <= 0.05, so reject the null; i.e., the residuals are NOT NORMAL"))
+      } else {
+        print(paste0("Shapiro test for normality: The p-value of ", st$p.value, " is > 0.05, so do not reject the null; i.e., the residuals are NORMAL"))
+      }
+      print('')
+  } else {
+      print("Shapiro test for normality of residuals cannot be performed; sample length must be between 3 and 5000.")
+  }
+     
+  # Breusch-Pagan test to determine homoschedasticity of residuals
+  # Null hypothesis: the residuals are homoschedastic.
+  # If the p-value is small, reject the null, i.e., consider the residuals heteroschedastic.
+  bp <- bptest(lmod)
+  if (bp$p.value > 0.05 & bp$statistic < 10) {
+      print(paste0("Breusch-Pagan test for homoschedasticity: The p-value of ", bp$p.value, " is > 0.05 and the test statistic of ", bp$statistic,
+          " is < 10, so don't reject the null; i.e., the residuals are HOMOSCHEDASTIC"))
+  } else if (bp$p.value <= 0.05) {
+      print(paste0("Breusch-Pagan test for homoschedasticity: The p-value of ", bp$p.value, " is <= 0.05 and the test statistic is ", bp$statistic,
+          ", so reject the null; i.e., the residuals are HETEROSCHEDASTIC"))
+  } else {
+      print(paste0("Breusch-Pagan test for homoschedasticity: The p-value of ", bp$p.value, " and test statistic of ", bp$statistic,
+          " are inconclusive, so homoschedasticity can't be determined using this test."))
+  }
+  print('')
+
+  # Visually look for colinearity - dont do this for large models
+  #pairs(model.matrix(lmod))
+
+  # Variance inflation factor (VIF)
+  print('Variance inflation factor (VIF)')
+  print('<=1: not correlated, 1-5: moderately correlated, >5: strongly correlated')
+  print(sort(vif(lmod), decreasing=T))
+  print('')
+  
+  # Standardized residual plots (look for points outside of 2 or 3 stdev)
+  p <- length(summary(lmod)$coeff[,1] - 1)  # number of model parameters
+  stanres <- rstandard(lmod)
+  for (i in seq(1, ceiling(p / 4))) {
+    par(mfrow=c(2,2))
+    starti <- ((i - 1) * 4) + 1
+    for (j in seq(starti, starti + 3)) {
+      if (j + 1 <= ncol(model.matrix(lmod))) {
+        # Skip these plots since we're pretty sure that a linear model isn't valid here
+        #plot(model.matrix(lmod)[, j + 1], stanres, xlab=colnames(model.matrix(lmod))[j + 1], ylab='Standardized residuals')
+        #abline(h=c(-2, 2), lt=3, col='blue')
+        #abline(h=c(-3, 3), lt=2, col='red')
+      }
+    }
+  }
+  
+  # Model scores
+  print('Model scores:')
+  print(paste0('    adjusted R-squared: ', round(summary(lmod)$adj.r.squared, 3)))
+  print(paste0('    AIC: ', round(AIC(lmod, k=2), 3)))
+  print(paste0('    BIC: ', round(BIC(lmod), 3)))
+  print(paste0('    Mallow\'s Cp: ', round(ols_mallows_cp(lmod, fullmodel=lmod), 3)))
+  print(paste0('    mean squared error: ', round(calc_mse(lmod), 3)))
+  print('')
+  
+  # Find leverage point cutoff
+  n <- length(lmod$residuals)
+  cutoff <- 2 * (p + 1) / n
+  print(paste0('Leverage point cutoff: ', cutoff))
+  print('')
+
+  # Show points of influence
+  print('First 10 points of influence:')
+  poi <- lm.influence(lmod)$hat
+  len_poi <- length(poi)
+  ct <- 0
+  for (i in seq(1, length(poi))) {
+    if (poi[i] > cutoff) {
+      ct <- ct + 1
+      print(paste0('    case #', i, ': ', round(poi[i], 3)))
+    }
+        if (ct > 10) {
+            break
+        }
+  }
+  print('')
+  
+}
+ModelAnalysis(lm_mod1)
+ModelAnalysis(lm_mod2)
+
+# Calc overdispersion
+op1 <- p_mod1$deviance / p_mod1$df.residual
+op2 <- p_mod2$deviance / p_mod2$df.residual
+print(paste0('Poisson model 1 overdispersion: ', op1))
+print(paste0('Poisson model 2 overdispersion: ', op2))
+
+# Calc accuracies
+
+# Show histogram of actual cases sold to compare with histograms generated by predictions
+cleandfnew <- cleandf
+par(mfrow=c(2, 3))
+hist(cleandfnew$TARGET, xlab='Cases', main='Actual Cases Sold')
+
+# Gaussian
+cleandfnew$pred_target <- predict(lm_mod2, cleandfnew, interval ='prediction')
+cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARGET, 1, 0)
+acc_num <- sum(cleandfnew$correct)
+acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
+print(paste0('Gaussian accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Gaussian)')
+
+# Negative binomial
+cleandfnew$pred_target <- exp(predict(nb_mod2, cleandfnew, interval ='prediction'))
+cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARGET, 1, 0)
+acc_num <- sum(cleandfnew$correct)
+acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
+print(paste0('Negative binomial model accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Negative Binomial)')
+
+# Poisson
+cleandfnew$pred_target <- exp(predict(p_mod2, cleandfnew, interval ='prediction'))
+cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARGET, 1, 0)
+acc_num <- sum(cleandfnew$correct)
+acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
+print(paste0('Poisson accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Poisson)')
+
+# Zero-inflated
+cleandfnew$pred_target <- predict(zi_mod2, cleandfnew, interval ='prediction')
+cleandfnew$correct <- ifelse(round(cleandfnew$pred_target, 0) == cleandfnew$TARGET, 1, 0)
+acc_num <- sum(cleandfnew$correct)
+acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
+print(paste0('Zero-inflated poisson accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
+hist(round(cleandfnew$pred_target, 0), xlab='Cases', main='Predictions (Zero-Inflated)')
+
+# Hierarchical modeling
+
+# Binomial on whether cases were sold or not
+cleandf_binom <- cleandf %>%
+    mutate(pos_cases=ifelse(TARGET > 0, T, F))
+b_mod1 <- glm(pos_cases ~ . - TARGET, family=binomial(), data=cleandf_binom)
+b_mod2 <- stepAIC(b_mod1, trace=F)
+aic_b_mod1 <- AIC(b_mod1)
+aic_b_mod2 <- AIC(b_mod2)
+
+# Summary of binomial model 1:
+summary(b_mod1)
+
+# Summary of binomial model 2:
+summary(b_mod2)
+
+# AIC of binomial model 1:
+aic_b_mod1
+
+# AIC of binomial model 2:
+aic_b_mod2
+
+# Check overdispersion
+cleandf_binom$pred_p <- ilogit(predict(b_mod2, cleandf_binom, interval='prediction'))
+cleandf_binom$pred_pos_cases <- ifelse(cleandf_binom$pred_p > 0.5, T, F)
+cleandf_binom$correct_pos_cases <- ifelse(cleandf_binom$pred_pos_cases == cleandf_binom$pos_cases, 1, 0)
+acc_num <- sum(cleandf_binom$correct_pos_cases)
+acc_pct <- round(100 * acc_num / nrow(cleandf_binom), 1)
+print(paste0('Binomial model accuracy with p of 0.5: ', acc_num, ' of ', nrow(cleandf_binom), ' (', acc_pct, '%)'))
+
+# ROC
+roc_func <- function(data){
+  temp_x <- rep(0, 101)
+  temp_y <- rep(0, 101)
+  temp_z <- rep(0, 101)
+  temp_seq <- seq(from = 0, to = 1, by = 0.01)
+  max_acc <- 0
+  p_max_acc <- 0
+  for (i in 1:length(temp_seq)){
+    df <- data %>% 
+        mutate(scored.class = as.logical(pred_p > temp_seq[i])) %>%
+        mutate(true.class = as.logical(TARGET > 0)) %>%
+        mutate(
+           TP = ifelse(true.class == T & scored.class == T, 1, 0),
+           FP = ifelse(true.class == F & scored.class == T, 1, 0),
+           FN = ifelse(true.class == T & scored.class == F, 1, 0),
+           TN = ifelse(true.class == F & scored.class == F, 1, 0)
+        )
+    TPR <- sum(df$TP)/(sum(df$TP) + sum(df$FN))
+    FPR <- sum(df$FP)/(sum(df$FP) + sum(df$TN))
+    acc <- (sum(df$TP) + sum(df$TN)) / nrow(df)
+    if (acc > max_acc) {
+        max_acc <- acc
+        p_max_acc <- temp_seq[i]
+    }
+    temp_x[i] <- FPR
+    temp_y[i] <- TPR
+    temp_z[i] <- acc
+  }
+  temp_df <- bind_cols(temp_x, temp_y, temp_seq, temp_z) %>% as.data.frame()
+  names(temp_df) <- c("FPR", "TPR", "p", "Accuracy")
+  plt <- ggplot2::ggplot(data = temp_df, aes(x = FPR, y = TPR)) + geom_point() + geom_abline()
+  plt2 <- ggplot2::ggplot(data = temp_df, aes(x = p, y = Accuracy)) + geom_point()
+  AUC <- pracma::trapz(temp_x, temp_y)
+  output <- list(plt, plt2, AUC, max_acc, p_max_acc)
+  return(output)
+}
+
+# Generate ROC curve
+rf <- roc_func(cleandf_binom)
+print(rf)
+rf[[5]]
+
+# Find p at the maximum value for accuracy
+cleandf_binom$pred_p <- ilogit(predict(b_mod2, cleandf_binom, interval='prediction'))
+cleandf_binom$pred_pos_cases <- ifelse(cleandf_binom$pred_p > rf[[5]], T, F)
+cleandf_binom$correct_pos_cases <- ifelse(cleandf_binom$pred_pos_cases == cleandf_binom$pos_cases, 1, 0)
+acc_num <- sum(cleandf_binom$correct_pos_cases)
+acc_pct <- round(100 * acc_num / nrow(cleandf_binom), 1)
+print(paste0('Binomial model accuracy with p of ', rf[[5]], ': ', acc_num, ' of ', nrow(cleandf_binom), ' (', acc_pct, '%)'))
+
+# Poisson against non-zero counts
+p_mod3 <- glm(TARGET ~ ., family=poisson(), data=cleandf['TARGET' > 0])
+aic_p_mod3 <- AIC(p_mod3)
+p_mod4 <- stepAIC(p_mod3, trace=F)
+aic_p_mod4 <- AIC(p_mod4)
+print(paste0('AIC of poisson full model: ', aic_p_mod3))
+print(paste0('AIC of poisson step-reduced model: ', aic_p_mod4))
+
+# Check for overdispersion of the poisson models:
+op3 <- p_mod3$deviance / p_mod3$df.residual
+op4 <- p_mod4$deviance / p_mod4$df.residual
+print(paste0('Poisson full model overdispersion: ', op3))
+print(paste0('Poisson step-reduced model overdispersion: ', op4))
+
+# Try negative binomial
+nb_mod3 <- glm.nb(TARGET ~ ., data=cleandf['TARGET' > 0])
+aic_nb_mod3 <- AIC(nb_mod3)
+nb_mod4 <- stepAIC(nb_mod3, trace=F)
+aic_nb_mod4 <- AIC(nb_mod4)
+print(paste0('AIC of negative binomial full model: ', aic_nb_mod3))
+print(paste0('AIC of negative binomial step-reduced model: ', aic_nb_mod4))
+
+# Vary p to find the greatest accuracy
+tmp_p <- seq(from = 0, to = 1, by = 0.01)
+c_acc_pct <- c()
+max_acc <- 0
+p_max_acc <- 0
+for (i in seq(1, length(tmp_p))) {
+
+    # Make initial prediction on zero cases vs non-zero cases
+    cleandf$pred_p <- ilogit(predict(b_mod2, cleandf, interval='prediction'))
+    cleandf$pred_target <- ifelse(cleandf$pred_p > tmp_p[i], NA, 0)
+    
+    # Split df into zero cases and non-zero cases
+    cleandf1 <- cleandf %>%
+        filter(pred_target == 0)
+    cleandf2 <- cleandf %>%
+        filter(is.na(pred_target))
+    
+    # Make predications against non-zero cases
+    cleandf2$pred_target <- round(exp(predict(p_mod4, cleandf2, interval ='prediction')), 0)
+    cleandfnew <- rbind(cleandf1, cleandf2)
+    
+    # Calculate accuracy
+    cleandfnew$correct <- ifelse(cleandfnew$pred_target == cleandfnew$TARGET, 1, 0)
+    acc_num <- sum(cleandfnew$correct)
+    acc_pct <- round(100 * acc_num / nrow(cleandfnew), 1)
+    c_acc_pct <- c(c_acc_pct, acc_pct)
+    if (acc_pct > max_acc) {
+        max_acc <- acc_pct
+        p_max_acc <- tmp_p[i]
+    }
+    #print(paste0('Hierarchical model accuracy: ', acc_num, ' of ', nrow(cleandfnew), ' (', acc_pct, '%)'))
+}
+plot(c_acc_pct ~ tmp_p)
+print(paste0('Max accuracy is ', max_acc, '% when p=', p_max_acc))
+
+# Show histogram at max accuracy
+cleandf$pred_p <- ilogit(predict(b_mod2, cleandf, interval='prediction'))
+cleandf$pred_target <- ifelse(cleandf$pred_p > p_max_acc, NA, 0)
+cleandf1 <- cleandf %>% filter(pred_target == 0)
+cleandf2 <- cleandf %>% filter(is.na(pred_target))
+cleandf2$pred_target <- round(exp(predict(p_mod4, cleandf2, interval ='prediction')), 0)
+cleandfnew <- rbind(cleandf1, cleandf2)
+par(mfrow=c(1, 2))
+hist(cleandfnew$TARGET, xlab='Cases', main='Actual Cases Sold')
+hist(cleandfnew$pred_target, xlab='Cases', main='Predicted Cases Sold')
+
+# Calculate "close" predictions (within one case of the actual number)
+cleandfnew$close <- ifelse((cleandfnew$pred_target >= cleandfnew$TARGET - 1) & (cleandfnew$pred_target <= cleandfnew$TARGET + 1), 1, 0)
+acc_pct <- round(100 * sum(cleandfnew$close) / nrow(cleandfnew), 1)
+print(paste0('Close prediction accuracy (within one case of actual): ', acc_pct, '%'))
+
+# Now we'll use this cutoff value against the evaluation data.
+
+# Predictions zero vs non-zero
+cleandf_eval$pred_p <- ilogit(predict(b_mod2, cleandf_eval, interval='prediction'))
+cleandf_eval$pred_target <- ifelse(cleandf_eval$pred_p > p_max_acc, NA, 0)
+
+# Split df into zero cases and non-zero cases
+cleandf_eval1 <- cleandf_eval %>%
+    filter(pred_target == 0)
+cleandf_eval2 <- cleandf_eval %>%
+    filter(is.na(pred_target))
+
+# Make predications against non-zero cases
+cleandf_eval2$pred_target <- round(exp(predict(p_mod4, cleandf_eval2, interval ='prediction')), 0)
+cleandf_eval_new <- rbind(cleandf_eval1, cleandf_eval2)
+
+# Show results
+cleandf_eval_new %>% head(10) %>% as_tibble()
+hist(cleandf_eval_new$pred_target, xlab='Cases', main='Predicted Cases Sold')
 write.csv(cleandf_eval, "wine_predictions2.csv", row.names = FALSE)
 
 ```
@@ -978,5 +1363,5 @@ write.csv(cleandf_eval, "wine_predictions2.csv", row.names = FALSE)
 
 -----------
 
-## References:
+## References
 https://englianhu.files.wordpress.com/2016/01/faraway-extending-the-linear-model-with-r-e28093-2006.pdf
