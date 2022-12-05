@@ -1,13 +1,13 @@
 ---
 output:
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
   html_document:
     theme: flatly
     highlight: textmate
     toc: yes
     toc_float: yes
-  pdf_document:
-    dev: cairo_pdf
-    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -118,6 +118,9 @@ These are the libraries used to explore, prepare, analyze and build our models
 ```{r libraries, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(dplyr)
+library(corrplot)
+library(MASS)
+library(dvmisc)
 ```
 
 ### Load Data:
@@ -171,31 +174,242 @@ Evaluation:
 summary(dfeval)
 ```
 
+#### Price:  
+It is important to recognize that this dataset contains homes with prices above 1 million. It is not clear that this is a US dataset, which would indicate that this is for luxury homes and/or high value markets.
 
-```{r, echo=FALSE}
+```{r price, echo=FALSE, warning=FALSE, error=FALSE}
+options(scipen=5)
+hist(dftrain$price / 10^6, main = 'Distribution of Price', xlab = 'Price in millions')
+```
+
+#### Area:  
+The area variable appears to be square footage of the home. We would traditionally expect that increases in area would lead to increases in price.
+
+```{r area, echo=FALSE, warning=FALSE, error=FALSE}
+hist(dftrain$area, main = 'Distribution of Area', xlab = 'Area in Square Feet')
 
 ```
 
+#### Bedrooms:  
+While we expect increases in the number of bedrooms to increase the price, we also realize that at some point there are diminishing returns that an additional bedroom doesn't have as much of an impact. For example, increasing from one to two bedrooms should have significant increase in price, while increasing from four to five, perhaps not so much.
 
-```{r, echo=FALSE}
-
+```{r bedrooms, echo=FALSE}
+dftrain %>% count(bedrooms)
 ```
 
-$~$
+Based on the distribution of the number of Bedrooms, it may be best to categorize these with dummy variables; 2, 3, and 4+.
+
+#### Bathrooms:  
+Similar to the number of bedrooms, we would expect that an increase in bathroom count would lead to increases in price. Although similarly, having more than four bathrooms is likely going to lead to smaller increases.
+
+```{r bathrooms, echo=FALSE}
+dftrain %>% count(bathrooms)
+```
+
+Based on the distribution of the number of bathrooms, it may be best to categorize these with dummy variables; 2, and 3+.
+
+#### Stories:  
+Similar to the number of bedrooms and bathrooms, it would seem to make sense to classify homes with 3 or more floors together by introducing dummy variables; 2, and 3+.
+
+```{r stories, echo=FALSE}
+dftrain %>% count(stories)
+```
+
+#### Parking:  
+We are assuming that the parking variable represents the size of a garage. Similar to other variable the increase in price from no garage to a one car garage would be significant, while additional cars would add some lesser value. It would initially seem to make sense to introduce dummy variables; 1, and 2+.
+
+```{r parking, echo=FALSE}
+dftrain %>% count(parking)
+```
+
+#### Furnishing Status:  
+The furnishing status variable is taking on three values; unfurnished, semi-furnished, and furnished. Since we would consider unfurnished as the default state, we will use dummy variables; semi-furnished and furnished.
+
+```{r furnishingstatus, echo=FALSE}
+dftrain %>% count(furnishingstatus)
+```
+
+#### Main Road:  
+The main road variable is yes/no based on the street of the home. We will replace this with a dummy variable.
+
+```{r mainroad, echo=FALSE}
+dftrain %>% count(mainroad)
+```
+
+#### Guest Room:  
+The guest room variable is yes/no based on the home having a guest room. It is unclear from the dataset source if this is in addition to the number of bedrooms, but we would expect houses with a guest room to have a higher price. We will replace this with a dummy variable.
+
+```{r guestroom, echo=FALSE}
+dftrain %>% count(guestroom)
+```
+
+#### Basement:  
+The basement variable is yes/no based on the home having a basement. It is unclear if having a basement or not would lead to an increase in home price, but we will replace this with a dummy variable for analysis.
+
+```{r basement, echo=FALSE}
+dftrain %>% count(basement)
+```
+
+#### Hot Water Heating:  
+Based on the distribution, we assume that the hot water heating variable represents if the house has in-floor heating, rather than forced air. Based on this assumption, we assume that having this feature would lead to higher house price. The variable will be replaced with a dummy variable for analysis.
+
+```{r hotwaterheating, echo=FALSE}
+dftrain %>% count(hotwaterheating)
+```
+
+#### Air Conditioning:  
+The air conditioning variable indicates if the house has central air conditioning. We would expect homes with air conditioning would have a higher price than those without. The variable will be replaced with a dummy variable.
+
+```{r airconditioning, echo=FALSE}
+dftrain %>% count(airconditioning)
+```
+
+#### Preferential Area:  
+The dataset source doesn't specify exactly what this variable represents. We are assuming that this is a yes/no value if the house is in a preferred neighborhood. We would expect houses with a yes to be higher price than those not.
+
+```{r prefarea, echo=FALSE}
+dftrain %>% count(prefarea)
+```
 
 ### Data Preparation:
 
-```{r, echo=FALSE}
+Based on our exploration, we do not have any blank values in our dataset. 
+
+#### Clean Function:  
+We will introduce a clean function to replace our categorical variables with the dummy values. This will also ensure that our test and train datasets are processed in the same way.
+
+```{r clean, echo=FALSE, warning=FALSE, message=FALSE}
+fun_clean_df <- function(df) {
+  df <- df %>%
+    mutate(bed2 = ifelse(bedrooms == 2,1,0)) %>%
+    mutate(bed3 = ifelse(bedrooms == 3,1,0)) %>%
+    mutate(bed4plus = ifelse(bedrooms >= 4,1,0)) %>% dplyr::select(-bedrooms) %>%
+    mutate(bath2 = ifelse(bathrooms == 2,1,0)) %>%
+    mutate(bath3plus = ifelse(bathrooms >= 3,1,0)) %>% dplyr::select(-bathrooms) %>%
+    mutate(floor2 = ifelse(stories == 2,1,0)) %>%
+    mutate(floor3plus = ifelse(stories >= 3,1,0)) %>% dplyr::select(-stories) %>%
+    mutate(car1 = ifelse(parking == 1,1,0)) %>%
+    mutate(car2plus = ifelse(parking >= 2,1,0)) %>% dplyr::select(-parking) %>%
+    mutate(semifurnished = ifelse(furnishingstatus == 'semi-furnished',1,0)) %>%
+    mutate(furnished = ifelse(furnishingstatus == 'furnished',1,0)) %>% dplyr::select(-furnishingstatus) %>%
+    mutate(mainroad = ifelse(mainroad == 'yes',1,0)) %>%
+    mutate(guestroom = ifelse(guestroom == 'yes',1,0)) %>%
+    mutate(basement = ifelse(basement == 'yes',1,0)) %>%
+    mutate(hotwaterheating = ifelse(hotwaterheating == 'yes',1,0)) %>%
+    mutate(ac = ifelse(airconditioning == 'yes',1,0)) %>% dplyr::select(-airconditioning) %>%
+    mutate(neighborhood = ifelse(prefarea == 'yes',1,0)) %>% dplyr::select(-prefarea)
+}
+
+dftrain_clean <- fun_clean_df(dftrain)
 
 ```
+
+
+### Data Visualization:
+
+Visually evaluation:
+```{r, echo=FALSE, fig.width=11}
+
+# Compare quantitative variables
+pairs(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')])
+corrplot(cor(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')], use = 'complete.obs'), tl.cex = 0.5)
+
+# Compare nominal categorical variables to price
+par(mfrow=c(3, 3))
+boxplot(price ~ mainroad, data=dftrain)
+boxplot(price ~ guestroom, data=dftrain)
+boxplot(price ~ basement, data=dftrain)
+boxplot(price ~ hotwaterheating, data=dftrain)
+boxplot(price ~ airconditioning, data=dftrain)
+boxplot(price ~ prefarea, data=dftrain)
+boxplot(price ~ furnishingstatus, data=dftrain)
+
+# Compare ordinal categorical variables
+par(mfrow=c(2, 2))
+boxplot(price ~ bedrooms, data=dftrain)
+boxplot(price ~ bathrooms, data=dftrain)
+boxplot(price ~ stories, data=dftrain)
+boxplot(price ~ parking, data=dftrain)
+
+```
+
+#### Histogram of house prices
+
+```{r histogram, warning=FALSE, message=FALSE}
+
+# Draw a histogram to figure out the distribution of Sale Price
+options(scipen=10000)
+ggplot(dftrain_clean, aes(x = price, fill = ..count..)) +
+  geom_histogram() +
+  ggtitle("Figure 1 Histogram of Price") +
+  ylab("Count of houses") +
+  xlab("Housing Price") + 
+  theme(plot.title = element_text(hjust = 0.9))
+
+```
+
+#### Correlation Plot:  
+
+After cleaning the dataset looking at a correlation plot will give us confirmation about our initial examination for the variables.
+
+```{r corplot, warning=FALSE, message=FALSE}
+cor_res <- cor(dftrain_clean)
+
+corrplot(cor_res,
+         type = "lower",
+         order = "original",
+         tl.col = "black",
+         tl.srt = 50,
+         tl.cex = 1)
+
+```
+
+The correlation plot generally confirms our initial expectations for the data. 
+
 
 $~$
 
 ### Model Building:
 
-```{r, echo=FALSE}
+#### Multiple Linear Regression Models
 
+```{r}
+#partition data
+set.seed(10000)
+train.index <- sample(c(1:dim(dftrain_clean)[1]), dim(dftrain_clean)[1]*0.8)
+model_lin_train = dftrain_clean[train.index,]
+model_lin_valid <- dftrain_clean[-train.index,]
 ```
+
+
+#### MLR Model 1
+
+
+```{r}
+lm_mod1 <- lm(price ~., data = model_lin_train)
+aic_lm_mod1 = AIC(lm_mod1)
+summary(lm_mod1)
+```
+
+#### MLR Model 2
+```{r}
+lm_mod2 <- stepAIC(lm_mod1, trace = F)
+aic_lm_mod2 = AIC(lm_mod2)
+summary(lm_mod2)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+## reduce collinearity, and remove low values
+
+lm_mod3 <- lm(price ~ area + 
+                  guestroom + bath2  + bath3plus + floor2 + 
+                  floor3plus + car1 + car2plus + 
+                  semifurnished + furnished + 
+                   ac + neighborhood, 
+            data = model_lin_train)
+summary(lm_mod3)
+```
+
 
 $~$
 

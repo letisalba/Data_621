@@ -397,6 +397,7 @@ lm_mod2 <- stepAIC(lm_mod1, trace = F)
 aic_lm_mod2 = AIC(lm_mod2)
 summary(lm_mod2)
 ```
+
 ```{r, echo=FALSE, warning=FALSE}
 ## reduce collinearity, and remove low values
 
