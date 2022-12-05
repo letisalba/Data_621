@@ -90,7 +90,7 @@ Be sure to cite all references used in the report (APA format).
 
 * H, M. Y. (2022, January 12). Housing prices dataset. Kaggle. Retrieved November 28, 2022, from https://www.kaggle.com/datasets/yasserh/housing-prices-dataset 
 
-* [insert text here]
+* Schmidt, A. (2018, June). Linear Regression and the normality assumption. Retrieved December 5, 2022, from https://doi.org/10.1016/j.jclinepi.2017.12.006
 
 * [insert text here]
 
@@ -310,6 +310,7 @@ fun_clean_df <- function(df) {
 }
 
 dftrain_clean <- fun_clean_df(dftrain)
+dfeval_clean <- fun_clean_df(dfeval)
 
 ```
 
@@ -555,7 +556,6 @@ Investigate outliers.
 ```{r}
 
 # Investigate top outliers
-#model_lin_train[c(24, 41, 58, 63, 178, 194, 213, 224, 238, 244, 264),]
 model_lin_train[c(2, 5, 9, 25, 49, 62, 77, 103, 110, 136, 210),]
 
 ```
@@ -571,8 +571,28 @@ lm_mod7 <- stepAIC(lm_mod6, trace=F)
 summary(lm_mod7)
 ModelAnalysis(lm_mod7)
 
-# Create new data set with outliers removed
-dftrain2 <- model_lin_train[c(-2, -5, -9, -25, -49, -62, -77, -103, -110, -136, -210),]
+
+```
+
+Residuals are still not normally distributed. Use robust regression to try addressing non-normality.
+```{r}
+
+# Huber robust linear regression
+lm_mod8 <- rlm(formula(lm_mod7), data=model_lin_train)
+dftmp <- data.frame(cbind(price=model_lin_train$price, huber_weight=lm_mod8$w))
+dftmp <- dftmp %>% arrange(huber_weight, ascending=F)
+hist(dftmp$huber_weight, xlab='Huber weight', main='Histogram of Huber Weights')
+
+# New linear model using Huber weights
+lm_mod9 <- lm(formula(lm_mod7), weights=lm_mod8$w, data=model_lin_train)
+summary(lm_mod9)
+ModelAnalysis(lm_mod9)
+
+# Remove most significant outliers
+lm_mod10 <- lm(formula(lm_mod7), weights=lm_mod8$w[c(-53, -68, -87, -90, -103)], 
+    data=model_lin_train[c(-53, -68, -87, -90, -103),])
+summary(lm_mod10)
+ModelAnalysis(lm_mod10)
 
 ```
 
@@ -582,14 +602,53 @@ Perform five-fold cross validation to validate our results.
 # Five-fold cross validation
 set.seed(777)
 tc <- trainControl(method = "cv", number = 5)
-lmcv <- train(formula(lm_mod9), data=dftrain2, method="lm", trControl=tc)
+lmcv <- train(formula(lm_mod8), weights=lm_mod8$w, data=model_lin_train, method="lm", trControl=tc)
 print(lmcv)
 summary(lmcv)
 
 ```
 
+Run selected model against validation set.
+```{r}
 
-```{r, echo=FALSE}
+# Huber robust linear regression
+lm_valid1 <- lm(formula(lm_mod7), data=dfeval_clean)
+
+# New linear model using Huber weights
+lm_valid2 <- lm(formula(lm_mod7), weights=lm_valid1$w, data=dfeval_clean)
+summary(lm_valid2)
+ModelAnalysis(lm_valid2)
+
+```
+
+```{r}
+
+# Model comparison
+hdr <- c('#', 'Train/Validation', 'Linear/Robust', 'Full/Step-reduced', 'Log Transform', 
+    'Outliers Removed', 'Huber-Weighted', 'Adj R-Sqr')
+f1 <- c(seq(1:11))
+f2 <- c(rep('Train', 10), 'Validation')
+f3 <- c(rep('Linear', 7), 'Robust', rep('Linear', 3))
+f4 <- c('Full', 'Step', 'Step', 'Full', rep('Step', 7))
+f5 <- c(rep('', 3), rep('Yes', 8))
+f6 <- c(rep('', 5), 'Yes', 'Yes', '', '', 'Yes', '')
+f7 <- c(rep('', 8), rep('Yes', 3))
+f8 <- round(c(
+    summary(lm_mod1)$adj.r.squared, 
+    summary(lm_mod2)$adj.r.squared, 
+    summary(lm_mod3)$adj.r.squared, 
+    summary(lm_mod4)$adj.r.squared, 
+    summary(lm_mod5)$adj.r.squared, 
+    summary(lm_mod6)$adj.r.squared, 
+    summary(lm_mod7)$adj.r.squared, 
+    NA, 
+    summary(lm_mod9)$adj.r.squared, 
+    summary(lm_mod10)$adj.r.squared, 
+    summary(lm_valid2)$adj.r.squared), 3)
+dfresult <- data.frame(f1, f2, f3, f4, f5, f6, f7, f8)
+colnames(dfresult) <- hdr
+dfresult
+
 
 ```
 
