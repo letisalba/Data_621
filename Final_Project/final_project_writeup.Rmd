@@ -1,21 +1,19 @@
 ---
 output:
+  pdf_document:
+    dev: cairo_pdf
   html_document:
     theme: flatly
     highlight: textmate
     toc: yes
     toc_float: yes
-  pdf_document:
-    dev: cairo_pdf
-    toc: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
-## **House Prices**
-
+# **House Prices**
 
 ### CUNY SPS DATA 621
 
@@ -24,9 +22,8 @@ knitr::opts_chunk$set(echo = TRUE)
 $~$
 
 ## Abstract:
-Use 250 words or less to summarize your problem, methodology, and major outcomes.
+Many dream about their first home, where to buy, how many bedrooms or baths, if it should include a pool or a large backyard and how much will buying a home cost. With the housing market being affected by factors such as mortgage rates, inflation, or economic recession, there is no doubt that the house pricing have risen dramatically over the years. Our project we will try to predict housing prices based on house area, bedrooms, furnished, nearness to mainroad and see if we can build a decent predictive model ...............
 
-[insert text here]
 
 $~$
 
@@ -37,14 +34,15 @@ house prices, linear models, regression, home investment, real estate
 $~$
 
 ## Introduction:
-Describe the background and motivation of your problem.
 
-[insert text here]
+The housing market pricing changes can be affected by factors such as mortgage rates, inflation, or economic recessions, to name a few. From 1950 to the present, we witness home price fluctuations, with some steady rising periods between 1950s to the late 1980s. According to the article from Better.com if we start analyzing the median home value we note that house price growth has risen 326.1% since 1950 with a current median home price of $336,900 (inflation-adjusted to 2020 dollars). There was a 90% drop in production of new homes before the Great Depression started and in 1956, President Dwight D. Eisenhower passed the Federal Aid Highway Act that enabled the possibility to access a suburban way of life. By 1960 the boom of home-ownership was greatly so that home prices started to increase. The Federal Housing Administration (FHA) created changes that allowed Americans to afford homes after WWII which contributed to the rise of home-ownership and prices. With a median home price increase of 42.8% by the 1970s, the US economy saw inflation rising and with that so did the housing market. Fast forward to the 1980s, there were high unemployment rates that impacted the mortgage interest rates to rise even more. During this time the median home price (inflation-adjusted to 2020 dollars) had an average interest rate for 30 year (fixed mortgage) of 13.7%. By 1990s, the recession had ended and the housing bubble burst affected only major cities like New York, Boston, Los Angeles, San Diego, Washington D.C., and San Francisco. Entering the 21st century, the average interest rate for 30 year (fixed mortgage) was down to 8.1% not expecting another recession. By 2008 the United States faced challenges that push more than 10 million of Americans to loose their homes and 9 million lost their jobs. In 2020, the average interest rate for 30 year (fixed mortgage) was 3.1% with a record setting year for housing prices. Now we can't forget the pandemic of COVID-19 that left many to work from home. How does this contribute to the housing prices? Due to the pandemic, housing prices rose once again only to drop in some cities where the demand for homes wasn't as high. It is believed that the housing prices will soon level off and slow down but mortgage rate will continue to rise.
+
 
 $~$
 
 
 ## Literature Review:
+
 Discuss how other researchers have addressed similar problems, what their achievements are, and what the advantage and drawbacks of each reviewed approach are. Explain how your investigation is similar or different to the state-of-the- art. Please cite the relevant papers where appropriate.
 
 
@@ -52,17 +50,21 @@ Discuss how other researchers have addressed similar problems, what their achiev
 
 $~$
 
-## Methology:
-Discuss the key aspects of your problem, data set and regression model(s). Given that you are working on real-world data, explain at a high-level your exploratory data analysis, how you prepared the data for regression modeling, your process for building regression models, and your model selection.
+## Methodology:
 
-[insert text here]
+First we assessed the data to get an insight on what we were working with to later determine what multiple linear regression model would be appropriate to use. We knew head on we had to split our data into a training and evaluation set in order to properly make predictions. 
+
 
 $~$
 
 ## Discussion of Findings:
 Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.). Conclude your findings, limitations, and suggest areas for future work.
 
-[insert text here]
+Once we started our data exploration process we found the following: 
+
+* The data is composed of 545 observations and 13 variables
+* There were no missing values
+* 
 
 $~$
 
@@ -91,7 +93,7 @@ Be sure to cite all references used in the report (APA format).
 
 * Schmidt, A. (2018, June). Linear Regression and the normality assumption. Retrieved December 5, 2022, from https://doi.org/10.1016/j.jclinepi.2017.12.006
 
-* [insert text here]
+* Johnson, N. (2022, May 24). How much home prices have risen since 1950: Better Mortgage. Better Mortgage Resources. Retrieved December 5, 2022, from https://better.com/content/how-much-home-prices-have-risen-since-1950/ 
 
 $~$
 
