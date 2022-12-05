@@ -33,7 +33,7 @@ $~$
 ## Key words:
 Select a few key words (up to five) related to your work.
 
-[insert text here]
+house prices, linear models, regression, home investment, real estate
 
 $~$
 
