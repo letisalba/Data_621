@@ -121,6 +121,10 @@ library(dplyr)
 library(corrplot)
 library(MASS)
 library(dvmisc)
+library(car)
+library(lmtest)
+library(olsrr)
+library(caret)
 ```
 
 ### Load Data:
@@ -283,13 +287,18 @@ fun_clean_df <- function(df) {
   df <- df %>%
     mutate(bed2 = ifelse(bedrooms == 2,1,0)) %>%
     mutate(bed3 = ifelse(bedrooms == 3,1,0)) %>%
-    mutate(bed4plus = ifelse(bedrooms >= 4,1,0)) %>% dplyr::select(-bedrooms) %>%
+    mutate(bed4 = ifelse(bedrooms == 4,1,0)) %>%
+    mutate(bed5 = ifelse(bedrooms == 5,1,0)) %>%
+    mutate(bed6plus = ifelse(bedrooms >= 6,1,0)) %>% dplyr::select(-bedrooms) %>%
     mutate(bath2 = ifelse(bathrooms == 2,1,0)) %>%
-    mutate(bath3plus = ifelse(bathrooms >= 3,1,0)) %>% dplyr::select(-bathrooms) %>%
+    mutate(bath3 = ifelse(bathrooms == 3,1,0)) %>%
+    mutate(bath4plus = ifelse(bathrooms >= 4,1,0)) %>% dplyr::select(-bathrooms) %>%
     mutate(floor2 = ifelse(stories == 2,1,0)) %>%
-    mutate(floor3plus = ifelse(stories >= 3,1,0)) %>% dplyr::select(-stories) %>%
+    mutate(floor3 = ifelse(stories == 3,1,0)) %>%
+    mutate(floor4plus = ifelse(stories >= 4,1,0)) %>% dplyr::select(-stories) %>%
     mutate(car1 = ifelse(parking == 1,1,0)) %>%
-    mutate(car2plus = ifelse(parking >= 2,1,0)) %>% dplyr::select(-parking) %>%
+    mutate(car2 = ifelse(parking == 2,1,0)) %>% 
+    mutate(car3plus = ifelse(parking >= 3,1,0)) %>% dplyr::select(-parking) %>%
     mutate(semifurnished = ifelse(furnishingstatus == 'semi-furnished',1,0)) %>%
     mutate(furnished = ifelse(furnishingstatus == 'furnished',1,0)) %>% dplyr::select(-furnishingstatus) %>%
     mutate(mainroad = ifelse(mainroad == 'yes',1,0)) %>%
@@ -307,7 +316,7 @@ dftrain_clean <- fun_clean_df(dftrain)
 
 ### Data Visualization:
 
-Visually evaluation:
+Visual evaluation:
 ```{r, echo=FALSE, fig.width=11}
 
 # Compare quantitative variables
@@ -354,14 +363,12 @@ After cleaning the dataset looking at a correlation plot will give us confirmati
 
 ```{r corplot, warning=FALSE, message=FALSE}
 cor_res <- cor(dftrain_clean)
-
 corrplot(cor_res,
          type = "lower",
          order = "original",
          tl.col = "black",
          tl.srt = 50,
          tl.cex = 1)
-
 ```
 
 The correlation plot generally confirms our initial expectations for the data. 
@@ -375,10 +382,11 @@ $~$
 
 ```{r}
 #partition data
-set.seed(10000)
-train.index <- sample(c(1:dim(dftrain_clean)[1]), dim(dftrain_clean)[1]*0.8)
-model_lin_train = dftrain_clean[train.index,]
-model_lin_valid <- dftrain_clean[-train.index,]
+#set.seed(10000)
+#train.index <- sample(c(1:dim(dftrain_clean)[1]), dim(dftrain_clean)[1]*0.8)
+#model_lin_train = dftrain_clean[train.index,]
+#model_lin_valid <- dftrain_clean[-train.index,]
+model_lin_train <- dftrain_clean
 ```
 
 
@@ -401,19 +409,185 @@ summary(lm_mod2)
 ```{r, echo=FALSE, warning=FALSE}
 ## reduce collinearity, and remove low values
 
-lm_mod3 <- lm(price ~ area + 
-                  guestroom + bath2  + bath3plus + floor2 + 
-                  floor3plus + car1 + car2plus + 
-                  semifurnished + furnished + 
-                   ac + neighborhood, 
-            data = model_lin_train)
+lm_mod3 <- lm(price ~ area + guestroom + basement + bath2 + bath3 + 
+    bath4plus + floor2 + floor3 + floor4plus + car1 + car2 + 
+    car3plus + semifurnished + furnished + ac + neighborhood 
+    - car3plus - bed2, 
+    data = model_lin_train)
 summary(lm_mod3)
 ```
-
 
 $~$
 
 ### Model Selection:
+
+Verify linear modeling assumptions:
+```{r, fig.width=12, echo=FALSE, warning=FALSE, message=FALSE}
+
+# Define function to calculate mean squared error
+calc_mse <- function(lmod) {
+  return(mean((summary(lmod))$residuals ^ 2))
+}
+
+# Define function to aid in model analysis
+ModelAnalysis <- function(lmod) {
+
+  # Plot residuals
+  print('--------------------------------------------------')
+  print(lmod$call)
+  par(mfrow=c(2,2))
+  plot(lmod)
+  print('')
+
+  # Shapiro test to determine normality of residuals
+  # Null hypothesis: the residuals are normal.
+  # If the p-value is small, reject the null, i.e., consider the residuals *not* normally distributed.
+  if (length(lmod$fitted.values) > 3 & length(lmod$fitted.values) < 5000) {
+      st <- shapiro.test(lmod$residuals)
+      if (st$p.value <= 0.05) {
+        print(paste0("Shapiro test for normality: The p-value of ", st$p.value, " is <= 0.05, so reject the null; i.e., the residuals are NOT NORMAL"))
+      } else {
+        print(paste0("Shapiro test for normality: The p-value of ", st$p.value, " is > 0.05, so do not reject the null; i.e., the residuals are NORMAL"))
+      }
+      print('')
+  } else {
+      print("Shapiro test for normality of residuals cannot be performed; sample length must be between 3 and 5000.")
+  }
+     
+  # Breusch-Pagan test to determine homoschedasticity of residuals
+  # Null hypothesis: the residuals are homoschedastic.
+  # If the p-value is small, reject the null, i.e., consider the residuals heteroschedastic.
+  bp <- bptest(lmod)
+  if (bp$p.value > 0.05 & bp$statistic < 10) {
+      print(paste0("Breusch-Pagan test for homoschedasticity: The p-value of ", bp$p.value, " is > 0.05 and the test statistic of ", bp$statistic,
+          " is < 10, so don't reject the null; i.e., the residuals are HOMOSCHEDASTIC."))
+  } else if (bp$p.value <= 0.05) {
+      print(paste0("Breusch-Pagan test for homoschedasticity: The p-value of ", bp$p.value, " is <= 0.05 and the test statistic is ", bp$statistic,
+          ", so reject the null; i.e., the residuals are HETEROSCHEDASTIC."))
+  } else {
+      print(paste0("Breusch-Pagan test for homoschedasticity: The p-value of ", bp$p.value, " and test statistic of ", bp$statistic,
+          " are inconclusive, so homoschedasticity can't be determined using this test. But since the p-value is > 0.05, ",
+          "it is reasonable to conclude that the residuals are HOMOSCHEDASTIC."))
+  }
+  print('')
+
+  # Visually look for colinearity - dont do this for large models
+  #pairs(model.matrix(lmod))
+
+  # Variance inflation factor (VIF)
+  print('Variance inflation factor (VIF)')
+  print('<=1: not correlated, 1-5: moderately correlated, >5: strongly correlated')
+  print(sort(vif(lmod), decreasing=T))
+  print('')
+  
+  # Standardized residual plots (look for points outside of 2 or 3 stdev)
+  p <- length(summary(lmod)$coeff[,1] - 1)  # number of model parameters
+  stanres <- rstandard(lmod)
+  for (i in seq(1, ceiling(p / 4))) {
+    par(mfrow=c(2,2))
+    starti <- ((i - 1) * 4) + 1
+    for (j in seq(starti, starti + 3)) {
+      if (j + 1 <= ncol(model.matrix(lmod))) {
+        # Skip these plots since we're pretty sure that a linear model isn't valid here
+        #plot(model.matrix(lmod)[, j + 1], stanres, xlab=colnames(model.matrix(lmod))[j + 1], ylab='Standardized residuals')
+        #abline(h=c(-2, 2), lt=3, col='blue')
+        #abline(h=c(-3, 3), lt=2, col='red')
+      }
+    }
+  }
+  
+  # Model scores
+  print('Model scores:')
+  print(paste0('    adjusted R-squared: ', round(summary(lmod)$adj.r.squared, 3)))
+  print(paste0('    AIC: ', round(AIC(lmod, k=2), 3)))
+  print(paste0('    BIC: ', round(BIC(lmod), 3)))
+  print(paste0('    Mallow\'s Cp: ', round(ols_mallows_cp(lmod, fullmodel=lmod), 3)))
+  print(paste0('    mean squared error: ', round(calc_mse(lmod), 3)))
+  print('')
+  
+  # Find leverage point cutoff
+  n <- length(lmod$residuals)
+  cutoff <- 2 * (p + 1) / n
+  print(paste0('Leverage point cutoff: ', cutoff))
+  print('')
+
+  # Show points of influence
+  print('First 10 points of influence:')
+  poi <- lm.influence(lmod)$hat
+  len_poi <- length(poi)
+  ct <- 0
+  for (i in seq(1, length(poi))) {
+    if (poi[i] > cutoff) {
+      ct <- ct + 1
+      print(paste0('    case #', i, ': ', round(poi[i], 3)))
+    }
+        if (ct > 10) {
+            break
+        }
+  }
+  print('')
+  
+}
+
+# Analysis on the two step-reduced models
+ModelAnalysis(lm_mod2)
+ModelAnalysis(lm_mod3)
+
+```
+
+Due to non-normal distribution and heteroschedasticity of residuals, try a transform. Use Box-Cox to estimate what kind of transform is appropriate.
+```{r}
+
+# Box-Cox transform on price
+bc1 <- powerTransform(price ~ ., data=model_lin_train)
+bc1
+
+# Box-Cox result suggests doing a log transform on price
+lm_mod4 <- lm(log(price) ~ ., data=model_lin_train)
+summary(lm_mod4)
+lm_mod5 <- stepAIC(lm_mod4, trace=F)
+summary(lm_mod5)
+ModelAnalysis(lm_mod5)
+
+```
+
+Investigate outliers.
+```{r}
+
+# Investigate top outliers
+#model_lin_train[c(24, 41, 58, 63, 178, 194, 213, 224, 238, 244, 264),]
+model_lin_train[c(2, 5, 9, 25, 49, 62, 77, 103, 110, 136, 210),]
+
+```
+
+Investigation of outliers reveals no obvious pattern, so we have to assume there is some other variable at play that we don't have data for (e.g. high-end appliances, presence of a pool, property condition, etc). Well' remove the outliers and re-run model.
+```{r}
+
+# Log transform on price with outliers removed
+lm_mod6 <- lm(formula(lm_mod5), 
+    data = model_lin_train[c(-2, -5, -9, -25, -49, -62, -77, -103, -110, -136, -210),])
+summary(lm_mod6)
+lm_mod7 <- stepAIC(lm_mod6, trace=F)
+summary(lm_mod7)
+ModelAnalysis(lm_mod7)
+
+# Create new data set with outliers removed
+dftrain2 <- model_lin_train[c(-2, -5, -9, -25, -49, -62, -77, -103, -110, -136, -210),]
+
+```
+
+Perform five-fold cross validation to validate our results.
+```{r}
+
+# Five-fold cross validation
+set.seed(777)
+tc <- trainControl(method = "cv", number = 5)
+lmcv <- train(formula(lm_mod9), data=dftrain2, method="lm", trControl=tc)
+print(lmcv)
+summary(lmcv)
+
+```
+
 
 ```{r, echo=FALSE}
 
