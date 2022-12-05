@@ -583,7 +583,7 @@ ModelAnalysis(lm_mod2)
 
 As shown, the residuals are heteroschedastic and exhibit a clearly defined pattern. While the Shapiro test for normality couldn't be performed due to the sample size, the QQ plot shows visually that the residuals are not normally distributed.
 
-Now we'll see if the Poisson models exhibit any overdispersion, which could lead us to invalidate the models and go with the negative binomial model instead. This can be done by dividing the residual deviance by the degrees of freedom.
+Now we'll see if the Poisson models exhibit any over dispersion, which could lead us to invalidate the models and go with the negative binomial model instead. This can be done by dividing the residual deviance by the degrees of freedom.
 
 ```{r echo=FALSE}
 op1 <- p_mod1$deviance / p_mod1$df.residual
@@ -592,7 +592,7 @@ print(paste0('Poisson model 1 overdispersion: ', op1))
 print(paste0('Poisson model 2 overdispersion: ', op2))
 ```
 
-Since the overdispersion parameter isn't much greater than 1 (generall, less than 1.10), this suggests that the poisson model is a good fit, and we can be relatively confident that we don't need to go with the negative binomial.
+Since the over dispersion parameter isn't much greater than 1 (general, less than 1.10), this suggests that the poisson model is a good fit, and we can be relatively confident that we don't need to go with the negative binomial.
 
 Now we'll check the model accuracy by predicting the number of cases sold based on our model parameters. Since we're dealing with whole cases of wine, we'll round the prediction to the nearest integer.
 
@@ -788,9 +788,7 @@ print(paste0('Max accuracy is ', max_acc, ' when p=', p_max_acc))
 
 ```
 
-
-
-
+$~$
 
 Prediction from optimal model:
 ```{r, echo=FALSE}
