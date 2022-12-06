@@ -587,7 +587,7 @@ Run selected model against validation set.
 ```{r, echo=FALSE}
 
 # Huber robust linear regression
-lm_valid1 <- lm(formula(lm_mod7), data=dfeval_clean)
+lm_valid1 <- rlm(formula(lm_mod7), data=dfeval_clean)
 
 # New linear model using Huber weights
 lm_valid2 <- lm(formula(lm_mod7), weights=lm_valid1$w, data=dfeval_clean)
