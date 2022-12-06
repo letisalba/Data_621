@@ -112,7 +112,28 @@ Because of these issues, we chose to run a Box-Cox transformation to give us an 
 
 To evaluate the non-normality issue, we examined the most significant outliers (Table 2). There were no obvious indications of a pattern that may have reflected some problem with the model. This could indicate that there are one or more additional variables at play that influence price but are not present in our data set, for example high-end appliances or fixtures, the presence of a pool, or the condition of the property. To attempt to correct for the problem of non-normality, we removed the ten most significant outliers and reran the model, again step-reducing the model to remove non-significant predictors. Unfortunately, the residuals remained non-normally distributed (Figure 10).
 
+In a further attempt to account for the normality problem, we ran a robust linear regression model against the dataset, which yielded a set of weights that we plugged into our linear model. Most weights were 1.0 (Figure 11), indicating that the majority of observations did not need any weighting. The model yielded a significant increase in adjusted R-squared (0.71 compared with 0.68 on the previous run). However, we still had the problem of non-normality of residuals (Figure 12). We tried again to remove the most significant outliers, but that neither increased the adjusted R-squared value nor removed the non-normality issue (Figure 13). To evalutate whether this would invalidate our model, we consulted the literature and found that there is good precedent for ignoring non-normally distributed residuals in datasets that have at least 10 observations per variable (Schmidt, 2018). Since our dataset contains at least that many observations, we can reasonably conclude that the problem of non-normality can be ignored for the purposes of our evaluation.
 
+Based on this assumption, we performed five-fold cross-validation of the model. The adjusted R-squared value remained at 0.71. The final model used a log transformation of price against the following significant predictors:
+
+* area
+* mainroad
+* guestroom
+* basement
+* bed3
+* bed4
+* bath2
+* floor2
+* floor3
+* floor4plus
+* car1
+* car2
+* semifurnished
+* furnished
+* ac
+* neighborhood
+
+Using the final model parameters, we generated the predicted prices in the training data and graphed the data against the actual price (Figure 14). This shows a visually good fit. We then repeated the procedure against the validation dataset, analyzed the residuals (Figure 15), and generated an adjusted R-squared value of 0.71, confirming that our model performed equally well against the validation set. Figure 16 visually confirmed the fit. Table 3 summarizes the results of our model runs.
 
 
 $~$
