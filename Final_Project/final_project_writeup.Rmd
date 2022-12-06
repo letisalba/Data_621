@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
-# **House Prices Prediction**
+# **House Prices**
 
 ### CUNY SPS DATA 621
 
@@ -22,8 +22,6 @@ knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 $~$
 
 ## Abstract
-
-Use 250 words or less to summarize your problem, methodology, and major outcomes.
 
 Many dream about their first home, where to buy, how many bedrooms or baths, if it should include a pool or a large backyard, and how much buying a home will cost. With the housing market affected by factors such as mortgage rates, inflation, or economic recession, housing prices have risen dramatically over the years. In this project, we built a model to predict housing prices based on such factors as house area, number of bedrooms, whether it is furnished, nearness to a main road, and the presence of amenities like basements and guest houses. We used a multivariate linear model against a data set of 545 houses. We augmented the model by performing log transformation on the response variable (price) and by Huber-weighting the model by performing robust regression. Based on our model analysis, the basic assumptions of linear modeling are valid, with the exception of the presence of non-normally distributed residuals. However, this is less of an issue if the data set is large enough compared to the number of predictors. The resulting model performed reasonably well, yielding an adjusted R-squared value of 0.710 against our training data and 0.709 against the validation set. Confounding factors may be present but missing from the data set, as there were some outliers that could not be explained by any of the available predictors. Future work could be performed to generate a richer data set with additional explanatory variables.
 
@@ -170,31 +168,32 @@ $~$
 
 ### Appendix A. Figures:
 ```{r, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig1.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig2.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig3.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig4.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig5.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig6.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig7.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig8.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig9.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig10.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig11.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig12.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig13.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig14.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig15.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig16.png")
+wd <- "C:/Users/micha/Box Sync/cuny/621-bus-analytics/project/figs/"
+knitr::include_graphics(paste0(wd, "fig1.png"))
+knitr::include_graphics(paste0(wd, "fig2.png"))
+knitr::include_graphics(paste0(wd, "fig3.png"))
+knitr::include_graphics(paste0(wd, "fig4.png"))
+knitr::include_graphics(paste0(wd, "fig5.png"))
+knitr::include_graphics(paste0(wd, "fig6.png"))
+knitr::include_graphics(paste0(wd, "fig7.png"))
+knitr::include_graphics(paste0(wd, "fig8.png"))
+knitr::include_graphics(paste0(wd, "fig9.png"))
+knitr::include_graphics(paste0(wd, "fig10.png"))
+knitr::include_graphics(paste0(wd, "fig11.png"))
+knitr::include_graphics(paste0(wd, "fig12.png"))
+knitr::include_graphics(paste0(wd, "fig13.png"))
+knitr::include_graphics(paste0(wd, "fig14.png"))
+knitr::include_graphics(paste0(wd, "fig15.png"))
+knitr::include_graphics(paste0(wd, "fig16.png"))
 ```
 
 
 ### Appendix B. Tables:
 
 ```{r, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/table1.bmp")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/table2.bmp")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/table3.bmp")
+knitr::include_graphics(paste0(wd, "table1.png"))
+knitr::include_graphics(paste0(wd, "table2.png"))
+knitr::include_graphics(paste0(wd, "table3.png"))
 ```
 
 
@@ -571,6 +570,8 @@ colnames(dfresult) <- hdr
 dfresult %>%
     kable(caption = "<font color=#000000><b>Table 3.</b> Summary of results</font>") %>% 
     kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 13)
+
+
 
 ```
 
