@@ -104,7 +104,7 @@ It is important to recognize that this dataset contains homes with prices above 
 
 # Draw a histogram to figure out the distribution of Sale Price
 options(scipen=10000)
-ggplot(dftrain_clean, aes(x = price / 10^6, fill = ..count..)) +
+ggplot(dftrain, aes(x = price / 10^6, fill = ..count..)) +
   geom_histogram() +
   ggtitle("Figure 1. Histogram of Price") +
   ylab("Count of houses") +
@@ -122,7 +122,7 @@ The area variable appears to be square footage of the home. We would traditional
 
 # Draw a histogram to figure out the distribution of Area
 options(scipen=10000)
-ggplot(dftrain_clean, aes(x = area, fill = ..count..)) +
+ggplot(dftrain, aes(x = area, fill = ..count..)) +
   geom_histogram() +
   ggtitle("Figure 2. Histogram of Area") +
   ylab("Count of houses") +

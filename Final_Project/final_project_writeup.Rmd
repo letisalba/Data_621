@@ -60,6 +60,8 @@ Our dataset consists of 545 records obtained from Kaggle (H, 2017). First, we as
 * Independence of predictors
 * Linearity of fit
 
+To evaluate normality of residuals, we used the Shapiro test for normality. We used the Breusch-Pagan test to evalute homoschedasticity of residuals. In addition, we examined colinearity problems by looking at variance inflation factors (VIFs). We also evaluated outliers by looking at hat values and comparing them to the a cutoff point based on 2 * (p + 1) / n, where p is the number of parameters and n is the number of observations
+
 Based on our initial modeling attempts, there were no problems with linearity of fit or colinearity among the predictors. However, it was evident that the residuals were heteroschedastic and not normally distributed. We attempted to correct for these problems by applying a log transformation to the response variable (price). While this did yield homoschedastic residuals, they remained non-normally distributed. To attempt to correct for this, we attempted a Huber-weighted robust model. While this didn't fully correct the issue, we note that in larger datasets, non-normality of residuals doesn't significant affect model results (Schmidt, 2018), particularly those in which the number of records exceeds ten times the number of predictors. We also examined outliers to evaluate whether there was any trend evident in the data. However, we could discern none, and, therefore, we removed the most significant outliers to attempt a better fit.
 
 
@@ -69,7 +71,7 @@ $~$
 
 Once we started our data exploration process we found the following: 
 
-* The data is composed of 545 observations and 13 variables
+* The data is composed of 545 observations and 13 variables (Table 1)
 * There were no missing values
 * We had to split the data into 70-30 ratio to be able to have a training and evaluation data sets.
 * This dataset contains homes with prices above 1 million.
@@ -88,23 +90,29 @@ We looked into each variable individually and found the following:
   * The air conditioning variable indicates if the house has central air conditioning. We would expect homes with air conditioning would have a higher price than those without. The variable will be replaced with a dummy variable.
   * The dataset source doesn’t specify exactly what the "prefarea" variable represents. We are assuming that this is a yes/no value indicating whether the house is in a preferred neighborhood. We would expect houses with a yes to be higher price than those not.
 
-Histograms of price and area exhibited a noticeable right skew (Figures 1 and 2, respectively), indicating that the data set contains homes that are smaller and lower in value. A correlation plot (Figure 3) of predictor variables indicates no obvious signs of colinearity. As shown in the figure, price increases with square footage, which makes intuitive sense. Boxplots (Figures 4 and 5) show that pricier homes had guestrooms, basements, air conditioning, four bedrooms, four stories, two-car garages, and two or more bathrooms. It also made sense that unfurnished homes in preferred areas had significantly higher median values. Surprisingly, houses with five and six bedrooms had median values below houses with only four bedrooms. It was also surprising that homes with three-car garages had median prices below those with only two-car garages. Also counter-intuitively, house on a main road increased the median home value. This could indicate that we misinterpreted the variable and that it perhaps indicates that a main road is only readily accessible, rather than in close proximity.
 
 $~$
 
-Once we were ready to start with the data preparation process and knowing there were no missing variables, we decided to introduce a clean function to replace our categorical variables with the dummy values. This also ensured that our test and train datasets are processed in the same way.
+Once we were ready to start with the data preparation process and knowing there were no missing variables, we introduced a cleaning function to replace our categorical variables with the dummy values. This also ensured that our test and train datasets are processed in the same way. Plots of the cleaned training set were prepared to visually evaluate the data.
 
-Visualizations were also created to ensure that our clean function can help tell a story with our plots.
+Histograms of price and area exhibited a noticeable right skew (Figures 1 and 2, respectively), indicating that the data set contains homes that are smaller and lower in value. A correlation plot (Figure 3) of predictor variables indicates no obvious signs of colinearity. As shown in the figure, price increases with square footage, which makes intuitive sense. Boxplots (Figures 4 and 5) show that pricier homes had guestrooms, basements, air conditioning, four bedrooms, four stories, two-car garages, and two or more bathrooms. It also made sense that unfurnished homes in preferred areas had significantly higher median values. Surprisingly, houses with five and six bedrooms had median values below houses with only four bedrooms. It was also surprising that homes with three-car garages had median prices below those with only two-car garages. Also counter-intuitively, house on a main road increased the median home value. This could indicate that we misinterpreted the variable and that it perhaps indicates that a main road is only readily accessible, rather than in close proximity. A correlation plot (Figure 6) visually confirms the relationships between variables.
+
 
 $~$
 
 The model-building process started with three models created.
+
 * Model 1 `lm_mod1` was run against the whole data set and yielded an Adjusted R-squared of 0.6755
 * Model 2 `lm_mod2` used stepAIC and generated an Adjusted R-squared of 0.6767
 * Model 3 `lm_mod3` was created to reduce colinearity and remove low values and yielded an Adjusted R-squared of 0.6703
 
-We developed a function to validate the underlying assumptions of the linear model and evaluated each model against the function. We concluded that the 
- 
+We developed a function to validate the underlying assumptions of the linear model and evaluated each model against the function. We concluded that residuals were neither normally distributed nor homoschedastic, presenting a problem with the underlying assumptions (Figures 7 and 8). This is confirmed quantitatively using the Shapiro test for normality, which yielded a p-value of 1.33x$10^{11}$. We used the Breusch-Pagan test for homoschedasticity which also yielded a low p-value (9.25x$10^8$), confirming that the residuals are heteroschedastic.
+
+Because of these issues, we chose to run a Box-Cox transformation to give us an idea of whether a transformation of the response variable would be appropriate. The Box-Cox transform resulted in a value of 0.082 on the price variable, indicating that a log transformation would be appropriate. A new model was run and step-reduced, transforming price to use a log scale. While the Shapiro test for normality yielded a higher p-value (0.0274), it still indicated that the residuals were not normally distributed. However, the Breusch-Pagan test resulted in a p-value of 0.221, indicating that the residuals were homoschedastic, a key validation factor. Further, the highest VIF was 2.04, indicating only slight colinearity among some variables. Figure 9 shows the residual analysis visually.
+
+To evaluate the non-normality issue, we examined the most significant outliers (Table 2). There were no obvious indications of a pattern that may have reflected some problem with the model. This could indicate that there are one or more additional variables at play that influence price but are not present in our data set, for example high-end appliances or fixtures, the presence of a pool, or the condition of the property. To attempt to correct for the problem of non-normality, we removed the ten most significant outliers and reran the model, again step-reducing the model to remove non-significant predictors. Unfortunately, the residuals remained non-normally distributed (Figure 10).
+
+
 
 
 $~$
