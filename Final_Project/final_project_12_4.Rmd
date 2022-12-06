@@ -365,7 +365,6 @@ $~$
 #### MLR Model 3
 ```{r, echo=FALSE, warning=FALSE}
 # reduce collinearity, and remove low values
-
 lm_mod3 <- lm(price ~ area + guestroom + basement + bath2 + bath3 + 
     bath4plus + floor2 + floor3 + floor4plus + car1 + car2 + 
     car3plus + semifurnished + furnished + ac + neighborhood 
