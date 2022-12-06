@@ -7,11 +7,10 @@ output:
     toc_float: yes
   pdf_document:
     dev: cairo_pdf
-    toc: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
 ## **House Prices**
@@ -21,9 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### GROUP 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar
 
-------------------------------------------------------
-
-START OF OUR CODING HERE! WILL NOT SHOW FOR PDF VERSION
+$~$
 
 ### Load Libraries:
 
@@ -39,6 +36,7 @@ library(lmtest)
 library(olsrr)
 library(caret)
 library(kableExtra)
+library(hrbrthemes)
 ```
 
 ### Load Data:
@@ -54,6 +52,7 @@ set.seed(1)
 sample <- sample(c(TRUE, FALSE), nrow(house_prices), replace=TRUE, prob=c(0.7,0.3))
 dftrain  <- house_prices[sample, ]
 dfeval   <- house_prices[!sample, ]
+
 
 head(dftrain) %>%
     kable(caption = "<font color=#000000><b>Table 1.</b> Training data sample</font>") %>% 
@@ -109,7 +108,8 @@ ggplot(dftrain, aes(x = price / 10^6, fill = ..count..)) +
   ggtitle("Figure 1. Histogram of Price") +
   ylab("Count of houses") +
   xlab("Housing Price in Millions") + 
-  theme(plot.title = element_text(hjust = 0.9))
+  theme(plot.title = element_text(hjust = 0.9)) +
+  theme_ipsum()
 
 ```
 
@@ -127,7 +127,8 @@ ggplot(dftrain, aes(x = area, fill = ..count..)) +
   ggtitle("Figure 2. Histogram of Area") +
   ylab("Count of houses") +
   xlab("Area in Square Feet") + 
-  theme(plot.title = element_text(hjust = 0.9))
+  theme(plot.title = element_text(hjust = 0.9)) +
+  theme_ipsum()
 
 ```
 
@@ -149,6 +150,7 @@ Similar to the number of bedrooms, we would expect that an increase in bathroom 
 
 ```{r bathrooms, echo=FALSE}
 dftrain %>% count(bathrooms)
+
 ```
 
 Based on the distribution of the number of bathrooms, it may be best to categorize these with dummy variables; 2, and 3+.
@@ -160,6 +162,7 @@ Similar to the number of bedrooms and bathrooms, it would seem to make sense to 
 
 ```{r stories, echo=FALSE}
 dftrain %>% count(stories)
+
 ```
 
 $~$
@@ -169,6 +172,7 @@ We are assuming that the parking variable represents the size of a garage. Simil
 
 ```{r parking, echo=FALSE}
 dftrain %>% count(parking)
+
 ```
 
 $~$
@@ -313,7 +317,7 @@ $~$
 
 After cleaning the dataset looking at a correlation plot will give us confirmation about our initial examination for the variables.
 
-```{r corplot, warning=FALSE, message=FALSE}
+```{r corplot, warning=FALSE, message=FALSE, echo=FALSE}
 cor_res <- cor(dftrain_clean)
 corrplot(cor_res,
          type = "lower",
@@ -322,6 +326,7 @@ corrplot(cor_res,
          tl.srt = 50,
          tl.cex = 1,
          main = "Figure 6. Correlation Plot")
+
 ```
 
 The correlation plot generally confirms our initial expectations for the data. 
@@ -554,7 +559,8 @@ ggplot(dftmp, aes(x = huber_weight, fill = ..count..)) +
   ggtitle("Figure 11. Histogram of Huber Weights") +
   ylab("Frequency") +
   xlab("Huber weight") + 
-  theme(plot.title = element_text(hjust = 0.9))
+  theme(plot.title = element_text(hjust = 0.9)) +
+  theme_ipsum()
 
 # New linear model using Huber weights
 lm_mod9 <- lm(formula(lm_mod7), weights=lm_mod8$w, data=model_lin_train)
@@ -586,7 +592,7 @@ summary(lmcv)
 $~$
 
 Compare predicted price to actual price for the training data.
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE}
 
 # Compare predicted price to actual (training data)
 model_lin_train$pred_price <- exp(predict(lm_mod10, weights=lm_mod8$w, data=model_lin_train, interval='prediction')[,1])
@@ -594,7 +600,8 @@ model_lin_train %>% ggplot(mapping=aes(x=price, y=pred_price)) +
     geom_point() +
     geom_smooth(method='lm', se=T) +
     xlab('Price') + ylab('Predicted Price') +
-    ggtitle('Figure 14. Predicted Price vs Price (Training Data)')
+    ggtitle('Figure 14. Predicted Price vs Price (Training Data)') +
+  theme_ipsum()
 
 ```
 
@@ -616,7 +623,7 @@ ModelAnalysis(lm_valid2, 'Figure 15. Residual Analysis - Validation Set')
 $~$
 
 Compare predicted price to actual price for the evaluation data.
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE}
 
 # Compare predicted price to actual (eval data)
 dfeval_clean$pred_price <- exp(predict(lm_valid2, weights=lm_valid1$w, data=dfeval_clean, interval='prediction')[,1])
@@ -624,7 +631,8 @@ dfeval_clean %>% ggplot(mapping=aes(x=price, y=pred_price)) +
     geom_point() +
     geom_smooth(method='lm', se=T) +
     xlab('Price') + ylab('Predicted Price') +
-    ggtitle('Figure 16. Predicted Price vs Price (Validation Data)')
+    ggtitle('Figure 16. Predicted Price vs Price (Validation Data)') +
+  theme_ipsum()
 
 ```
 

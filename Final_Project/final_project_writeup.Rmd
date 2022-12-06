@@ -1,12 +1,12 @@
 ---
 output:
-  pdf_document:
-    dev: cairo_pdf
   html_document:
     theme: flatly
     highlight: textmate
     toc: yes
     toc_float: yes
+  pdf_document:
+    dev: cairo_pdf
 ---
 
 ```{r setup, include=FALSE}
@@ -187,6 +187,7 @@ knitr::include_graphics(paste0(wd, "fig15.png"))
 knitr::include_graphics(paste0(wd, "fig16.png"))
 ```
 
+$~$
 
 ### Appendix B. Tables:
 
@@ -196,6 +197,7 @@ knitr::include_graphics(paste0(wd, "table2.png"))
 knitr::include_graphics(paste0(wd, "table3.png"))
 ```
 
+$~$
 
 ### Appendix C. R Code:
 ```{r code, eval=FALSE}
@@ -211,6 +213,7 @@ library(lmtest)
 library(olsrr)
 library(caret)
 library(kableExtra)
+library(hrbrthemes)
 
 # Load data
 house_prices <- read.csv("https://raw.githubusercontent.com/letisalba/Data_621/master/Final_Project/csv/Housing.csv")
@@ -227,6 +230,7 @@ head(dftrain) %>%
     kable(caption = "<font color=#000000><b>Table 1.</b> Training data sample</font>") %>% 
     kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 13)
 
+# data exploration
 str(dftrain)
 
 str(dfeval)
@@ -242,7 +246,8 @@ ggplot(dftrain, aes(x = price / 10^6, fill = ..count..)) +
   ggtitle("Figure 1. Histogram of Price") +
   ylab("Count of houses") +
   xlab("Housing Price in Millions") + 
-  theme(plot.title = element_text(hjust = 0.9))
+  theme(plot.title = element_text(hjust = 0.9)) +
+  theme_ipsum()
 
 # Draw a histogram to figure out the distribution of Area
 options(scipen=10000)
@@ -251,7 +256,8 @@ ggplot(dftrain, aes(x = area, fill = ..count..)) +
   ggtitle("Figure 2. Histogram of Area") +
   ylab("Count of houses") +
   xlab("Area in Square Feet") + 
-  theme(plot.title = element_text(hjust = 0.9))
+  theme(plot.title = element_text(hjust = 0.9)) +
+  theme_ipsum()
 
 # Counts of categorical variables
 dftrain %>% count(bedrooms)
@@ -499,7 +505,8 @@ ggplot(dftmp, aes(x = huber_weight, fill = ..count..)) +
   ggtitle("Figure 11. Histogram of Huber Weights") +
   ylab("Frequency") +
   xlab("Huber weight") + 
-  theme(plot.title = element_text(hjust = 0.9))
+  theme(plot.title = element_text(hjust = 0.9)) +
+  theme_ipsum()
 
 # New linear model using Huber weights
 lm_mod9 <- lm(formula(lm_mod7), weights=lm_mod8$w, data=model_lin_train)
@@ -525,7 +532,8 @@ model_lin_train %>% ggplot(mapping=aes(x=price, y=pred_price)) +
     geom_point() +
     geom_smooth(method='lm', se=T) +
     xlab('Price') + ylab('Predicted Price') +
-    ggtitle('Figure 14. Predicted Price vs Price (Training Data)')
+    ggtitle('Figure 14. Predicted Price vs Price (Training Data)') +
+  theme_ipsum()
 
 # Huber robust linear regression
 lm_valid1 <- rlm(formula(lm_mod7), data=dfeval_clean)
@@ -541,7 +549,8 @@ dfeval_clean %>% ggplot(mapping=aes(x=price, y=pred_price)) +
     geom_point() +
     geom_smooth(method='lm', se=T) +
     xlab('Price') + ylab('Predicted Price') +
-    ggtitle('Figure 16. Predicted Price vs Price (Validation Data)')
+    ggtitle('Figure 16. Predicted Price vs Price (Validation Data)') +
+  theme_ipsum()
 
 # Model comparison
 hdr <- c('#', 'Train/Validation', 'Linear/Robust', 'Full/Step-reduced', 'Log Transform', 
