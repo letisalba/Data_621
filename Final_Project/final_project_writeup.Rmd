@@ -74,9 +74,9 @@ Once we started our data exploration process we found the following:
 * We had to split the data into 70-30 ratio to be able to have a training and evaluation data sets.
 * This dataset contains homes with prices above 1 million.
 
-We looked into each variable indvidually and found the following:
+We looked into each variable individually and found the following:
 
-  * Based on the distribution of the number of Bedrooms, it may be best to categorize these with dummy variables; 2, 3, and 4+.
+  * Based on the distribution of the number of bedrooms, it may be best to categorize these with dummy variables; 2, 3, and 4+.
   * Based on the distribution of the number of bathrooms, it may be best to categorize these with dummy variables; 2, and 3+.
   * Based on the distribution of stories, it would seem to make sense to classify homes with 3 or more floors together by introducing dummy variables; 2, and 3+.
   * It would initially seem to make sense to introduce dummy variables; 1, and 2+.
@@ -86,22 +86,24 @@ We looked into each variable indvidually and found the following:
   * The basement variable is yes/no based on the home having a basement. It is unclear if having a basement or not would lead to an increase in home price, but we will replace this with a dummy variable for analysis.
   * Based on the distribution, we assume that the hot water heating variable represents if the house has in-floor heating, rather than forced air. Based on this assumption, we assume that having this feature would lead to higher house price. The variable will be replaced with a dummy variable for analysis.
   * The air conditioning variable indicates if the house has central air conditioning. We would expect homes with air conditioning would have a higher price than those without. The variable will be replaced with a dummy variable.
-  * The dataset source doesn’t specify exactly what this variable represents. We are assuming that this is a yes/no value if the house is in a preferred neighborhood. We would expect houses with a yes to be higher price than those not.
+  * The dataset source doesn’t specify exactly what the "prefarea" variable represents. We are assuming that this is a yes/no value indicating whether the house is in a preferred neighborhood. We would expect houses with a yes to be higher price than those not.
+
+Histograms of price and area exhibited a noticeable right skew (Figures 1 and 2, respectively), indicating that the data set contains homes that are smaller and lower in value. A correlation plot (Figure 3) of predictor variables indicates no obvious signs of colinearity. As shown in the figure, price increases with square footage, which makes intuitive sense. Boxplots (Figures 4 and 5) show that pricier homes had guestrooms, basements, air conditioning, four bedrooms, four stories, two-car garages, and two or more bathrooms. It also made sense that unfurnished homes in preferred areas had significantly higher median values. Surprisingly, houses with five and six bedrooms had median values below houses with only four bedrooms. It was also surprising that homes with three-car garages had median prices below those with only two-car garages. Also counter-intuitively, house on a main road increased the median home value. This could indicate that we misinterpreted the variable and that it perhaps indicates that a main road is only readily accessible, rather than in close proximity.
 
 $~$
 
-Once we were ready to start with the data preparation process and knowing there were no missing variables we decided to introduce a clean function to replace our categorical variables with the dummy values. This will also ensure that our test and train datasets are processed in the same way.
+Once we were ready to start with the data preparation process and knowing there were no missing variables, we decided to introduce a clean function to replace our categorical variables with the dummy values. This also ensured that our test and train datasets are processed in the same way.
 
 Visualizations were also created to ensure that our clean function can help tell a story with our plots.
 
 $~$
 
-The model building process started with three models created.
-* Model 1 `lm_mod1` is looking at the whole data set and has an Adjusted R-squared of 0.6755 
-* Model 2 `lm_mod2` using stepAIC we created the second model and has an Adjusted R-squared of 0.6767 
-* Model 3 `lm_mod3` was created to reduce collinearity and remove low values and has an Adjusted R-squared of 0.6703 
-  
+The model-building process started with three models created.
+* Model 1 `lm_mod1` was run against the whole data set and yielded an Adjusted R-squared of 0.6755
+* Model 2 `lm_mod2` used stepAIC and generated an Adjusted R-squared of 0.6767
+* Model 3 `lm_mod3` was created to reduce colinearity and remove low values and yielded an Adjusted R-squared of 0.6703
 
+We developed a function to validate the underlying assumptions of the linear model and evaluated each model against the function. We concluded that the 
  
 
 
