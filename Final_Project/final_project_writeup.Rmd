@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
-# **House Prices**
+# **House Prices Prediction**
 
 ### CUNY SPS DATA 621
 
@@ -170,29 +170,31 @@ $~$
 
 ### Appendix A. Figures:
 ```{r, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/distribution_prices.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/distribution_area.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/corrplot_1.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/corrplot_2.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/boxplot_1.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/boxplot_2.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/housing_price.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/corrplot_3.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_mod2.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_mod3.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_mod5.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_mod7.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/histogram_huber_weight.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_mod9.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_mod10.png")
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/lm_valid2.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig1.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig2.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig3.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig4.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig5.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig6.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig7.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig8.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig9.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig10.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig11.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig12.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig13.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig14.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig15.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/fig16.png")
 ```
 
 
 ### Appendix B. Tables:
 
 ```{r, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/model_comparison.png")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/table1.bmp")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/table2.bmp")
+knitr::include_graphics("/Users/letisalba/Desktop/Data_621/Final_Project/figs/table3.bmp")
 ```
 
 
@@ -569,8 +571,6 @@ colnames(dfresult) <- hdr
 dfresult %>%
     kable(caption = "<font color=#000000><b>Table 3.</b> Summary of results</font>") %>% 
     kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 13)
-
-
 
 ```
 
