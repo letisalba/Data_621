@@ -357,7 +357,7 @@ $~$
 
 #### MLR Model 3
 ```{r, echo=FALSE, warning=FALSE}
-## reduce collinearity, and remove low values
+# reduce collinearity, and remove low values
 
 lm_mod3 <- lm(price ~ area + guestroom + basement + bath2 + bath3 + 
     bath4plus + floor2 + floor3 + floor4plus + car1 + car2 + 
@@ -515,7 +515,7 @@ model_lin_train[c(2, 5, 9, 25, 49, 62, 77, 103, 110, 136, 210),]
 
 $~$
 
-Investigation of outliers reveals no obvious pattern, so we have to assume there is some other variable at play that we don't have data for (e.g. high-end appliances, presence of a pool, property condition, etc). Well' remove the outliers and re-run model.
+Investigation of outliers reveals no obvious pattern, so we have to assume there is some other variable at play that we don't have data for (e.g. high-end appliances, presence of a pool, property condition, etc). Well remove the outliers and re-run model.
 ```{r, echo=FALSE}
 
 # Log transform on price with outliers removed
