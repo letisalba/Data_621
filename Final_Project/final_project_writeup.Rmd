@@ -21,7 +21,8 @@ knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 
 $~$
 
-## Abstract: 
+## Abstract
+
 Use 250 words or less to summarize your problem, methodology, and major outcomes.
 
 Many dream about their first home, where to buy, how many bedrooms or baths, if it should include a pool or a large backyard and how much will buying a home cost. With the housing market being affected by factors such as mortgage rates, inflation, or economic recession, there is no doubt that the house pricing have risen dramatically over the years. Our project we will try to predict housing prices based on house area, bedrooms, furnished, nearness to mainroad and see if we can build a decent predictive model ...............
@@ -29,41 +30,42 @@ Many dream about their first home, where to buy, how many bedrooms or baths, if 
 
 $~$
 
-## Key words:
-Select a few key words (up to five) related to your work.
+## Key words
 
 house prices, linear models, regression, home investment, real estate
 
 $~$
 
 ## Introduction:
-Describe the background and motivation of your problem.
 
-The housing market pricing changes can be affected by factors such as mortgage rates, inflation, or economic recessions, to name a few. From 1950 to the present, we witness home price fluctuations, with some steady rising periods between 1950s to the late 1980s. According to the article from Better.com if we start analyzing the median home value we note that house price growth has risen 326.1% since 1950 with a current median home price of $336,900 (inflation-adjusted to 2020 dollars). There was a 90% drop in production of new homes before the Great Depression started and in 1956, President Dwight D. Eisenhower passed the Federal Aid Highway Act that enabled the possibility to access a suburban way of life. By 1960 the boom of home-ownership was greatly so that home prices started to increase. The Federal Housing Administration (FHA) created changes that allowed Americans to afford homes after WWII which contributed to the rise of home-ownership and prices. With a median home price increase of 42.8% by the 1970s, the US economy saw inflation rising and with that so did the housing market. Fast forward to the 1980s, there were high unemployment rates that impacted the mortgage interest rates to rise even more. During this time the median home price (inflation-adjusted to 2020 dollars) had an average interest rate for 30 year (fixed mortgage) of 13.7%. By 1990s, the recession had ended and the housing bubble burst affected only major cities like New York, Boston, Los Angeles, San Diego, Washington D.C., and San Francisco. Entering the 21st century, the average interest rate for 30 year (fixed mortgage) was down to 8.1% not expecting another recession. By 2008 the United States faced challenges that push more than 10 million of Americans to loose their homes and 9 million lost their jobs. In 2020, the average interest rate for 30 year (fixed mortgage) was 3.1% with a record setting year for housing prices. Now we can't forget the pandemic of COVID-19 that left many to work from home. How does this contribute to the housing prices? Due to the pandemic, housing prices rose once again only to drop in some cities where the demand for homes wasn't as high. It is believed that the housing prices will soon level off and slow down but mortgage rate will continue to rise.
-
-
-$~$
-
-
-## Literature Review:
-
-Discuss how other researchers have addressed similar problems, what their achievements are, and what the advantage and drawbacks of each reviewed approach are. Explain how your investigation is similar or different to the state-of-the- art. Please cite the relevant papers where appropriate.
-
-
-[insert text here]
-
-$~$
-
-## Methodology:
-Discuss the key aspects of your problem, data set and regression model(s). Given that you are working on real-world data, explain at a high-level your exploratory data analysis, how you prepared the data for regression modeling, your process for building regression models, and your model selection.
-
-First we assessed the data to get an insight on what we were working with to later determine what multiple linear regression model would be appropriate to use. We knew head on we had to split our data into a training and evaluation set in order to properly make predictions. 
+The housing market pricing changes can be affected by factors such as mortgage rates, inflation, or economic recessions, to name a few. From 1950 to the present, we witness home price fluctuations, with some steady rising periods between 1950s to the late 1980s. According to the article from Better.com (Johnson, 2022), if we start analyzing the median home value we note that house price growth has risen 326.1% since 1950 with a current median home price of $336,900 (inflation-adjusted to 2020 dollars). There was a 90% drop in production of new homes before the Great Depression started, and, in 1956, President Dwight D. Eisenhower passed the Federal Aid Highway Act that enabled the possibility to access a suburban way of life. By 1960, the boom of home ownership caused home prices started to increase. The Federal Housing Administration (FHA) created changes that allowed Americans to afford homes after WWII which contributed to the rise of home ownership and prices. With a median home price increase of 42.8% by the 1970s, the US economy saw inflation rising and, with it, the housing market. Fast forward to the 1980s, when there were high unemployment rates that caused mortgage interest rates to rise even more. During this time, the median home price (inflation-adjusted to 2020 dollars) had an average interest rate for a 30-year fixed mortgage of 13.7%. By the 1990s, the recession had ended and the housing bubble burst affected only major cities like New York, Boston, Los Angeles, San Diego, Washington D.C., and San Francisco. Entering the 21st century, the average interest rate for a 30-year fixed mortgage was down to 8.1%, as another recession was not expected. By 2008, the US faced challenges that pushed more than 10 million Americans to lose their homes and 9 million to lose their jobs. In 2020, the average interest rate for a 30-year fixed mortgage was 3.1%, with a record-setting year for housing prices. Now we can't forget the pandemic of COVID-19 that left many to work from home. How does this contribute to the housing prices? Due to the pandemic, housing prices rose once again only to drop in some cities where the demand for homes wasn't as high. It is believed that housing prices will soon level off and slow down but that mortgage rate will continue to rise.
 
 
 $~$
 
-## Discussion of Findings:
-Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.). Conclude your findings, limitations, and suggest areas for future work.
+
+## Literature Review
+
+While our assessment didn't focus on real estate prices on a longitudinal scale, we evaluated the factors that contribute to prices at a single instant in time. Using various predictors, we built a multivariate linear model to predict housing prices based on a dataset we obtained from Kaggle.com (H., 2022). This approach is not new. Multivariate linear modeling to predict housing prices was done previously by Manjula (2017), Man (2017), and others. Our review of current predictive methodologies indicates a number of other approaches have been taken, including machine-learning (Cuturi & Etchebarne, 2021) and sequential models (Majumder, 2022). We limited our approach to constructing a multivariate linear model from a single dataset using a lean set of predictors.
+
+
+$~$
+
+## Methodology
+
+Our dataset consists of 545 records obtained from Kaggle (H, 2017). First, we assessed the data to get an insight on what we were working with and to later determine what multiple linear regression model would be appropriate to use. We examined various predictors to evaluate qualitatively how they might affect our response variable (price). We also compared predictors against each other to look for signs of colinearity. Our data consists of both quantitative and categorical variables, the latter of which required factoring to use in our modeling. To prepare for modeling, we split our data into a training and evaluation set in order to properly make predictions. We then took the approach of attempting a linear model against the full dataset, followed by stepwise reducing the predictors to a leaner set. At each stage, we examined the adjusted R-squared value to determine model fit. We also evaluated the model to validate the underlying assumptions upon which linear models are based, namely:
+
+* Normality of residuals
+* Homoschedasticity of residuals
+* Independence of predictors
+* Linearity of fit
+
+Based on our initial modeling attempts, there were no problems with linearity of fit or colinearity among the predictors. However, it was evident that the residuals were heteroschedastic and not normally distributed. We attempted to correct for these problems by applying a log transformation to the response variable (price). While this did yield homoschedastic residuals, they remained non-normally distributed. To attempt to correct for this, we attempted a Huber-weighted robust model. While this didn't fully correct the issue, we note that in larger datasets, non-normality of residuals doesn't significant affect model results (Schmidt, 2018), particularly those in which the number of records exceeds ten times the number of predictors. We also examined outliers to evaluate whether there was any trend evident in the data. However, we could discern none, and, therefore, we removed the most significant outliers to attempt a better fit.
+
+
+$~$
+
+## Experimentation and Results
 
 Once we started our data exploration process we found the following: 
 
@@ -72,7 +74,8 @@ Once we started our data exploration process we found the following:
 * We had to split the data into 70-30 ratio to be able to have a training and evaluation data sets.
 * This dataset contains homes with prices above 1 million.
 
-We looked into each variable invidually and found the following:
+We looked into each variable indvidually and found the following:
+
   * Based on the distribution of the number of Bedrooms, it may be best to categorize these with dummy variables; 2, 3, and 4+.
   * Based on the distribution of the number of bathrooms, it may be best to categorize these with dummy variables; 2, and 3+.
   * Based on the distribution of stories, it would seem to make sense to classify homes with 3 or more floors together by introducing dummy variables; 2, and 3+.
@@ -84,7 +87,7 @@ We looked into each variable invidually and found the following:
   * Based on the distribution, we assume that the hot water heating variable represents if the house has in-floor heating, rather than forced air. Based on this assumption, we assume that having this feature would lead to higher house price. The variable will be replaced with a dummy variable for analysis.
   * The air conditioning variable indicates if the house has central air conditioning. We would expect homes with air conditioning would have a higher price than those without. The variable will be replaced with a dummy variable.
   * The dataset source doesn’t specify exactly what this variable represents. We are assuming that this is a yes/no value if the house is in a preferred neighborhood. We would expect houses with a yes to be higher price than those not.
-  
+
 $~$
 
 Once we were ready to start with the data preparation process and knowing there were no missing variables we decided to introduce a clean function to replace our categorical variables with the dummy values. This will also ensure that our test and train datasets are processed in the same way.
@@ -102,37 +105,31 @@ The model building process started with three models created.
  
 
 
-
-
-
 $~$
 
-#### Recommendations:
+#### Discussion and Conclusions
 
 [insert text here]
 
-$~$
-
-#### Limitations:
-
-[insert text here]
 
 $~$
 
-## Conclusion:
-
-[insert text here]
-
-$~$
-
-## References / Bibliography:
-Be sure to cite all references used in the report (APA format).
+## References / Bibliography
 
 * H, M. Y. (2022, January 12). Housing prices dataset. Kaggle. Retrieved November 28, 2022, from https://www.kaggle.com/datasets/yasserh/housing-prices-dataset 
 
 * Schmidt, A. (2018, June). Linear Regression and the normality assumption. Retrieved December 5, 2022, from https://doi.org/10.1016/j.jclinepi.2017.12.006
 
 * Johnson, N. (2022, May 24). How much home prices have risen since 1950: Better Mortgage. Better Mortgage Resources. Retrieved December 5, 2022, from https://better.com/content/how-much-home-prices-have-risen-since-1950/ 
+
+* Majumder, P. (2022, January 27). Using Sequential Model to Predict Prices of Real Estate. Retrieved December 5, 2022, from https://www.analyticsvidhya.com/blog/2022/01/using-sequential-model-to-predict-prices-of-real-estate/
+
+* Cuturi, M. & Etchebarne, G. (2021, June 25). Real Estate pricing with Machine Learning & non-traditional data sources. Retrieved December 5, 2022, from https://tryolabs.com/blog/2021/06/25/real-estate-pricing-with-machine-learning--non-traditional-data-sources
+
+* Man, H. (2017, February 17). Prediction Model-Building a house price model. Retrieved December 5, 2022, from https://medium.com/hanman/data-modeling-building-a-house-price-prediction-model-1450f825073b
+
+* Manjula, R. et al. (2017). Real estate value prediction using multivariate regression models. Retrieved December 5, 2022, from file:///C:/Users/micha/Downloads/Real_estate_value_prediction_using_multivariate_re.pdf
+
 
 $~$
 
