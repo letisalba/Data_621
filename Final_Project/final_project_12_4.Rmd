@@ -1,13 +1,13 @@
 ---
 output:
-  pdf_document:
-    dev: cairo_pdf
-    toc: yes
   html_document:
     theme: flatly
     highlight: textmate
     toc: yes
     toc_float: yes
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -20,93 +20,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ### CUNY SPS DATA 621
 
 #### GROUP 2: William Aiken, Donald Butler, Michael Ippolito, Bharani Nittala, and Leticia Salazar
-
-$~$
-
-## Abstract:
-Use 250 words or less to summarize your problem, methodology, and major outcomes.
-
-[insert text here]
-
-$~$
-
-## Key words:
-Select a few key words (up to five) related to your work.
-
-house prices, linear models, regression, home investment, real estate
-
-$~$
-
-## Introduction:
-Describe the background and motivation of your problem.
-
-[insert text here]
-
-$~$
-
-
-## Literature Review:
-Discuss how other researchers have addressed similar problems, what their achievements are, and what the advantage and drawbacks of each reviewed approach are. Explain how your investigation is similar or different to the state-of-the- art. Please cite the relevant papers where appropriate.
-
-
-[insert text here]
-
-$~$
-
-## Methology:
-Discuss the key aspects of your problem, data set and regression model(s). Given that you are working on real-world data, explain at a high-level your exploratory data analysis, how you prepared the data for regression modeling, your process for building regression models, and your model selection.
-
-[insert text here]
-
-$~$
-
-## Discussion of Findings:
-Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.). Conclude your findings, limitations, and suggest areas for future work.
-
-[insert text here]
-
-$~$
-
-#### Recommendations:
-
-[insert text here]
-
-$~$
-
-#### Limitations:
-
-[insert text here]
-
-$~$
-
-## Conclusion:
-
-[insert text here]
-
-$~$
-
-## References / Bibliography:
-Be sure to cite all references used in the report (APA format).
-
-* H, M. Y. (2022, January 12). Housing prices dataset. Kaggle. Retrieved November 28, 2022, from https://www.kaggle.com/datasets/yasserh/housing-prices-dataset 
-
-* Schmidt, A. (2018, June). Linear Regression and the normality assumption. Retrieved December 5, 2022, from https://doi.org/10.1016/j.jclinepi.2017.12.006
-
-* [insert text here]
-
-$~$
-
-## Appendices:
-* Supplemental tables and/or figures.
-* R statistical programming code.
-
-
-[insert graphs, tables, etc here]
-
-```{r code, eval=FALSE}
-
-```
-
 
 ------------------------------------------------------
 
@@ -178,6 +91,8 @@ Evaluation:
 summary(dfeval)
 ```
 
+$~$
+
 #### Price:  
 It is important to recognize that this dataset contains homes with prices above 1 million. It is not clear that this is a US dataset, which would indicate that this is for luxury homes and/or high value markets.
 
@@ -185,6 +100,7 @@ It is important to recognize that this dataset contains homes with prices above 
 options(scipen=5)
 hist(dftrain$price / 10^6, main = 'Distribution of Price', xlab = 'Price in millions')
 ```
+$~$
 
 #### Area:  
 The area variable appears to be square footage of the home. We would traditionally expect that increases in area would lead to increases in price.
@@ -193,6 +109,8 @@ The area variable appears to be square footage of the home. We would traditional
 hist(dftrain$area, main = 'Distribution of Area', xlab = 'Area in Square Feet')
 
 ```
+
+$~$
 
 #### Bedrooms:  
 While we expect increases in the number of bedrooms to increase the price, we also realize that at some point there are diminishing returns that an additional bedroom doesn't have as much of an impact. For example, increasing from one to two bedrooms should have significant increase in price, while increasing from four to five, perhaps not so much.
@@ -203,6 +121,8 @@ dftrain %>% count(bedrooms)
 
 Based on the distribution of the number of Bedrooms, it may be best to categorize these with dummy variables; 2, 3, and 4+.
 
+$~$
+
 #### Bathrooms:  
 Similar to the number of bedrooms, we would expect that an increase in bathroom count would lead to increases in price. Although similarly, having more than four bathrooms is likely going to lead to smaller increases.
 
@@ -212,12 +132,16 @@ dftrain %>% count(bathrooms)
 
 Based on the distribution of the number of bathrooms, it may be best to categorize these with dummy variables; 2, and 3+.
 
+$~$
+
 #### Stories:  
 Similar to the number of bedrooms and bathrooms, it would seem to make sense to classify homes with 3 or more floors together by introducing dummy variables; 2, and 3+.
 
 ```{r stories, echo=FALSE}
 dftrain %>% count(stories)
 ```
+
+$~$
 
 #### Parking:  
 We are assuming that the parking variable represents the size of a garage. Similar to other variable the increase in price from no garage to a one car garage would be significant, while additional cars would add some lesser value. It would initially seem to make sense to introduce dummy variables; 1, and 2+.
@@ -226,12 +150,16 @@ We are assuming that the parking variable represents the size of a garage. Simil
 dftrain %>% count(parking)
 ```
 
+$~$
+
 #### Furnishing Status:  
 The furnishing status variable is taking on three values; unfurnished, semi-furnished, and furnished. Since we would consider unfurnished as the default state, we will use dummy variables; semi-furnished and furnished.
 
 ```{r furnishingstatus, echo=FALSE}
 dftrain %>% count(furnishingstatus)
 ```
+
+$~$
 
 #### Main Road:  
 The main road variable is yes/no based on the street of the home. We will replace this with a dummy variable.
@@ -240,12 +168,16 @@ The main road variable is yes/no based on the street of the home. We will replac
 dftrain %>% count(mainroad)
 ```
 
+$~$
+
 #### Guest Room:  
 The guest room variable is yes/no based on the home having a guest room. It is unclear from the dataset source if this is in addition to the number of bedrooms, but we would expect houses with a guest room to have a higher price. We will replace this with a dummy variable.
 
 ```{r guestroom, echo=FALSE}
 dftrain %>% count(guestroom)
 ```
+
+$~$
 
 #### Basement:  
 The basement variable is yes/no based on the home having a basement. It is unclear if having a basement or not would lead to an increase in home price, but we will replace this with a dummy variable for analysis.
@@ -254,12 +186,16 @@ The basement variable is yes/no based on the home having a basement. It is uncle
 dftrain %>% count(basement)
 ```
 
+$~$
+
 #### Hot Water Heating:  
 Based on the distribution, we assume that the hot water heating variable represents if the house has in-floor heating, rather than forced air. Based on this assumption, we assume that having this feature would lead to higher house price. The variable will be replaced with a dummy variable for analysis.
 
 ```{r hotwaterheating, echo=FALSE}
 dftrain %>% count(hotwaterheating)
 ```
+
+$~$
 
 #### Air Conditioning:  
 The air conditioning variable indicates if the house has central air conditioning. We would expect homes with air conditioning would have a higher price than those without. The variable will be replaced with a dummy variable.
@@ -268,12 +204,16 @@ The air conditioning variable indicates if the house has central air conditionin
 dftrain %>% count(airconditioning)
 ```
 
+$~$
+
 #### Preferential Area:  
 The dataset source doesn't specify exactly what this variable represents. We are assuming that this is a yes/no value if the house is in a preferred neighborhood. We would expect houses with a yes to be higher price than those not.
 
 ```{r prefarea, echo=FALSE}
 dftrain %>% count(prefarea)
 ```
+
+$~$
 
 ### Data Preparation:
 
@@ -314,11 +254,12 @@ dfeval_clean <- fun_clean_df(dfeval)
 
 ```
 
+$~$
 
 ### Data Visualization:
 
 Visual evaluation:
-```{r, echo=FALSE, fig.width=11}
+```{r, echo=FALSE, fig.width=12}
 
 # Compare quantitative variables
 pairs(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')])
@@ -343,9 +284,11 @@ boxplot(price ~ parking, data=dftrain)
 
 ```
 
+$~$
+
 #### Histogram of house prices
 
-```{r histogram, warning=FALSE, message=FALSE}
+```{r histogram, warning=FALSE, message=FALSE, echo=FALSE}
 
 # Draw a histogram to figure out the distribution of Sale Price
 options(scipen=10000)
@@ -357,6 +300,8 @@ ggplot(dftrain_clean, aes(x = price, fill = ..count..)) +
   theme(plot.title = element_text(hjust = 0.9))
 
 ```
+
+$~$
 
 #### Correlation Plot:  
 
@@ -381,7 +326,7 @@ $~$
 
 #### Multiple Linear Regression Models
 
-```{r}
+```{r, echo=FALSE}
 #partition data
 #set.seed(10000)
 #train.index <- sample(c(1:dim(dftrain_clean)[1]), dim(dftrain_clean)[1]*0.8)
@@ -390,23 +335,27 @@ $~$
 model_lin_train <- dftrain_clean
 ```
 
+$~$
 
 #### MLR Model 1
-
-
-```{r}
+```{r, echo=FALSE}
 lm_mod1 <- lm(price ~., data = model_lin_train)
 aic_lm_mod1 = AIC(lm_mod1)
 summary(lm_mod1)
 ```
 
+$~$
+
 #### MLR Model 2
-```{r}
+```{r, echo=FALSE}
 lm_mod2 <- stepAIC(lm_mod1, trace = F)
 aic_lm_mod2 = AIC(lm_mod2)
 summary(lm_mod2)
 ```
 
+$~$
+
+#### MLR Model 3
 ```{r, echo=FALSE, warning=FALSE}
 ## reduce collinearity, and remove low values
 
@@ -536,8 +485,10 @@ ModelAnalysis(lm_mod3)
 
 ```
 
+$~$
+
 Due to non-normal distribution and heteroschedasticity of residuals, try a transform. Use Box-Cox to estimate what kind of transform is appropriate.
-```{r}
+```{r, echo=FALSE}
 
 # Box-Cox transform on price
 bc1 <- powerTransform(price ~ ., data=model_lin_train)
@@ -552,16 +503,20 @@ ModelAnalysis(lm_mod5)
 
 ```
 
+$~$
+
 Investigate outliers.
-```{r}
+```{r, echo=FALSE}
 
 # Investigate top outliers
 model_lin_train[c(2, 5, 9, 25, 49, 62, 77, 103, 110, 136, 210),]
 
 ```
 
+$~$
+
 Investigation of outliers reveals no obvious pattern, so we have to assume there is some other variable at play that we don't have data for (e.g. high-end appliances, presence of a pool, property condition, etc). Well' remove the outliers and re-run model.
-```{r}
+```{r, echo=FALSE}
 
 # Log transform on price with outliers removed
 lm_mod6 <- lm(formula(lm_mod5), 
@@ -574,8 +529,10 @@ ModelAnalysis(lm_mod7)
 
 ```
 
+$~$
+
 Residuals are still not normally distributed. Use robust regression to try addressing non-normality.
-```{r}
+```{r, echo=FALSE}
 
 # Huber robust linear regression
 lm_mod8 <- rlm(formula(lm_mod7), data=model_lin_train)
@@ -596,8 +553,10 @@ ModelAnalysis(lm_mod10)
 
 ```
 
+$~$
+
 Perform five-fold cross validation to validate our results.
-```{r}
+```{r, echo=FALSE}
 
 # Five-fold cross validation
 set.seed(777)
@@ -608,8 +567,10 @@ summary(lmcv)
 
 ```
 
+$~$
+
 Run selected model against validation set.
-```{r}
+```{r, echo=FALSE}
 
 # Huber robust linear regression
 lm_valid1 <- lm(formula(lm_mod7), data=dfeval_clean)
@@ -621,7 +582,10 @@ ModelAnalysis(lm_valid2)
 
 ```
 
-```{r}
+$~$
+
+Our model comparison below:
+```{r, echo=FALSE}
 
 # Model comparison
 hdr <- c('#', 'Train/Validation', 'Linear/Robust', 'Full/Step-reduced', 'Log Transform', 
