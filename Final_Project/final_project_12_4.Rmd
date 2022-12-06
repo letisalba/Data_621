@@ -569,6 +569,20 @@ summary(lmcv)
 
 $~$
 
+Compare predicted price to actual price for the training data.
+```{r message=FALSE, warning=FALSE}
+
+# Compare predicted price to actual (training data)
+model_lin_train$pred_price <- exp(predict(lm_mod10, weights=lm_mod8$w, data=model_lin_train, interval='prediction')[,1])
+model_lin_train %>% ggplot(mapping=aes(x=price, y=pred_price)) +
+    geom_point() +
+    geom_smooth(method='lm', se=T) +
+    xlab('Price') + ylab('Predicted Price')
+
+```
+
+$~$
+
 Run selected model against validation set.
 ```{r, echo=FALSE}
 
@@ -579,6 +593,20 @@ lm_valid1 <- lm(formula(lm_mod7), data=dfeval_clean)
 lm_valid2 <- lm(formula(lm_mod7), weights=lm_valid1$w, data=dfeval_clean)
 summary(lm_valid2)
 ModelAnalysis(lm_valid2)
+
+```
+
+$~$
+
+Compare predicted price to actual price for the evaluation data.
+```{r message=FALSE, warning=FALSE}
+
+# Compare predicted price to actual (eval data)
+dfeval_clean$pred_price <- exp(predict(lm_valid2, weights=lm_valid1$w, data=dfeval_clean, interval='prediction')[,1])
+dfeval_clean %>% ggplot(mapping=aes(x=price, y=pred_price)) +
+    geom_point() +
+    geom_smooth(method='lm', se=T) +
+    xlab('Price') + ylab('Predicted Price')
 
 ```
 
