@@ -38,6 +38,7 @@ library(car)
 library(lmtest)
 library(olsrr)
 library(caret)
+library(kableExtra)
 ```
 
 ### Load Data:
@@ -54,7 +55,10 @@ sample <- sample(c(TRUE, FALSE), nrow(house_prices), replace=TRUE, prob=c(0.7,0.
 dftrain  <- house_prices[sample, ]
 dfeval   <- house_prices[!sample, ]
 
-head(dftrain)
+head(dftrain) %>%
+    kable(caption = "<font color=#000000><b>Table 1.</b> Training data sample</font>") %>% 
+    kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 13)
+
 ```
 
 $~$
@@ -96,17 +100,34 @@ $~$
 #### Price:  
 It is important to recognize that this dataset contains homes with prices above 1 million. It is not clear that this is a US dataset, which would indicate that this is for luxury homes and/or high value markets.
 
-```{r price, echo=FALSE, warning=FALSE, error=FALSE}
-options(scipen=5)
-hist(dftrain$price / 10^6, main = 'Distribution of Price', xlab = 'Price in millions')
+```{r histogram, warning=FALSE, message=FALSE, echo=FALSE}
+
+# Draw a histogram to figure out the distribution of Sale Price
+options(scipen=10000)
+ggplot(dftrain, aes(x = price / 10^6, fill = ..count..)) +
+  geom_histogram() +
+  ggtitle("Figure 1. Histogram of Price") +
+  ylab("Count of houses") +
+  xlab("Housing Price in Millions") + 
+  theme(plot.title = element_text(hjust = 0.9))
+
 ```
+
 $~$
 
 #### Area:  
 The area variable appears to be square footage of the home. We would traditionally expect that increases in area would lead to increases in price.
 
-```{r area, echo=FALSE, warning=FALSE, error=FALSE}
-hist(dftrain$area, main = 'Distribution of Area', xlab = 'Area in Square Feet')
+```{r area, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+
+# Draw a histogram to figure out the distribution of Area
+options(scipen=10000)
+ggplot(dftrain, aes(x = area, fill = ..count..)) +
+  geom_histogram() +
+  ggtitle("Figure 2. Histogram of Area") +
+  ylab("Count of houses") +
+  xlab("Area in Square Feet") + 
+  theme(plot.title = element_text(hjust = 0.9))
 
 ```
 
@@ -259,11 +280,11 @@ $~$
 ### Data Visualization:
 
 Visual evaluation:
-```{r, echo=FALSE, fig.width=12}
+```{r, echo=FALSE, fig.width=10}
 
 # Compare quantitative variables
-pairs(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')])
-corrplot(cor(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')], use = 'complete.obs'), tl.cex = 0.5)
+pairs(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')], main='Figure 3. Comparison of quantiative variables')
+#corrplot(cor(dftrain[, c('price', 'area', 'bedrooms', 'bathrooms', 'stories', 'parking')], use = 'complete.obs'), tl.cex = 0.5)
 
 # Compare nominal categorical variables to price
 par(mfrow=c(3, 3))
@@ -274,6 +295,7 @@ boxplot(price ~ hotwaterheating, data=dftrain)
 boxplot(price ~ airconditioning, data=dftrain)
 boxplot(price ~ prefarea, data=dftrain)
 boxplot(price ~ furnishingstatus, data=dftrain)
+mtext(expression(bold("Figure 4. Comparison of nominal categorical variables")), side=3, line=-1.5, outer=T)
 
 # Compare ordinal categorical variables
 par(mfrow=c(2, 2))
@@ -281,23 +303,7 @@ boxplot(price ~ bedrooms, data=dftrain)
 boxplot(price ~ bathrooms, data=dftrain)
 boxplot(price ~ stories, data=dftrain)
 boxplot(price ~ parking, data=dftrain)
-
-```
-
-$~$
-
-#### Histogram of house prices
-
-```{r histogram, warning=FALSE, message=FALSE, echo=FALSE}
-
-# Draw a histogram to figure out the distribution of Sale Price
-options(scipen=10000)
-ggplot(dftrain_clean, aes(x = price, fill = ..count..)) +
-  geom_histogram() +
-  ggtitle("Figure 1 Histogram of Price") +
-  ylab("Count of houses") +
-  xlab("Housing Price") + 
-  theme(plot.title = element_text(hjust = 0.9))
+mtext(expression(bold("Figure 5. Comparison of ordinal categorical variables")), side=3, line=-1.5, outer=T)
 
 ```
 
@@ -314,7 +320,8 @@ corrplot(cor_res,
          order = "original",
          tl.col = "black",
          tl.srt = 50,
-         tl.cex = 1)
+         tl.cex = 1,
+         main = "Figure 6. Correlation Plot")
 ```
 
 The correlation plot generally confirms our initial expectations for the data. 
@@ -358,7 +365,6 @@ $~$
 #### MLR Model 3
 ```{r, echo=FALSE, warning=FALSE}
 # reduce collinearity, and remove low values
-
 lm_mod3 <- lm(price ~ area + guestroom + basement + bath2 + bath3 + 
     bath4plus + floor2 + floor3 + floor4plus + car1 + car2 + 
     car3plus + semifurnished + furnished + ac + neighborhood 
@@ -372,7 +378,7 @@ $~$
 ### Model Selection:
 
 Verify linear modeling assumptions:
-```{r, fig.width=12, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, fig.width=10, echo=FALSE, warning=FALSE, message=FALSE}
 
 # Define function to calculate mean squared error
 calc_mse <- function(lmod) {
@@ -380,13 +386,14 @@ calc_mse <- function(lmod) {
 }
 
 # Define function to aid in model analysis
-ModelAnalysis <- function(lmod) {
+ModelAnalysis <- function(lmod, plot_title) {
 
   # Plot residuals
   print('--------------------------------------------------')
   print(lmod$call)
   par(mfrow=c(2,2))
   plot(lmod)
+  mtext(bquote(bold(.(plot_title))), side=3, line=-1.5, outer=T)
   print('')
 
   # Shapiro test to determine normality of residuals
@@ -480,15 +487,15 @@ ModelAnalysis <- function(lmod) {
 }
 
 # Analysis on the two step-reduced models
-ModelAnalysis(lm_mod2)
-ModelAnalysis(lm_mod3)
+ModelAnalysis(lm_mod2, 'Figure 7. Residual Analysis - Model 2')
+ModelAnalysis(lm_mod3, 'Figure 8. Residual Analysis - Model 3')
 
 ```
 
 $~$
 
 Due to non-normal distribution and heteroschedasticity of residuals, try a transform. Use Box-Cox to estimate what kind of transform is appropriate.
-```{r, echo=FALSE}
+```{r, fig.width=10, echo=FALSE}
 
 # Box-Cox transform on price
 bc1 <- powerTransform(price ~ ., data=model_lin_train)
@@ -499,7 +506,7 @@ lm_mod4 <- lm(log(price) ~ ., data=model_lin_train)
 summary(lm_mod4)
 lm_mod5 <- stepAIC(lm_mod4, trace=F)
 summary(lm_mod5)
-ModelAnalysis(lm_mod5)
+ModelAnalysis(lm_mod5, 'Figure 9. Residual Analysis - Model 5')
 
 ```
 
@@ -509,14 +516,16 @@ Investigate outliers.
 ```{r, echo=FALSE}
 
 # Investigate top outliers
-model_lin_train[c(2, 5, 9, 25, 49, 62, 77, 103, 110, 136, 210),]
+model_lin_train[c(2, 5, 9, 25, 49, 62, 77, 103, 110, 136, 210),] %>%
+    kable(caption = "<font color=#000000><b>Table 2.</b> Outliers</font>") %>% 
+    kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 13)
 
 ```
 
 $~$
 
 Investigation of outliers reveals no obvious pattern, so we have to assume there is some other variable at play that we don't have data for (e.g. high-end appliances, presence of a pool, property condition, etc). Well remove the outliers and re-run model.
-```{r, echo=FALSE}
+```{r, fig.width=10, echo=FALSE}
 
 # Log transform on price with outliers removed
 lm_mod6 <- lm(formula(lm_mod5), 
@@ -524,7 +533,7 @@ lm_mod6 <- lm(formula(lm_mod5),
 summary(lm_mod6)
 lm_mod7 <- stepAIC(lm_mod6, trace=F)
 summary(lm_mod7)
-ModelAnalysis(lm_mod7)
+ModelAnalysis(lm_mod7, 'Figure 10. Residual Analysis - Model 7')
 
 
 ```
@@ -532,24 +541,31 @@ ModelAnalysis(lm_mod7)
 $~$
 
 Residuals are still not normally distributed. Use robust regression to try addressing non-normality.
-```{r, echo=FALSE}
+```{r, fig.width=10, echo=FALSE, warning=FALSE, message=FALSE}
 
 # Huber robust linear regression
 lm_mod8 <- rlm(formula(lm_mod7), data=model_lin_train)
 dftmp <- data.frame(cbind(price=model_lin_train$price, huber_weight=lm_mod8$w))
 dftmp <- dftmp %>% arrange(huber_weight, ascending=F)
-hist(dftmp$huber_weight, xlab='Huber weight', main='Histogram of Huber Weights')
+#hist(dftmp$huber_weight, xlab='Huber weight', main='Histogram of Huber Weights')
+options(scipen=10000)
+ggplot(dftmp, aes(x = huber_weight, fill = ..count..)) +
+  geom_histogram() +
+  ggtitle("Figure 11. Histogram of Huber Weights") +
+  ylab("Frequency") +
+  xlab("Huber weight") + 
+  theme(plot.title = element_text(hjust = 0.9))
 
 # New linear model using Huber weights
 lm_mod9 <- lm(formula(lm_mod7), weights=lm_mod8$w, data=model_lin_train)
 summary(lm_mod9)
-ModelAnalysis(lm_mod9)
+ModelAnalysis(lm_mod9, 'Figure 12. Residual Analysis - Model 9')
 
 # Remove most significant outliers
 lm_mod10 <- lm(formula(lm_mod7), weights=lm_mod8$w[c(-53, -68, -87, -90, -103)], 
     data=model_lin_train[c(-53, -68, -87, -90, -103),])
 summary(lm_mod10)
-ModelAnalysis(lm_mod10)
+ModelAnalysis(lm_mod10, 'Figure 13. Residual Analysis - Model 10')
 
 ```
 
@@ -569,23 +585,53 @@ summary(lmcv)
 
 $~$
 
+Compare predicted price to actual price for the training data.
+```{r message=FALSE, warning=FALSE}
+
+# Compare predicted price to actual (training data)
+model_lin_train$pred_price <- exp(predict(lm_mod10, weights=lm_mod8$w, data=model_lin_train, interval='prediction')[,1])
+model_lin_train %>% ggplot(mapping=aes(x=price, y=pred_price)) +
+    geom_point() +
+    geom_smooth(method='lm', se=T) +
+    xlab('Price') + ylab('Predicted Price') +
+    ggtitle('Figure 14. Predicted Price vs Price (Training Data)')
+
+```
+
+$~$
+
 Run selected model against validation set.
-```{r, echo=FALSE}
+```{r, fig.width=10, echo=FALSE}
 
 # Huber robust linear regression
-lm_valid1 <- lm(formula(lm_mod7), data=dfeval_clean)
+lm_valid1 <- rlm(formula(lm_mod7), data=dfeval_clean)
 
 # New linear model using Huber weights
 lm_valid2 <- lm(formula(lm_mod7), weights=lm_valid1$w, data=dfeval_clean)
 summary(lm_valid2)
-ModelAnalysis(lm_valid2)
+ModelAnalysis(lm_valid2, 'Figure 15. Residual Analysis - Validation Set')
+
+```
+
+$~$
+
+Compare predicted price to actual price for the evaluation data.
+```{r message=FALSE, warning=FALSE}
+
+# Compare predicted price to actual (eval data)
+dfeval_clean$pred_price <- exp(predict(lm_valid2, weights=lm_valid1$w, data=dfeval_clean, interval='prediction')[,1])
+dfeval_clean %>% ggplot(mapping=aes(x=price, y=pred_price)) +
+    geom_point() +
+    geom_smooth(method='lm', se=T) +
+    xlab('Price') + ylab('Predicted Price') +
+    ggtitle('Figure 16. Predicted Price vs Price (Validation Data)')
 
 ```
 
 $~$
 
 Our model comparison below:
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=10}
 
 # Model comparison
 hdr <- c('#', 'Train/Validation', 'Linear/Robust', 'Full/Step-reduced', 'Log Transform', 
@@ -611,7 +657,9 @@ f8 <- round(c(
     summary(lm_valid2)$adj.r.squared), 3)
 dfresult <- data.frame(f1, f2, f3, f4, f5, f6, f7, f8)
 colnames(dfresult) <- hdr
-dfresult
+dfresult %>%
+    kable(caption = "<font color=#000000><b>Table 3.</b> Summary of results</font>") %>% 
+    kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 13)
 
 
 ```
