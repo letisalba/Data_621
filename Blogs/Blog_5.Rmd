@@ -1,18 +1,154 @@
 ---
 title: "Data 621 - Blog 5"
 author: "Leticia Salazar"
-date: "`r Sys.Date()`"
-output: 
+date: "December 8, 2022"
+output:
   html_document:
     theme: lumen
     highlight: monochrome
-    toc: True
+    toc: yes
     toc_float: yes
     toc_depth: 3
+  pdf_document:
+    dev: cairo_pdf
+    toc: yes
+    toc_depth: '3'
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+$~$
 
-## Title of Blog:
+## Non-parametric test - Wilcoxon Signed Rank:
+
+For this final blog I decided to dig more into non-parametric tests that was mentioned in the weekly video for the class. Non-parametric tests is a method of statistical analysis that does not require a normally distributed data. It serves an alternative to parametric tests such as T-test or ANOVA.
+
+$~$
+
+When to use non-parametric tests?:
+
+* When your data isn't normally distributed
+* For nominal scales or ordinal scales
+* One or more assumptions of parametric tests have been violated
+* Your sample size is too small to run parametric test
+* Your data has outliers that cannot be removed
+* You want to test for the median rather than the mean (very skewed distribution)
+
+$~$
+
+The main nonparametric tests are:
+
+* 1-sample sign test. Use this test to estimate the median of a population and compare it to a reference value or target value.
+* 1-sample Wilcoxon signed rank test. With this test, you also estimate the population median and compare it to a reference/target value. However, the test assumes your data comes from a symmetric distribution (like the Cauchy distribution or uniform distribution).
+* Friedman test. This test is used to test for differences between groups with ordinal dependent variables. It can also be used for continuous data if the one-way ANOVA with repeated measures is inappropriate (i.e. some assumption has been violated).
+* Goodman Kruska’s Gamma: a test of association for ranked variables.
+* Kruskal-Wallis test. Use this test instead of a one-way ANOVA to find out if two or more medians are different. Ranks of the data points are used for the calculations, rather than the data points themselves.
+* The Mann-Kendall Trend Test looks for trends in time-series data.
+* Mann-Whitney test. Use this test to compare differences between two independent groups when dependent variables are either ordinal or continuous.
+* Mood’s Median test. Use this test instead of the sign test when you have two independent samples.
+* Spearman Rank Correlation.Use when you want to find a correlation between two sets of data.
+
+$~$
+
+There can be some disadvantages to non-parametric tests:
+
+* Less powerful than parametric tests if assumptions haven’t been violated.
+* More labor-intensive to calculate by hand (for computer calculations, this isn’t an issue).
+* Critical value tables for many tests aren’t included in many computer software packages. This is compared to tables for parametric tests (like the z-table or t-table) which usually are included.
+
+
+Lets put one of these non-parametric tests to the test in R. I will be using the 1-sample Wilcoxon signed rank test.
+
+### Load libraries
+
+Below is the libraries used for this case:
+```{r load libraries, warning=FALSE, message=FALSE}
+library(stats) # wilcox.test()
+library(ggplot2)
+library(hrbrthemes)
+```
+
+
+We first create our values to use and then using the `wilcox.test()` we can start testing.
+
+To check if we can reject our null or alternate hypotheses our significance level alpha must be less than 0.05.
+
+$~$
+
+Other parameters: 
+
+* x: a numeric vector containing your data values
+* mu: the theoretical mean/median value. Default is 0 but you can change it.
+* alternative: the alternative hypothesis. Allowed value is one of “two.sided” (default), “greater” or “less”.
+
+$~$
+
+### Load data:
+
+```{r}
+# The data set
+set.seed(1234)
+myData = data.frame(
+name = paste0(rep("R_", 10), 1:10),
+weight = round(rnorm(10, 30, 2), 1)
+)
+ 
+# Print the data
+myData
+```
+
+$~$
+
+The distribution:
+```{r}
+ggplot(myData, aes(x=weight)) + 
+  geom_histogram(binwidth=2, fill="#69b3a2", color="#e9ecef", alpha=0.9) + 
+  theme_ipsum()
+```
+
+$~$
+
+\newpage
+
+### Perform test:
+
+```{r, warning=FALSE}
+# One-sample wilcoxon test 1
+wilcox.test(myData$weight, mu = 25)
+```
+
+
+```{r, warning=FALSE}
+# One-sample wilcoxon test 2
+wilcox.test(myData$weight, mu = 25,
+            alternative = "less") # testing if the median is less than 25
+```
+
+```{r, warning=FALSE}
+# One-sample wilcoxon test 3
+wilcox.test(myData$weight, mu = 25,
+            alternative = "greater") # testing if the median is greater than 25
+```
+
+$~$
+
+After creating 3 different tests we notice the following:
+
+* test 1 has a p-value of 0.005793 which is less than the significance level alpha of 0.05 therefore, we safely reject the null hypothesis.
+* test 2 has a p-value of  0.9979 which is more than the significance level alpha of 0.05 therefore, we cannot reject the null hypothesis.
+* test 3 has a p-value of 0.002897 which is less than the significance level alpha of 0.05 therefore, we can safely reject the null hypothesis.
+
+$~$
+
+### References:
+
+* Non parametric data and tests (distribution free tests). Statistics How To. (2021, May 31). Retrieved November 26, 2022, from https://www.statisticshowto.com/probability-and-statistics/statistics-definitions/parametric-and-non-parametric-data/
+
+* Glen, S. (n.d.). Wilcoxon signed rank test: Definition, how to run, SPSS. Statistics How To. Retrieved December 8, 2022, from https://www.statisticshowto.com/probability-and-statistics/statistics-definitions/wilcoxon-signed-rank-test/ 
+
+* Rout, A. R. (2021, December 23). Wilcoxon signed rank test in R programming. GeeksforGeeks. Retrieved December 8, 2022, from https://www.geeksforgeeks.org/wilcoxon-signed-rank-test-in-r-programming/ 
+
+* Mangiafico., S. S. (2015). Wilcoxon signed-rank test. R Companion: Wilcoxon Signed-rank Test. Retrieved December 8, 2022, from http://rcompanion.org/rcompanion/d_10.html 
+
+* Wilcoxon signed rank test in R programming. GeeksforGeeks. (2021, December 23). Retrieved December 8, 2022, from https://www.geeksforgeeks.org/wilcoxon-signed-rank-test-in-r-programming/ 
