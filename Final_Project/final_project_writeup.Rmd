@@ -168,7 +168,7 @@ $~$
 
 ### Appendix A. Figures:
 ```{r, out.width="80%", fig.align="center", warning=FALSE, message=FALSE, echo=FALSE}
-wd <- "C:/Users/micha/Box Sync/cuny/621-bus-analytics/project/figs/"
+wd <- "/Users/letisalba/Desktop/Data_621/Final_Project/figs/"
 knitr::include_graphics(paste0(wd, "fig1.png"))
 knitr::include_graphics(paste0(wd, "fig2.png"))
 knitr::include_graphics(paste0(wd, "fig3.png"))
